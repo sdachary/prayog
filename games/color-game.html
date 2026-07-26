@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Game — Narad</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg, #1e293b, #0f172a); min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 1rem; color: #e0e0e0; }
+  .game { background: rgba(255,255,255,0.06); backdrop-filter: blur(12px); border-radius: 2rem; padding: 2rem; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08); text-align: center; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+  .title { font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, #f59e0b, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .back-link { color: #888; font-size: 0.85rem; text-decoration: none; padding: 0.3rem 0.8rem; border-radius: 100px; background: rgba(255,255,255,0.06); }
+  .back-link:hover { background: rgba(255,255,255,0.12); color: #f59e0b; }
+  .color-box { width: 180px; height: 180px; border-radius: 2rem; margin: 1.5rem auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; transition: all 0.4s; border: 2px solid rgba(255,255,255,0.1); }
+  .color-box.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border-color: #ef4444; }
+  .color-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border-color: #3b82f6; }
+  .color-box.hidden { background: rgba(255,255,255,0.04); color: transparent; border-color: rgba(255,255,255,0.06); }
+  .color-box.reveal { animation: pop 0.3s; }
+  @keyframes pop { 0% { transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+  .guess-btns { display: flex; gap: 1rem; justify-content: center; margin: 1.5rem 0; }
+  .guess-btn { padding: 1rem 2rem; border-radius: 100px; border: 2px solid; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; background: transparent; min-width: 120px; }
+  .guess-btn:hover { transform: scale(1.05); }
+  .guess-btn.red { color: #ef4444; border-color: #ef4444; }
+  .guess-btn.red:hover { background: rgba(239,68,68,0.15); }
+  .guess-btn.blue { color: #3b82f6; border-color: #3b82f6; }
+  .guess-btn.blue:hover { background: rgba(59,130,246,0.15); }
+  .guess-btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+  .guess-btn.red:disabled { background: rgba(239,68,68,0.15); }
+  .guess-btn.blue:disabled { background: rgba(59,130,246,0.15); }
+  .stats { display: flex; justify-content: center; gap: 2rem; margin: 1rem 0; }
+  .stat-box { text-align: center; }
+  .stat-box .num { font-size: 2rem; font-weight: 800; }
+  .stat-box .num.streak { background: linear-gradient(135deg, #f59e0b, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat-box .num.correct { color: #4ade80; }
+  .stat-box .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+  .msg { font-size: 0.9rem; padding: 0.6rem 1rem; border-radius: 10px; margin: 0.5rem 0; min-height: 2.5rem; }
+  .msg.ok { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .msg.fail { background: rgba(248,113,113,0.15); color: #f87171; }
+  .msg.info { background: rgba(251,191,36,0.15); color: #f59e0b; }
+  .next-btn { padding: 0.6rem 2rem; border-radius: 100px; border: none; background: linear-gradient(135deg, #f59e0b, #d97706); color: #1a1a1a; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 0.5rem; display: none; }
+  .next-btn:hover { transform: scale(1.05); }
+  .best { font-size: 0.8rem; color: #666; margin-top: 1rem; }
+  .round { font-size: 0.85rem; color: #888; margin-bottom: 0.5rem; }
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="header">
+    <div class="title">🎨 Color Game</div>
+    <a href="./" class="back-link">← Back</a>
+  </div>
+
+  <div class="round">Round <span id="roundNum">1</span></div>
+
+  <div class="color-box hidden" id="colorBox">?</div>
+
+  <p style="color:#888;font-size:0.9rem;margin-bottom:0.5rem;">Will it be <span style="color:#ef4444;">Red</span> or <span style="color:#3b82f6;">Blue</span>?</p>
+
+  <div class="guess-btns">
+    <button class="guess-btn red" id="redBtn" onclick="guess('red')">🔴 Red</button>
+    <button class="guess-btn blue" id="blueBtn" onclick="guess('blue')">🔵 Blue</button>
+  </div>
+
+  <div class="msg info" id="msgArea">Click a color to guess!</div>
+
+  <button class="next-btn" id="nextBtn" onclick="nextRound()">▶ Next Round</button>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="num streak" id="streakNum">0</div>
+      <div class="label">Streak</div>
+    </div>
+    <div class="stat-box">
+      <div class="num correct" id="correctNum">0</div>
+      <div class="label">Correct</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="totalNum" style="color:#888;">0</div>
+      <div class="label">Total</div>
+    </div>
+  </div>
+
+  <div class="best">🏆 Best Streak: <span id="bestStreak">0</span></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@sentry/browser@8"></script>
+<script>
+Sentry.init({
+  dsn: 'https://72cc148a47b87a0356b1db9dbc28b1ec@o4511755199774720.ingest.us.sentry.io/4511755229069312',
+  environment: 'production',
+  tracesSampleRate: 0.2,
+});
+
+let state = { streak: 0, correct: 0, total: 0, current: null, locked: false };
+
+function loadBest() {
+  return parseInt(localStorage.getItem("cg_best") || "0");
+}
+
+function saveBest(n) {
+  if (n > loadBest()) localStorage.setItem("cg_best", JSON.stringify(n));
+}
+
+function renderBest() {
+  document.getElementById("bestStreak").textContent = loadBest();
+}
+
+function newColor() {
+  const n = Math.floor(Math.random() * 13) + 1;
+  return n % 2 === 0 ? "red" : "blue";
+}
+
+function nextRound() {
+  state.current = newColor();
+  state.locked = false;
+  const box = document.getElementById("colorBox");
+  box.className = "color-box hidden";
+  box.textContent = "?";
+  document.getElementById("redBtn").disabled = false;
+  document.getElementById("blueBtn").disabled = false;
+  document.getElementById("nextBtn").style.display = "none";
+  document.getElementById("msgArea").textContent = "Red or Blue?";
+  document.getElementById("msgArea").className = "msg info";
+  document.getElementById("roundNum").textContent = state.total + 1;
+}
+
+function guess(chosen) {
+  if (state.locked) return;
+  state.locked = true;
+  state.total++;
+  document.getElementById("redBtn").disabled = true;
+  document.getElementById("blueBtn").disabled = true;
+
+  const box = document.getElementById("colorBox");
+  box.className = "color-box " + state.current + " reveal";
+  box.textContent = state.current === "red" ? "🔴" : "🔵";
+
+  const correct = chosen === state.current;
+  const msg = document.getElementById("msgArea");
+
+  if (correct) {
+    state.streak++;
+    state.correct++;
+    msg.textContent = "✅ Correct! It was " + state.current + "!";
+    msg.className = "msg ok";
+  } else {
+    state.streak = 0;
+    msg.textContent = "❌ Wrong! It was " + state.current + " (you guessed " + chosen + ")";
+    msg.className = "msg fail";
+  }
+
+  document.getElementById("streakNum").textContent = state.streak;
+  document.getElementById("correctNum").textContent = state.correct;
+  document.getElementById("totalNum").textContent = state.total;
+
+  saveBest(state.streak);
+  renderBest();
+
+  document.getElementById("nextBtn").style.display = "inline-block";
+}
+
+nextRound();
+renderBest();
+</script>
+</body>
+</html>

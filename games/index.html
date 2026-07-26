@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Narad — tools</title>
+<title>Games — Narad</title>
 <style>
   :root{
     --bg: #0b0f14;
@@ -56,37 +56,28 @@
   .tool-name span{ color:var(--amber); }
   .tool-desc{ font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:6px; }
   footer{ max-width:560px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:10.5px; margin-top:32px; line-height:1.6; }
+  .back{ display:inline-block; margin-bottom:24px; font-family:var(--mono); font-size:11px; color:var(--muted); text-decoration:none; }
+  .back:hover{ color:var(--amber); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">NARAD<span>//</span>TOOLS</div>
-    <div class="sub">standalone browser utilities</div>
+    <a href="../" class="back">← NARAD//TOOLS</a>
+    <div class="brand">GAMES<span>//</span>PLAY</div>
+    <div class="sub">learn through play</div>
   </header>
   <div class="grid">
-    <a class="card" href="sandesh/">
-      <div class="tool-name">SANDESH</div>
-      <div class="tool-desc">Local network file transfer via WebRTC. Pair two devices with a 6-digit code and send files directly browser-to-browser.</div>
+    <a class="card" href="snake-ladder.html">
+      <div class="tool-name">🐍 SNAKE<span>//</span>LADDER</div>
+      <div class="tool-desc">Classic board game — climb ladders, dodge snakes, race to 100. Roll the dice against the CPU.</div>
     </a>
-    <a class="card" href="drishti/">
-      <div class="tool-name">DRISHTI</div>
-      <div class="tool-desc">Read-only file scanner. Point it at a folder and it reports which files fail to open — nothing is modified.</div>
-    </a>
-    <a class="card" href="shuddhi/">
-      <div class="tool-name">SHUDDHI</div>
-      <div class="tool-desc">Clean a compromised Windows PC. Step-by-step guide with a built-in scanner script — no tech knowledge needed.</div>
-    </a>
-    <a class="card" href="badhai/">
-      <div class="tool-name">BADHAI</div>
-      <div class="tool-desc">Extract audio from video files in your browser. Drop a video, pick MP3/WAV/AAC/OGG, download. Nothing leaves your machine.</div>
-    </a>
-    <a class="card" href="games/">
-      <div class="tool-name">GAMES</div>
-      <div class="tool-desc">Snake &amp; Ladder and Color Match — two quick browser games. Play against the CPU or test your luck.</div>
+    <a class="card" href="color-game.html">
+      <div class="tool-name">🎨 COLOR<span>//</span>MATCH</div>
+      <div class="tool-desc">Test your luck — guess whether the hidden color is red or blue. Build your streak.</div>
     </a>
   </div>
-  <footer>All tools run entirely in your browser. Nothing is uploaded or stored remotely.</footer>
+  <footer>All games run entirely in your browser. Nothing is uploaded or stored remotely.</footer>
 </div>
 </body>
 </html>

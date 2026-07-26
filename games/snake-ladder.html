@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Ladder — Narad</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: #0b0e1a;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 80%, rgba(147,51,234,0.15), transparent),
+      radial-gradient(ellipse 50% 60% at 80% 20%, rgba(59,130,246,0.12), transparent),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(236,72,153,0.08), transparent);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .game-shell {
+    position: relative;
+    z-index: 1;
+    padding: 2px;
+    border-radius: 2rem;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    max-width: 720px;
+    width: 100%;
+  }
+  .game {
+    background: rgba(12,16,28,0.92);
+    backdrop-filter: blur(20px);
+    border-radius: calc(2rem - 2px);
+    padding: 1.5rem;
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.6),
+      inset 0 1px 1px rgba(255,255,255,0.06);
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+  .title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fbbf24, #f97316, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+  }
+  .back-link {
+    color: #666;
+    font-size: 0.8rem;
+    text-decoration: none;
+    padding: 0.3rem 0.8rem;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.2s;
+  }
+  .back-link:hover { background: rgba(255,255,255,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.3); }
+
+  .players {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+    gap: 0.5rem;
+  }
+  .player-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.3s;
+  }
+  .player-badge .pos { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .player-badge.active-you { border-color: #4ade80; background: rgba(74,222,128,0.1); box-shadow: 0 0 12px rgba(74,222,128,0.15); }
+  .player-badge.active-cpu { border-color: #f87171; background: rgba(248,113,113,0.1); box-shadow: 0 0 12px rgba(248,113,113,0.15); }
+  .finish-flag { font-size: 0.75rem; color: #555; display: flex; align-items: center; gap: 0.2rem; }
+
+  .board-wrap {
+    position: relative;
+    margin: 0.4rem 0;
+    border-radius: 0.8rem;
+    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    aspect-ratio: 1;
+    gap: 1px;
+    background: rgba(255,255,255,0.03);
+  }
+  .cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    font-weight: 600;
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    transition: background 0.2s;
+  }
+  .cell .num {
+    position: absolute;
+    bottom: 1px;
+    right: 2px;
+    font-size: 0.38rem;
+    opacity: 0.2;
+    font-weight: 500;
+  }
+  .cell .icon { font-size: 0.9rem; }
+  .cell.ladder {
+    background: linear-gradient(135deg, rgba(74,222,128,0.1), rgba(34,197,94,0.05));
+  }
+  .cell.ladder::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(74,222,128,0.06) 100%);
+    pointer-events: none;
+  }
+  .cell.snake {
+    background: linear-gradient(135deg, rgba(248,113,113,0.12), rgba(239,68,68,0.05));
+  }
+  .cell.snake::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, transparent 40%, rgba(248,113,113,0.06) 100%);
+    pointer-events: none;
+  }
+  .cell.start {
+    background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.05));
+  }
+  .cell.highlight {
+    z-index: 1;
+  }
+  .cell.highlight.ladder::before {
+    content: '';
+    position: absolute; inset: -1px;
+    border-radius: 2px;
+    border: 1px solid rgba(74,222,128,0.3);
+    animation: cellPulse 0.6s ease-in-out infinite alternate;
+  }
+  .cell.highlight.snake::before {
+    content: '';
+    position: absolute; inset: -1px;
+    border-radius: 2px;
+    border: 1px solid rgba(248,113,113,0.3);
+    animation: cellPulse 0.4s ease-in-out infinite alternate;
+  }
+  @keyframes cellPulse { from { opacity: 0.4; } to { opacity: 1; } }
+
+  .piece {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    z-index: 10;
+    pointer-events: none;
+    transition: transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .piece.you {
+    background: radial-gradient(circle at 35% 35%, #86efac, #22c55e);
+    border: 2px solid #f0fdf4;
+    box-shadow: 0 0 8px rgba(74,222,128,0.5), 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .piece.cpu {
+    background: radial-gradient(circle at 35% 35%, #fca5a5, #ef4444);
+    border: 2px solid #fef2f2;
+    box-shadow: 0 0 8px rgba(248,113,113,0.5), 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .piece.both {
+    width: 20px;
+    height: 20px;
+    background: conic-gradient(#4ade80 0deg 180deg, #f87171 180deg 360deg);
+    border: 2px solid #fbbf24;
+    box-shadow: 0 0 10px rgba(251,191,36,0.4);
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0.6rem 0;
+  }
+  .dice-wrap {
+    position: relative;
+    width: 3.2rem;
+    height: 3.2rem;
+    flex-shrink: 0;
+    perspective: 200px;
+  }
+  .dice {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: transform 0.1s;
+    user-select: none;
+  }
+  .dice.rolling {
+    animation: diceRoll 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes diceRoll {
+    0%   { transform: rotateX(0deg) rotateZ(0deg) scale(1); }
+    25%  { transform: rotateX(180deg) rotateZ(90deg) scale(1.2); }
+    50%  { transform: rotateX(360deg) rotateZ(180deg) scale(1.1); }
+    75%  { transform: rotateX(540deg) rotateZ(270deg) scale(1.2); }
+    100% { transform: rotateX(720deg) rotateZ(360deg) scale(1); }
+  }
+  .dice.shake {
+    animation: diceShake 0.3s ease-in-out;
+  }
+  @keyframes diceShake {
+    0%,100% { transform: translateX(0) rotate(0deg); }
+    20% { transform: translateX(-4px) rotate(-15deg); }
+    40% { transform: translateX(4px) rotate(15deg); }
+    60% { transform: translateX(-3px) rotate(-10deg); }
+    80% { transform: translateX(3px) rotate(10deg); }
+  }
+  .roll-btn {
+    padding: 0.5rem 1.3rem;
+    border-radius: 100px;
+    border: none;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #0b0e1a;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.25);
+  }
+  .roll-btn:hover { transform: scale(1.04); box-shadow: 0 3px 12px rgba(245,158,11,0.35); }
+  .roll-btn:active { transform: scale(0.97); }
+  .roll-btn:disabled { opacity: 0.3; cursor: default; transform: none; box-shadow: none; }
+
+  .msg {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    margin: 0.4rem 0;
+    text-align: center;
+    min-height: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    transition: all 0.2s;
+  }
+  .msg.ok { background: rgba(74,222,128,0.1); color: #86efac; }
+  .msg.fail { background: rgba(248,113,113,0.1); color: #fca5a5; }
+  .msg.info { background: rgba(251,191,36,0.1); color: #fbbf24; }
+  .msg.neutral { background: rgba(255,255,255,0.04); color: #888; }
+  .msg.ladder-anim { background: rgba(74,222,128,0.15); color: #86efac; animation: msgGlow 0.5s ease-in-out infinite alternate; }
+  .msg.snake-anim { background: rgba(248,113,113,0.15); color: #fca5a5; animation: msgGlow 0.3s ease-in-out infinite alternate; }
+  @keyframes msgGlow { from { box-shadow: inset 0 0 0 rgba(255,255,255,0); } to { box-shadow: inset 0 0 12px rgba(255,255,255,0.05); } }
+
+  .board-shake {
+    animation: boardShake 0.4s ease-in-out;
+  }
+  @keyframes boardShake {
+    0%,100% { transform: translateX(0); }
+    15% { transform: translateX(-3px) rotate(-0.5deg); }
+    30% { transform: translateX(3px) rotate(0.5deg); }
+    45% { transform: translateX(-2px) rotate(-0.3deg); }
+    60% { transform: translateX(2px) rotate(0.3deg); }
+    75% { transform: translateX(-1px); }
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .setup { text-align: center; padding: 2rem 1rem; }
+  .setup h2 { font-size: 1.6rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, #fbbf24, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .setup p { color: #666; margin-bottom: 1.2rem; font-size: 0.9rem; line-height: 1.5; }
+  .start-btn {
+    padding: 0.7rem 2rem;
+    border-radius: 100px;
+    border: none;
+    background: linear-gradient(135deg, #f59e0b, #ec4899);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 3px 12px rgba(236,72,153,0.25);
+  }
+  .start-btn:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(236,72,153,0.35); }
+  .start-btn:active { transform: scale(0.97); }
+  .streak { font-size: 0.8rem; color: #555; margin-top: 0.8rem; }
+
+  .result-screen { text-align: center; padding: 2rem 1rem; }
+  .result-screen h2 { font-size: 2rem; margin-bottom: 0.3rem; }
+  .result-screen .play-again {
+    margin-top: 1.2rem;
+    padding: 0.7rem 2rem;
+    border-radius: 100px;
+    border: none;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #0b0e1a;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .result-screen .play-again:hover { transform: scale(1.04); }
+  .result-detail { color: #666; font-size: 0.85rem; margin-top: 0.3rem; }
+
+  #confettiCanvas {
+    position: fixed; inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 480px) {
+    .game { padding: 1rem; border-radius: calc(2rem - 2px - 0.5rem); }
+    .title { font-size: 1.1rem; }
+    .piece { width: 12px; height: 12px; }
+    .piece.both { width: 16px; height: 16px; }
+    .dice-wrap { width: 2.8rem; height: 2.8rem; }
+    .dice { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-shell">
+<div class="game" id="app">
+  <div class="header">
+    <div class="title">🐍 Snake Ladder</div>
+    <a href="./" class="back-link">← Back</a>
+  </div>
+
+  <div class="screen setup active" id="setupScreen">
+    <h2>Snakes &amp; Ladders</h2>
+    <p>Roll the dice, climb ladders, dodge snakes!<br>First to <strong>100</strong> wins the game.</p>
+    <button class="start-btn" onclick="startGame()">🚀 Start Game</button>
+    <div class="streak" id="streakDisplay"></div>
+  </div>
+
+  <div class="screen" id="gameScreen">
+    <div class="players">
+      <div class="player-badge active-you" id="youBadge">🧑 You <span class="pos" id="youPos">0</span></div>
+      <div class="finish-flag">🏁 100</div>
+      <div class="player-badge" id="cpuBadge"><span class="pos" id="cpuPos">0</span> 🤖 CPU</div>
+    </div>
+
+    <div class="board-wrap" id="boardWrap">
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="controls">
+      <div class="dice-wrap"><div class="dice" id="dice">🎲</div></div>
+      <button class="roll-btn" id="rollBtn" onclick="yourTurn()">Roll!</button>
+    </div>
+
+    <div class="msg neutral" id="msgArea">🎲 Roll the dice to start!</div>
+  </div>
+
+  <div class="screen" id="resultScreen">
+    <div class="result-screen">
+      <h2 id="resultTitle">🎉 You Win!</h2>
+      <div class="result-detail" id="resultDetail"></div>
+      <button class="play-again" onclick="showSetup()">🔄 Play Again</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<canvas id="confettiCanvas"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/@sentry/browser@8"></script>
+<script>
+Sentry.init({
+  dsn: 'https://72cc148a47b87a0356b1db9dbc28b1ec@o4511755199774720.ingest.us.sentry.io/4511755229069312',
+  environment: 'production',
+  tracesSampleRate: 0.2,
+});
+
+const SNAKES = { 99:54, 95:75, 93:73, 87:24, 64:60, 62:19, 54:34, 17:7, 98:79, 85:55, 68:32, 48:11, 28:8, 16:6 };
+const LADDERS = { 4:14, 9:31, 21:42, 28:84, 36:44, 51:67, 71:91, 80:100, 15:78, 41:56, 61:84, 76:97 };
+
+const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+function getBoardLabel(pos) {
+  if (LADDERS[pos]) return '🪜';
+  if (SNAKES[pos]) return '🐍';
+  return '';
+}
+
+let state = {};
+let youMarker, cpuMarker;
+let boardRectCache = null;
+
+function getStreak() { return JSON.parse(localStorage.getItem('sl_streak') || '0'); }
+function setStreak(n) { localStorage.setItem('sl_streak', JSON.stringify(n)); }
+function renderStreak() {
+  const s = getStreak();
+  document.getElementById('streakDisplay').textContent = s > 0 ? '🔥 Win streak: ' + s : '';
+}
+
+function showSetup() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('setupScreen').classList.add('active');
+  renderStreak();
+}
+
+function buildBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  const cells = [];
+  for (let r = 0; r < 10; r++) {
+    const rowStart = r * 10 + 1;
+    const nums = [];
+    for (let c = 0; c < 10; c++) {
+      nums.push(r % 2 === 0 ? rowStart + c : rowStart + 9 - c);
+    }
+    cells.push(...nums);
+  }
+  cells.reverse().forEach(n => {
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (LADDERS[n] ? ' ladder' : '') + (SNAKES[n] ? ' snake' : '') + (n === 1 ? ' start' : '');
+    cell.id = 'cell-' + n;
+    cell.innerHTML = '<span class="num">' + n + '</span>' + getBoardLabel(n);
+    board.appendChild(cell);
+  });
+  boardRectCache = null;
+}
+
+function getCellPos(cellNum) {
+  const cell = document.getElementById('cell-' + cellNum);
+  if (!cell) return { x:0, y:0 };
+  const board = document.getElementById('board');
+  const br = board.getBoundingClientRect();
+  const cr = cell.getBoundingClientRect();
+  return { x: cr.left - br.left + cr.width / 2, y: cr.top - br.top + cr.height / 2 };
+}
+
+function movePiece(marker, cellNum, smooth) {
+  const pos = getCellPos(cellNum);
+  const size = marker.offsetWidth || 14;
+  const tx = pos.x - size / 2;
+  const ty = pos.y - size / 2;
+  if (!smooth) marker.style.transition = 'none';
+  marker.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+  if (!smooth) {
+    marker.offsetHeight;
+    marker.style.transition = 'transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1)';
+  }
+}
+
+function updatePiecePosition(player, cellNum) {
+  const marker = player === 'you' ? youMarker : cpuMarker;
+  if (!marker) return;
+  movePiece(marker, cellNum, true);
+  const both = document.querySelector('.piece.both');
+  if (both) {
+    const other = player === 'you' ? cpuMarker : youMarker;
+    const oNum = player === 'you' ? state.cpu : state.you;
+    if (oNum === cellNum) {
+      both.style.display = 'block';
+      marker.style.display = 'none';
+      other.style.display = 'none';
+      movePiece(both, cellNum, true);
+    }
+  }
+}
+
+function refreshPieces() {
+  document.querySelectorAll('.piece').forEach(p => p.remove());
+  youMarker = null;
+  cpuMarker = null;
+  if (!state || state.done) return;
+  const board = document.getElementById('board');
+  const wrap = document.getElementById('boardWrap');
+
+  youMarker = document.createElement('div');
+  youMarker.className = 'piece you';
+  wrap.appendChild(youMarker);
+  movePiece(youMarker, state.you || 1, false);
+
+  cpuMarker = document.createElement('div');
+  cpuMarker.className = 'piece cpu';
+  wrap.appendChild(cpuMarker);
+  movePiece(cpuMarker, state.cpu || 1, false);
+
+  if ((state.you || 1) === (state.cpu || 1)) {
+    const both = document.createElement('div');
+    both.className = 'piece both';
+    wrap.appendChild(both);
+    youMarker.style.display = 'none';
+    cpuMarker.style.display = 'none';
+    movePiece(both, state.you || 1, false);
+  }
+}
+
+function rebuildPieces() {
+  document.querySelectorAll('.piece').forEach(p => p.remove());
+  youMarker = null;
+  cpuMarker = null;
+  const boardWrap = document.getElementById('boardWrap');
+
+  youMarker = document.createElement('div');
+  youMarker.className = 'piece you';
+  boardWrap.appendChild(youMarker);
+
+  cpuMarker = document.createElement('div');
+  cpuMarker.className = 'piece cpu';
+  boardWrap.appendChild(cpuMarker);
+}
+
+function placeMarker(pos, player) {
+  if (state.done) return;
+  updatePiecePosition(player, pos);
+  if (player === 'you') {
+    document.getElementById('youPos').textContent = pos;
+  } else {
+    document.getElementById('cpuPos').textContent = pos;
+  }
+}
+
+function startGame() {
+  state = { you: 1, cpu: 1, turn: 'you', done: false };
+  buildBoard();
+  rebuildPieces();
+  movePiece(youMarker, 1, false);
+  movePiece(cpuMarker, 1, false);
+  document.getElementById('youPos').textContent = '1';
+  document.getElementById('cpuPos').textContent = '1';
+  document.getElementById('youBadge').className = 'player-badge active-you';
+  document.getElementById('cpuBadge').className = 'player-badge';
+  document.getElementById('dice').textContent = '🎲';
+  document.getElementById('msgArea').textContent = '🎲 Your turn! Roll the dice!';
+  document.getElementById('msgArea').className = 'msg neutral';
+  document.getElementById('rollBtn').disabled = false;
+  document.getElementById('boardWrap').classList.remove('board-shake');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('gameScreen').classList.add('active');
+}
+
+function rollDice() { return Math.floor(Math.random() * 6) + 1; }
+
+function animateDice(value, cb) {
+  const el = document.getElementById('dice');
+  el.classList.remove('rolling', 'shake');
+  el.offsetHeight;
+  el.classList.add('rolling');
+  let i = 0;
+  const interval = setInterval(() => {
+    el.textContent = DICE_FACES[Math.floor(Math.random() * 6)];
+    if (++i > 8) {
+      clearInterval(interval);
+      el.textContent = DICE_FACES[value - 1];
+      el.classList.remove('rolling');
+      el.classList.add('shake');
+      setTimeout(() => {
+        el.classList.remove('shake');
+        if (cb) cb();
+      }, 250);
+    }
+  }, 50);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function animateMove(player, from, to, _label) {
+  const marker = player === 'you' ? youMarker : cpuMarker;
+  const step = from < to ? 1 : -1;
+  for (let p = from + step; step > 0 ? p <= to : p >= to; p += step) {
+    if (state.done) return;
+    movePiece(marker, p, true);
+    if (player === 'you') document.getElementById('youPos').textContent = p;
+    else document.getElementById('cpuPos').textContent = p;
+    await sleep(70);
+  }
+}
+
+async function animateSnake(player, from, to) {
+  const marker = player === 'you' ? youMarker : cpuMarker;
+  const wrap = document.getElementById('boardWrap');
+  const el = document.getElementById('msgArea');
+  el.className = 'msg snake-anim';
+  el.textContent = '🐍 Snake! ' + from + ' → ' + to;
+  document.getElementById('cell-' + from).classList.add('highlight');
+
+  wrap.classList.remove('board-shake');
+  wrap.offsetHeight;
+  wrap.classList.add('board-shake');
+
+  movePiece(marker, to, false);
+  if (player === 'you') document.getElementById('youPos').textContent = to;
+  else document.getElementById('cpuPos').textContent = to;
+
+  await sleep(400);
+  wrap.classList.remove('board-shake');
+  document.getElementById('cell-' + from).classList.remove('highlight');
+}
+
+async function animateLadder(player, from, to) {
+  const marker = player === 'you' ? youMarker : cpuMarker;
+  const el = document.getElementById('msgArea');
+  el.className = 'msg ladder-anim';
+  el.textContent = '🪜 Ladder! ' + from + ' → ' + to;
+  document.getElementById('cell-' + from).classList.add('highlight');
+
+  movePiece(marker, to, false);
+  if (player === 'you') document.getElementById('youPos').textContent = to;
+  else document.getElementById('cpuPos').textContent = to;
+
+  await sleep(350);
+  document.getElementById('cell-' + from).classList.remove('highlight');
+}
+
+function playTone(freq, dur) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    gain.gain.value = 0.08;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur);
+  } catch (e) { /* audio unavailable */ }
+}
+
+function playSound(name) {
+  const sounds = {
+    roll: [440, 0.15],
+    move: [520, 0.08],
+    ladder: [660, 0.25],
+    snake: [220, 0.3],
+    win: [880, 0.4],
+    lose: [330, 0.3],
+  };
+  const s = sounds[name];
+  if (s) playTone(s[0], s[1]);
+}
+
+async function yourTurn() {
+  if (state.done) return;
+  document.getElementById('rollBtn').disabled = true;
+  state.turn = 'you';
+  document.getElementById('youBadge').className = 'player-badge active-you';
+  document.getElementById('cpuBadge').className = 'player-badge';
+
+  const roll = rollDice();
+  playSound('roll');
+  await new Promise(cb => animateDice(roll, cb));
+
+  let newPos = state.you + roll;
+  if (newPos > 100) {
+    document.getElementById('msgArea').textContent = '🙅 Need exactly 100! Rolled ' + roll + ' — stay at ' + state.you;
+    document.getElementById('msgArea').className = 'msg fail';
+    document.getElementById('rollBtn').disabled = false;
+    return;
+  }
+
+  await animateMove('you', state.you, newPos);
+  playSound('move');
+  state.you = newPos;
+
+  if (LADDERS[newPos]) {
+    const dest = LADDERS[newPos];
+    playSound('ladder');
+    await animateLadder('you', newPos, dest);
+    state.you = dest;
+  } else if (SNAKES[newPos]) {
+    const dest = SNAKES[newPos];
+    playSound('snake');
+    await animateSnake('you', newPos, dest);
+    state.you = dest;
+  }
+
+  document.getElementById('youPos').textContent = state.you;
+
+  if (state.you === 100) {
+    playSound('win');
+    endGame('you');
+    return;
+  }
+
+  await sleep(400);
+  cpuTurn();
+}
+
+async function cpuTurn() {
+  if (state.done) return;
+  state.turn = 'cpu';
+  document.getElementById('youBadge').className = 'player-badge';
+  document.getElementById('cpuBadge').className = 'player-badge active-cpu';
+
+  const roll = rollDice();
+  playSound('roll');
+  await new Promise(cb => animateDice(roll, cb));
+
+  let newPos = state.cpu + roll;
+  if (newPos > 100) {
+    document.getElementById('msgArea').textContent = '🤖 CPU rolled ' + roll + ' — stays at ' + state.cpu;
+    document.getElementById('msgArea').className = 'msg info';
+    state.turn = 'you';
+    document.getElementById('youBadge').className = 'player-badge active-you';
+    document.getElementById('cpuBadge').className = 'player-badge';
+    document.getElementById('rollBtn').disabled = false;
+    return;
+  }
+
+  await animateMove('cpu', state.cpu, newPos);
+  state.cpu = newPos;
+
+  if (LADDERS[newPos]) {
+    const dest = LADDERS[newPos];
+    playSound('ladder');
+    await animateLadder('cpu', newPos, dest);
+    state.cpu = dest;
+  } else if (SNAKES[newPos]) {
+    const dest = SNAKES[newPos];
+    playSound('snake');
+    await animateSnake('cpu', newPos, dest);
+    state.cpu = dest;
+  }
+
+  document.getElementById('cpuPos').textContent = state.cpu;
+
+  if (state.cpu === 100) {
+    playSound('lose');
+    endGame('cpu');
+    return;
+  }
+
+  state.turn = 'you';
+  document.getElementById('youBadge').className = 'player-badge active-you';
+  document.getElementById('cpuBadge').className = 'player-badge';
+  document.getElementById('rollBtn').disabled = false;
+  document.getElementById('msgArea').textContent = '🎲 Your turn! Roll!';
+  document.getElementById('msgArea').className = 'msg neutral';
+}
+
+function endGame(winner) {
+  state.done = true;
+  document.getElementById('rollBtn').disabled = true;
+
+  let streak = getStreak();
+  if (winner === 'you') { streak++; setStreak(streak); }
+  else { setStreak(0); }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('resultScreen').classList.add('active');
+
+  if (winner === 'you') {
+    document.getElementById('resultTitle').textContent = '🎉 You Win!';
+    document.getElementById('resultDetail').textContent = 'Reached 100! CPU was at ' + state.cpu + '. Streak: ' + streak + ' 🔥';
+    launchConfetti();
+  } else {
+    document.getElementById('resultTitle').textContent = '😞 CPU Wins';
+    document.getElementById('resultDetail').textContent = 'CPU reached 100. You were at ' + state.you + '.';
+  }
+}
+
+// ── Confetti ──
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pieces = [];
+  for (let i = 0; i < 120; i++) {
+    const colors = ['#fbbf24','#f97316','#ec4899','#8b5cf6','#3b82f6','#4ade80','#f87171'];
+    pieces.push({
+      x: canvas.width * Math.random(),
+      y: canvas.height * Math.random() - canvas.height,
+      w: 4 + Math.random() * 4,
+      h: 4 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: 2 + Math.random() * 3,
+      rot: Math.random() * 360,
+      rv: (Math.random() - 0.5) * 8,
+      gravity: 0.06 + Math.random() * 0.04,
+    });
+  }
+
+  let frame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    for (const p of pieces) {
+      p.x += p.vx;
+      p.vy += p.gravity;
+      p.y += p.vy;
+      p.rot += p.rv;
+      if (p.y < canvas.height + 20) {
+        alive = true;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot * Math.PI / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      }
+    }
+    if (alive) frame = requestAnimationFrame(draw);
+  }
+  cancelAnimationFrame(frame);
+  draw();
+}
+
+renderStreak();
+</script>
+</body>
+</html>
