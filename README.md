@@ -1,4 +1,4 @@
-# Narad
+# Prayog
 
 Standalone browser utilities — each tool is a self-contained HTML file, zero build step, zero backend.
 
@@ -8,6 +8,7 @@ Standalone browser utilities — each tool is a self-contained HTML file, zero b
 | [Drishti](drishti/) | Read-only file scanner. Point it at a folder and it reports which files fail to open — nothing is modified. |
 | [Shuddhi](shuddhi/) | Windows PC cleanup guide and malware scanner. Step-by-step + automated script. |
 | [Badhai](badhai/) | Video-to-audio converter — browser-based via FFmpeg.wasm. Drop video, pick format, download. |
+| [Games](games/) | Snake & Ladder and Color Match — two quick browser games. Formerly the saraswati project. |
 
 ## Deploy
 

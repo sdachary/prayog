@@ -6,4 +6,4 @@ Local network file transfer via WebRTC. Pair two devices with a 6-digit code, th
 
 **Limitation:** Needs a brief internet connection for the initial peer handshake (loads PeerJS library, reaches its public broker). The transfer itself is direct between browsers and fast on a shared local network.
 
-**Live URL:** `https://narad.pages.dev/sandesh/`
+**Live URL:** `https://prayog.pages.dev/sandesh/`

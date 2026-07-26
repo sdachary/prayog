@@ -10,4 +10,4 @@ Read-only file scanner. Point it at a folder and it reports which files fail to 
 
 **Safety:** No file contents, paths, or scan results are sent anywhere — everything runs locally in the browser tab.
 
-**Live URL:** `https://narad.pages.dev/drishti/`
+**Live URL:** `https://prayog.pages.dev/drishti/`
