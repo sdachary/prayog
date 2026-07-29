@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Badhai - Video Audio Extraction</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
   <style>
@@ -626,7 +628,7 @@
       ffmpeg = new FFmpeg.FFmpeg();
       
       ffmpeg.on('log', ({ message }) => {
-        console.log('[FFmpeg]', message);
+        // [FFmpeg], message
       });
 
       ffmpeg.on('progress', ({ progress }) => {
@@ -646,7 +648,7 @@
       try {
         document.getElementById('statusMessage').textContent = 'Loading FFmpeg...';
         await ffmpeg.load();
-        console.log('FFmpeg loaded successfully');
+        // FFmpeg loaded
       } catch (error) {
         console.error('Failed to load FFmpeg:', error);
         showError('Failed to load FFmpeg. Please try again.');
@@ -888,5 +890,6 @@
     // Initial time preview
     updateTimePreview();
   </script>
+<script src="../assets/nav.js" data-tool="badhai"></script>
 </body>
 </html>

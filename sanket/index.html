@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanket — Prayog</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:#0b0e1a;color:#e0e0e0}
+  .wrap{max-width:500px;width:100%}
+  h1{font-size:1.3rem;font-weight:700;letter-spacing:0.02em;margin-bottom:1rem}
+  h1 span{font-size:0.8rem;font-weight:400;color:#888}
+  .card{background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border-radius:1.5rem;padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-bottom:1rem}
+  .tabs{display:flex;gap:0;margin-bottom:1.5rem;background:rgba(255,255,255,0.04);border-radius:100px;padding:3px}
+  .tab{flex:1;text-align:center;padding:0.4rem;border-radius:100px;font-size:0.82rem;font-weight:500;cursor:pointer;transition:.2s;color:#888}
+  .tab.active{background:#e8a33d;color:#0b0e1a}
+  .panel{display:none}
+  .panel.active{display:block}
+  input[type=text]{width:100%;padding:0.6rem 0.75rem;border-radius:0.75rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#e0e0e0;font-size:0.9rem;outline:none;transition:.2s}
+  input[type=text]:focus{border-color:#e8a33d}
+  .qr-display{text-align:center;margin:1.5rem 0;min-height:180px;display:flex;align-items:center;justify-content:center}
+  .qr-display canvas{border-radius:0.75rem}
+  .btn{padding:0.5rem 1.2rem;border-radius:100px;border:none;font-weight:600;font-size:0.82rem;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:0.4rem}
+  .btn-primary{background:#e8a33d;color:#0b0e1a}
+  .btn-primary:hover{background:#d4912e}
+  .btn-secondary{background:rgba(255,255,255,0.08);color:#ccc}
+  .btn-secondary:hover{background:rgba(255,255,255,0.14)}
+  .btn:disabled{opacity:0.4;cursor:default}
+  .actions{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem}
+  .scan-result{background:rgba(255,255,255,0.04);border-radius:0.75rem;padding:0.75rem;margin-top:1rem;word-break:break-all;display:none;font-size:0.85rem}
+  .scan-result.show{display:block}
+  .scan-result a{color:#e8a33d}
+  video{border-radius:0.75rem;width:100%;max-height:300px;background:#000;transform:scaleX(-1)}
+  #scanner{display:none}
+  footer{text-align:center;color:rgba(255,255,255,0.25);font-family:monospace;font-size:10.5px;margin-top:24px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Sanket <span>QR code</span></h1>
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" data-tab="gen">generate</div>
+      <div class="tab" data-tab="scan">scan</div>
+    </div>
+    <div class="panel active" id="genPanel">
+      <input type="text" id="qrInput" placeholder="Type text or paste a URL…" value="https://prayog.pages.dev">
+      <div class="qr-display" id="qrDisplay"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="genBtn">generate</button>
+        <button class="btn btn-secondary" id="dlPng">PNG</button>
+        <button class="btn btn-secondary" id="dlSvg">SVG</button>
+      </div>
+    </div>
+    <div class="panel" id="scanPanel">
+      <div id="scanner">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="scanCanvas" style="display:none"></canvas>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="scanBtn">start camera</button>
+        <button class="btn btn-secondary" id="stopScanBtn" disabled>stop</button>
+      </div>
+      <div class="scan-result" id="scanResult"></div>
+    </div>
+  </div>
+  <footer>Nothing is uploaded or stored remotely — all processing happens in your browser. Camera feed never leaves your device.</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+(function(){
+  var tab=document.querySelectorAll('.tab'),panel=document.querySelectorAll('.panel');
+  tab.forEach(function(t){t.onclick=function(){
+    tab.forEach(function(x){x.classList.remove('active')});
+    panel.forEach(function(p){p.classList.remove('active')});
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab+'Panel').classList.add('active');
+  }});
+
+  var _qr;
+  document.getElementById('genBtn').onclick=function(){
+    var val=document.getElementById('qrInput').value.trim();
+    if(!val)return;
+    document.getElementById('qrDisplay').innerHTML='';
+    _qr=new QRCode(document.getElementById('qrDisplay'),{text:val,width:180,height:180,colorDark:'#0b0e1a',colorLight:'#e0e0e0',correctLevel:QRCode.CorrectLevel.H});
+  };
+  document.getElementById('dlPng').onclick=function(){
+    var c=document.querySelector('#qrDisplay canvas');if(!c)return;
+    var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='qrcode.png';a.click();
+  };
+  document.getElementById('dlSvg').onclick=function(){
+    var val=document.getElementById('qrInput').value.trim();if(!val)return;
+    var qr=new QRCode(-1,QRCode.CorrectLevel.H);qr.addData(val);qr.make();
+    var cells=qr.modules;var s=4;var size=cells.length*s;
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+size+' '+size+'">';
+    svg+='<rect width="'+size+'" height="'+size+'" fill="#e0e0e0" rx="4"/>';
+    for(var r=0;r<cells.length;r++)for(var c=0;c<cells.length;c++)if(cells[r][c])svg+='<rect x="'+c*s+'" y="'+r*s+'" width="'+s+'" height="'+s+'" fill="#0b0e1a"/>';
+    svg+='</svg>';
+    var a=document.createElement('a');a.href='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);a.download='qrcode.svg';a.click();
+  };
+  document.getElementById('genBtn').click();
+
+  var video=document.getElementById('video'),scanCanvas=document.getElementById('scanCanvas'),scanResult=document.getElementById('scanResult');
+  var ctx=scanCanvas.getContext('2d'),_stream,_scanInt;
+
+  document.getElementById('scanBtn').onclick=function(){
+    document.getElementById('scanner').style.display='block';
+    scanResult.classList.remove('show');
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(s){
+      _stream=s;video.srcObject=s;video.play();
+      document.getElementById('scanBtn').disabled=true;
+      document.getElementById('stopScanBtn').disabled=false;
+      _scanInt=setInterval(scan,500);
+    }).catch(function(e){scanResult.textContent='Camera error: '+e.message;scanResult.classList.add('show')});
+  };
+
+  function scan(){
+    if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
+    scanCanvas.width=video.videoWidth;scanCanvas.height=video.videoHeight;
+    ctx.drawImage(video,0,0);
+    var imgData=ctx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
+    var code=jsQR(imgData.data,imgData.width,imgData.height);
+    if(code){
+      clearInterval(_scanInt);stopCam();
+      scanResult.innerHTML='<strong>Decoded:</strong> '+(code.data.match(/^https?:\/\//)?'<a href="'+code.data+'" target="_blank">'+code.data+'</a>':code.data);
+      scanResult.classList.add('show');
+    }
+  }
+
+  document.getElementById('stopScanBtn').onclick=function(){clearInterval(_scanInt);stopCam()};
+  function stopCam(){if(_stream){_stream.getTracks().forEach(function(t){t.stop()})}document.getElementById('scanBtn').disabled=false;document.getElementById('stopScanBtn').disabled=true}
+})();
+</script>
+<script src="../assets/nav.js" data-tool="sanket"></script>
+</body>
+</html>

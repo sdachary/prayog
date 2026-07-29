@@ -4,59 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prayog — tools</title>
-<style>
-  :root{
-    --bg: #0b0f14;
-    --panel: #121922;
-    --panel-2: #17202b;
-    --line: #23303d;
-    --text: #e7ecf1;
-    --muted: #7c8894;
-    --amber: #e8a33d;
-    --teal: #2fa39a;
-    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
-    --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  *{box-sizing:border-box;}
-  html,body{
-    margin:0; padding:0; min-height:100%;
-    background:
-      radial-gradient(circle at 15% 10%, rgba(47,163,154,0.08), transparent 40%),
-      radial-gradient(circle at 85% 90%, rgba(232,163,61,0.06), transparent 45%),
-      var(--bg);
-    color:var(--text);
-    font-family:var(--sans);
-  }
-  .wrap{
-    min-height:100%; display:flex; flex-direction:column; align-items:center;
-    padding:48px 16px 64px;
-  }
-  header{ text-align:center; margin-bottom:36px; }
-  .brand{ font-family:var(--mono); font-weight:600; font-size:18px; letter-spacing:0.06em; }
-  .brand span{ color:var(--amber); }
-  .sub{ font-size:12px; color:var(--muted); font-family:var(--mono); margin-top:4px; }
-  .grid{
-    display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-    gap:14px; width:100%; max-width:700px;
-  }
-  .card{
-    background:linear-gradient(180deg, var(--panel), var(--panel-2));
-    border:1px solid var(--line); border-radius:14px;
-    padding:22px 20px; position:relative; overflow:hidden;
-    text-decoration:none; color:var(--text);
-    transition:border-color .2s, transform .15s;
-  }
-  .card:hover{ border-color:var(--teal); transform:translateY(-2px); }
-  .card::before{
-    content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
-    background:var(--line); transition:background .3s;
-  }
-  .card:hover::before{ background:var(--teal); }
-  .tool-name{ font-family:var(--mono); font-weight:600; font-size:15px; letter-spacing:0.04em; }
-  .tool-name span{ color:var(--amber); }
-  .tool-desc{ font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:6px; }
-  footer{ max-width:560px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:10.5px; margin-top:32px; line-height:1.6; }
-</style>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
+<script src="/assets/nav.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -80,6 +31,26 @@
     <a class="card" href="badhai/">
       <div class="tool-name">BADHAI</div>
       <div class="tool-desc">Extract audio from video files in your browser. Drop a video, pick MP3/WAV/AAC/OGG, download. Nothing leaves your machine.</div>
+    </a>
+    <a class="card" href="rachna/">
+      <div class="tool-name">RACHNA</div>
+      <div class="tool-desc">JSON / YAML / CSV formatter, validator &amp; converter. Paste or drop a file, auto-detect, pretty-print, convert.</div>
+    </a>
+    <a class="card" href="sanket/">
+      <div class="tool-name">SANKET</div>
+      <div class="tool-desc">QR code generator and camera scanner. Generate with text/URLs, download PNG/SVG, scan with your camera.</div>
+    </a>
+    <a class="card" href="sankshep/">
+      <div class="tool-name">SANKSHEP</div>
+      <div class="tool-desc">Image compressor and resizer. Drop an image, adjust quality and dimensions, preview size, download.</div>
+    </a>
+    <a class="card" href="tulna/">
+      <div class="tool-name">TULNA</div>
+      <div class="tool-desc">Text diff tool. Compare two texts with side-by-side word-level diff highlighting. Paste, diff, copy.</div>
+    </a>
+    <a class="card" href="zarya/">
+      <div class="tool-name">ZARYA</div>
+      <div class="tool-desc">External drive repair for Linux &amp; macOS. Step-by-step guide to find corrupted files, repair filesystems, and check drive health.</div>
     </a>
     <a class="card" href="games/">
       <div class="tool-name">GAMES</div>

@@ -8,6 +8,11 @@ Standalone browser utilities — each tool is a self-contained HTML file, zero b
 | [Drishti](drishti/) | Read-only file scanner. Point it at a folder and it reports which files fail to open — nothing is modified. |
 | [Shuddhi](shuddhi/) | Windows PC cleanup guide and malware scanner. Step-by-step + automated script. |
 | [Badhai](badhai/) | Video-to-audio converter — browser-based via FFmpeg.wasm. Drop video, pick format, download. |
+| [Rachna](rachna/) | JSON / YAML / CSV formatter, validator & converter. Paste or drop, auto-detect, pretty-print, convert. |
+| [Sanket](sanket/) | QR code generator & camera scanner. Generate with text/URLs, download PNG/SVG, scan with device camera. |
+| [Sankshep](sankshep/) | Image compressor & resizer. Drop an image, adjust quality/dimensions, preview size, download. |
+| [Tulna](tulna/) | Text diff tool. Compare two texts with side-by-side word-level diff highlighting. |
+| [Zarya](zarya/) | External drive repair for Linux & macOS. Step-by-step guide with copy-ready commands. |
 | [Games](games/) | Snake & Ladder and Color Match — two quick browser games. Formerly the saraswati project. |
 
 ## Deploy

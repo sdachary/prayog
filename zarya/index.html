@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zarya — Prayog</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0f14;color:#e7ecf1;font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;padding:1.5rem 1rem;display:flex;justify-content:center}
+.wrap{max-width:780px;width:100%}
+h1{font-size:1.35rem;font-weight:700;letter-spacing:.02em;margin-bottom:0;line-height:1.3}
+h1 small{display:block;font-size:0.78rem;font-weight:400;color:#7c8894;margin-top:2px}
+.sub{font-size:0.78rem;color:#7c8894;margin-top:6px;line-height:1.5}
+.tabs{display:flex;gap:4px;margin:20px 0 16px;border-bottom:1px solid #23303d;padding-bottom:0}
+.tab{padding:8px 18px;background:transparent;border:none;color:#7c8894;font-family:monospace;font-size:0.82rem;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;border-radius:6px 6px 0 0}
+.tab:hover{color:#e7ecf1;background:rgba(255,255,255,0.03)}
+.tab.active{color:#e8a33d;border-bottom-color:#e8a33d;background:rgba(232,163,61,0.06)}
+section[data-tab]{display:none}
+section[data-tab].active{display:block}
+.step{margin-bottom:20px;padding:16px;background:linear-gradient(180deg,#121922,#17202b);border:1px solid #23303d;border-radius:12px}
+.step-h{font-family:monospace;font-weight:600;font-size:0.82rem;color:#e8a33d;margin-bottom:10px;letter-spacing:.04em}
+.step-p{font-size:0.82rem;color:#a0abb6;line-height:1.55;margin-bottom:10px}
+.cmd{position:relative;background:#0a0e14;border:1px solid #1a2836;border-radius:8px;padding:12px 44px 12px 14px;font-family:monospace;font-size:0.82rem;color:#c9d1d9;line-height:1.55;overflow-x:auto;margin-bottom:8px;white-space:pre-wrap;word-break:break-all}
+.cmd code{font-family:inherit;white-space:pre-wrap}
+.cmd .cpy{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#7c8894;border-radius:5px;padding:3px 8px;font-size:0.7rem;cursor:pointer;transition:.15s;font-family:inherit}
+.cmd .cpy:hover{background:#2fa39a;color:#0b0f14}
+.cmd .cpy.copied{background:#2fa39a;color:#0b0f14}
+.warn{background:rgba(232,163,61,0.1);border:1px solid rgba(232,163,61,0.3);border-radius:8px;padding:12px 14px;font-size:0.78rem;color:#d4a84b;line-height:1.5;margin:16px 0}
+.warn strong{color:#e8a33d}
+.note{background:rgba(47,163,154,0.1);border:1px solid rgba(47,163,154,0.25);border-radius:8px;padding:10px 14px;font-size:0.78rem;color:#5cbdb5;line-height:1.5;margin:10px 0}
+.note strong{color:#2fa39a}
+.step-id{display:inline-block;background:#1a2836;color:#7c8894;border-radius:100px;padding:1px 9px;font-size:0.68rem;font-family:monospace;margin-bottom:8px}
+footer{text-align:center;color:rgba(255,255,255,0.2);font-family:monospace;font-size:10px;margin-top:28px;line-height:1.6}
+@media(max-width:640px){body{padding:1rem 0.6rem}.cmd{padding:10px 36px 10px 10px;font-size:0.75rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Zarya <small>external drive repair</small></h1>
+<div class="sub">Step-by-step guide to scan, identify and delete corrupted files on a failing external drive. All commands are safe dry-runs first — nothing is modified until you confirm.</div>
+
+<div class="warn"><strong>Before you start:</strong> If you can copy any data off this drive, do that first. Repair is a last resort. Keep the drive plugged into a power source — not a laptop battery. Close every app that might be accessing the drive.</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-tab="linux">Ubuntu / Linux</button>
+  <button class="tab" data-tab="macos">macOS</button>
+  <button class="tab" data-tab="advanced">Advanced</button>
+</div>
+
+<section data-tab="linux" class="active">
+  <div class="step">
+    <div class="step-id">step 1</div>
+    <div class="step-h">Identify the drive</div>
+    <div class="step-p">List all block devices and find your external drive by size. Look for <code>/dev/sdX</code> entries.</div>
+    <div class="cmd"><code>lsblk</code><button class="cpy" data-cmd="lsblk">copy</button></div>
+    <div class="cmd"><code>sudo fdisk -l</code><button class="cpy" data-cmd="sudo fdisk -l">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">step 2</div>
+    <div class="step-h">Mount the drive (if needed)</div>
+    <div class="step-p">Replace <code>sdb1</code> with your actual partition from step 1.</div>
+    <div class="cmd"><code>sudo mkdir -p /mnt/external</code><button class="cpy" data-cmd="sudo mkdir -p /mnt/external">copy</button></div>
+    <div class="cmd"><code>sudo mount /dev/sdb1 /mnt/external</code><button class="cpy" data-cmd="sudo mount /dev/sdb1 /mnt/external">copy</button></div>
+    <div class="cmd"><code>mount | grep external</code><button class="cpy" data-cmd="mount | grep external">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">step 3</div>
+    <div class="step-h">Scan and delete corrupted files</div>
+    <div class="step-p">This one-liner finds files that <code>file</code> can't read and deletes them, writing a log to <code>~/deleted_files.txt</code>.</div>
+    <div class="cmd"><code>for file in $(find /mnt/external -type f 2>/dev/null); do if ! file "$file" >/dev/null 2>&1; then echo "DELETING: $file" >> ~/deleted_files.txt && rm -f "$file"; fi; done</code><button class="cpy" data-cmd='for file in $(find /mnt/external -type f 2>/dev/null); do if ! file "$file" >/dev/null 2>&1; then echo "DELETING: $file" >> ~/deleted_files.txt && rm -f "$file"; fi; done'>copy</button></div>
+    <div class="step-p">View what was deleted:</div>
+    <div class="cmd"><code>cat ~/deleted_files.txt</code><button class="cpy" data-cmd="cat ~/deleted_files.txt">copy</button></div>
+    <div class="note"><strong>Detailed scan:</strong> For a progress bar version, copy the script from the <strong>Advanced</strong> tab.</div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">step 4</div>
+    <div class="step-h">Repair filesystem</div>
+    <div class="step-p">Unmount first, then run a dry-run check (<code>-n</code>). Only after reviewing the output, run the actual repair (<code>-y</code>). Pick the section for your drive's filesystem.</div>
+    <div class="step-p"><strong>NTFS (Windows):</strong></div>
+    <div class="cmd"><code>sudo apt install ntfs-3g</code><button class="cpy" data-cmd="sudo apt install ntfs-3g">copy</button></div>
+    <div class="cmd"><code>sudo ntfsck -n /dev/sdb1</code><button class="cpy" data-cmd="sudo ntfsck -n /dev/sdb1">copy</button></div>
+    <div class="cmd"><code>sudo ntfsck -P --progress /dev/sdb1</code><button class="cpy" data-cmd="sudo ntfsck -P --progress /dev/sdb1">copy</button></div>
+    <div class="step-p"><strong>ext4 (Linux):</strong></div>
+    <div class="cmd"><code>sudo umount /dev/sdb1</code><button class="cpy" data-cmd="sudo umount /dev/sdb1">copy</button></div>
+    <div class="cmd"><code>sudo fsck -n /dev/sdb1</code><button class="cpy" data-cmd="sudo fsck -n /dev/sdb1">copy</button></div>
+    <div class="cmd"><code>sudo fsck -y /dev/sdb1</code><button class="cpy" data-cmd="sudo fsck -y /dev/sdb1">copy</button></div>
+    <div class="step-p"><strong>exFAT:</strong></div>
+    <div class="cmd"><code>sudo fsck.exfat -n /dev/sdb1</code><button class="cpy" data-cmd="sudo fsck.exfat -n /dev/sdb1">copy</button></div>
+    <div class="cmd"><code>sudo fsck.exfat -y /dev/sdb1</code><button class="cpy" data-cmd="sudo fsck.exfat -y /dev/sdb1">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">step 5</div>
+    <div class="step-h">Verify and remount</div>
+    <div class="cmd"><code>sudo mount /dev/sdb1 /mnt/external</code><button class="cpy" data-cmd="sudo mount /dev/sdb1 /mnt/external">copy</button></div>
+    <div class="cmd"><code>ls -lah /mnt/external</code><button class="cpy" data-cmd="ls -lah /mnt/external">copy</button></div>
+    <div class="cmd"><code>cat ~/deleted_files.txt</code><button class="cpy" data-cmd="cat ~/deleted_files.txt">copy</button></div>
+  </div>
+</section>
+
+<section data-tab="macos">
+  <div class="step">
+    <div class="step-id">step 1</div>
+    <div class="step-h">Identify the drive</div>
+    <div class="cmd"><code>diskutil list</code><button class="cpy" data-cmd="diskutil list">copy</button></div>
+    <div class="cmd"><code>diskutil info /Volumes/YourDriveName</code><button class="cpy" data-cmd="diskutil info /Volumes/YourDriveName">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">step 2</div>
+    <div class="step-h">Scan and delete corrupted files</div>
+    <div class="step-p">Replace <code>YourDriveName</code> with your drive's mount name from step 1.</div>
+    <div class="cmd"><code>for file in $(find /Volumes/YourDriveName -type f 2>/dev/null); do if ! cat "$file" >/dev/null 2>&1; then echo "DELETING: $file" >> ~/Desktop/deleted_files.txt && rm -f "$file"; fi; done</code><button class="cpy" data-cmd='for file in $(find /Volumes/YourDriveName -type f 2>/dev/null); do if ! cat "$file" >/dev/null 2>&1; then echo "DELETING: $file" >> ~/Desktop/deleted_files.txt && rm -f "$file"; fi; done'>copy</button></div>
+    <div class="cmd"><code>cat ~/Desktop/deleted_files.txt</code><button class="cpy" data-cmd="cat ~/Desktop/deleted_files.txt">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">step 3</div>
+    <div class="step-h">Repair filesystem</div>
+    <div class="step-p"><strong>NTFS:</strong></div>
+    <div class="cmd"><code>brew install ntfs-3g</code><button class="cpy" data-cmd="brew install ntfs-3g">copy</button></div>
+    <div class="cmd"><code>diskutil unmount /dev/disk2s1</code><button class="cpy" data-cmd="diskutil unmount /dev/disk2s1">copy</button></div>
+    <div class="cmd"><code>sudo ntfsck -P --progress /dev/disk2s1</code><button class="cpy" data-cmd="sudo ntfsck -P --progress /dev/disk2s1">copy</button></div>
+    <div class="step-p"><strong>exFAT:</strong></div>
+    <div class="cmd"><code>diskutil unmount /dev/disk2s1</code><button class="cpy" data-cmd="diskutil unmount /dev/disk2s1">copy</button></div>
+    <div class="cmd"><code>sudo fsck_exfat -n /dev/disk2s1</code><button class="cpy" data-cmd="sudo fsck_exfat -n /dev/disk2s1">copy</button></div>
+    <div class="cmd"><code>sudo fsck_exfat -y /dev/disk2s1</code><button class="cpy" data-cmd="sudo fsck_exfat -y /dev/disk2s1">copy</button></div>
+    <div class="step-p"><strong>FAT32:</strong></div>
+    <div class="cmd"><code>diskutil unmount /dev/disk2s1</code><button class="cpy" data-cmd="diskutil unmount /dev/disk2s1">copy</button></div>
+    <div class="cmd"><code>sudo fsck_fat -y /dev/disk2s1</code><button class="cpy" data-cmd="sudo fsck_fat -y /dev/disk2s1">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">step 4</div>
+    <div class="step-h">Remount</div>
+    <div class="cmd"><code>diskutil mount /Volumes/YourDriveName</code><button class="cpy" data-cmd="diskutil mount /Volumes/YourDriveName">copy</button></div>
+    <div class="cmd"><code>cat ~/Desktop/deleted_files.txt</code><button class="cpy" data-cmd="cat ~/Desktop/deleted_files.txt">copy</button></div>
+  </div>
+</section>
+
+<section data-tab="advanced">
+  <div class="step">
+    <div class="step-id">detailed scan</div>
+    <div class="step-h">Progress bar scan script</div>
+    <div class="step-p">Save as <code>scan_and_delete.sh</code>, make executable, and run. Shows progress percentage and logs every deletion.</div>
+    <div class="cmd"><code>#!/bin/bash<br>MOUNT_POINT="/mnt/external"<br>LOG_FILE="$HOME/deleted_files.txt"<br>DELETED_COUNT=0<br>TOTAL_FILES=$(find "$MOUNT_POINT" -type f 2>/dev/null | wc -l)<br>CURRENT=0<br>> "$LOG_FILE"<br>echo "Starting scan on $MOUNT_POINT..."<br>echo "Total files to check: $TOTAL_FILES"<br>find "$MOUNT_POINT" -type f 2>/dev/null | while read file; do<br>  CURRENT=$((CURRENT + 1))<br>  PERCENT=$((CURRENT * 100 / TOTAL_FILES))<br>  echo -ne "\rProgress: $PERCENT% ($CURRENT/$TOTAL_FILES)"<br>  if ! cat "$file" >/dev/null 2>&1; then<br>    echo ""<br>    echo "CORRUPTED: $file" | tee -a "$LOG_FILE"<br>    rm -f "$file"<br>    echo "✓ Deleted" | tee -a "$LOG_FILE"<br>  fi<br>done<br>echo ""<br>echo "Scan complete. Log: $LOG_FILE"</code><button class="cpy" data-cmd='#!/bin/bash
+MOUNT_POINT="/mnt/external"
+LOG_FILE="$HOME/deleted_files.txt"
+DELETED_COUNT=0
+TOTAL_FILES=$(find "$MOUNT_POINT" -type f 2>/dev/null | wc -l)
+CURRENT=0
+> "$LOG_FILE"
+echo "Starting scan on $MOUNT_POINT..."
+echo "Total files to check: $TOTAL_FILES"
+find "$MOUNT_POINT" -type f 2>/dev/null | while read file; do
+  CURRENT=$((CURRENT + 1))
+  PERCENT=$((CURRENT * 100 / TOTAL_FILES))
+  echo -ne "\rProgress: $PERCENT% ($CURRENT/$TOTAL_FILES)"
+  if ! cat "$file" >/dev/null 2>&1; then
+    echo ""
+    echo "CORRUPTED: $file" | tee -a "$LOG_FILE"
+    rm -f "$file"
+    echo "✓ Deleted" | tee -a "$LOG_FILE"
+  fi
+done
+echo ""
+echo "Scan complete. Log: $LOG_FILE"'>copy</button></div>
+    <div class="cmd"><code>chmod +x scan_and_delete.sh && ./scan_and_delete.sh</code><button class="cpy" data-cmd="chmod +x scan_and_delete.sh && ./scan_and_delete.sh">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">filtered scan</div>
+    <div class="step-h">Find corrupted files by type</div>
+    <div class="step-p">Scan only for specific file types — useful when you know e.g. video files are the issue.</div>
+    <div class="cmd"><code>find /mnt/external -type f \( -name "*.mkv" -o -name "*.mp4" \) | while read f; do if ! file "$f" >/dev/null 2>&1; then echo "Corrupted: $f"; fi; done</code><button class="cpy" data-cmd="find /mnt/external -type f \( -name '*.mkv' -o -name '*.mp4' \) | while read f; do if ! file "$f" >/dev/null 2>&1; then echo Corrupted: $f; fi; done">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">recovery</div>
+    <div class="step-h">Recover files with TestDisk / PhotoRec</div>
+    <div class="step-p">Instead of deleting, try recovering the data first. PhotoRec can salvage files from drives with bad sectors.</div>
+    <div class="step-p"><strong>Ubuntu:</strong></div>
+    <div class="cmd"><code>sudo apt install testdisk && sudo photorec /dev/sdb1</code><button class="cpy" data-cmd="sudo apt install testdisk && sudo photorec /dev/sdb1">copy</button></div>
+    <div class="step-p"><strong>macOS:</strong></div>
+    <div class="cmd"><code>brew install testdisk && photorec /dev/disk2s1</code><button class="cpy" data-cmd="brew install testdisk && photorec /dev/disk2s1">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">health</div>
+    <div class="step-h">Check drive health (S.M.A.R.T.)</div>
+    <div class="step-p">Check if the drive itself is failing, not just the filesystem. Replace <code>sdb</code> (not <code>sdb1</code> — S.M.A.R.T. is per-device).</div>
+    <div class="cmd"><code>sudo apt install smartmontools && sudo smartctl -a /dev/sdb</code><button class="cpy" data-cmd="sudo apt install smartmontools && sudo smartctl -a /dev/sdb">copy</button></div>
+    <div class="cmd"><code>brew install smartmontools && smartctl -a /dev/disk2</code><button class="cpy" data-cmd="brew install smartmontools && smartctl -a /dev/disk2">copy</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-id">troubleshoot</div>
+    <div class="step-h">Troubleshooting</div>
+    <div class="step-p"><strong>Drive won't unmount:</strong> Find what's using it and force unmount.</div>
+    <div class="cmd"><code>lsof | grep /mnt/external</code><button class="cpy" data-cmd="lsof | grep /mnt/external">copy</button></div>
+    <div class="cmd"><code>sudo umount -f /dev/sdb1</code><button class="cpy" data-cmd="sudo umount -f /dev/sdb1">copy</button></div>
+    <div class="step-p"><strong>Find unreadable sectors:</strong></div>
+    <div class="cmd"><code>sudo dd if=/dev/sdb1 of=/dev/null bs=4M status=progress</code><button class="cpy" data-cmd="sudo dd if=/dev/sdb1 of=/dev/null bs=4M status=progress">copy</button></div>
+  </div>
+</section>
+
+<footer>Nothing is uploaded or stored remotely. All commands execute on your own machine.</footer>
+</div>
+
+<script>
+(function(){
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(tab){
+    tab.onclick = function(){
+      tabs.forEach(function(t){t.classList.remove('active')});
+      document.querySelectorAll('section[data-tab]').forEach(function(s){s.classList.remove('active')});
+      tab.classList.add('active');
+      document.querySelector('section[data-tab="' + tab.getAttribute('data-tab') + '"]').classList.add('active');
+    };
+  });
+  document.querySelectorAll('.cpy').forEach(function(btn){
+    btn.onclick = function(){
+      var text = btn.getAttribute('data-cmd');
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){
+          btn.textContent = 'copied';
+          btn.classList.add('copied');
+          setTimeout(function(){btn.textContent = 'copy';btn.classList.remove('copied')}, 1800);
+        });
+      }
+    };
+  });
+})();
+</script>
+<script src="../assets/nav.js" data-tool="zarya"></script>
+</body>
+</html>

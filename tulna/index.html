@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tulna — Prayog</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:#0b0e1a;color:#e0e0e0}
+  .wrap{max-width:960px;width:100%}
+  h1{font-size:1.3rem;font-weight:700;letter-spacing:0.02em;margin-bottom:1rem}
+  h1 span{font-size:0.8rem;font-weight:400;color:#888}
+  .panes{display:flex;gap:1rem}
+  .pane{flex:1;display:flex;flex-direction:column}
+  .pane label{font-size:0.75rem;color:#888;margin-bottom:0.3rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em}
+  .pane textarea{width:100%;height:300px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.75rem;color:#e0e0e0;font-family:monospace;font-size:0.82rem;resize:vertical;line-height:1.5;tab-size:2}
+  .pane textarea:focus{outline:none;border-color:#e8a33d}
+  .diff{display:none;margin-top:1rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.75rem;font-family:monospace;font-size:0.82rem;line-height:1.5;white-space:pre-wrap;overflow-x:auto;max-height:400px;overflow-y:auto}
+  .diff.show{display:block}
+  .diff del{background:rgba(239,68,68,0.25);color:#fca5a5;text-decoration:line-through}
+  .diff ins{background:rgba(34,197,94,0.25);color:#86efac;text-decoration:none}
+  .meta{display:flex;gap:1rem;margin-top:0.5rem;font-size:0.75rem;color:#888;font-family:monospace}
+  .meta span{color:#e8a33d}
+  .btn{display:inline-block;padding:0.5rem 1.2rem;border-radius:100px;border:none;font-weight:600;font-size:0.82rem;cursor:pointer;transition:.2s;background:rgba(255,255,255,0.08);color:#ccc;margin-top:0.5rem}
+  .btn:hover{background:rgba(255,255,255,0.14)}
+  .btn-primary{background:#e8a33d;color:#0b0e1a}
+  .btn-primary:hover{background:#d4912e}
+  .actions{display:flex;gap:0.5rem;align-items:center}
+  footer{text-align:center;color:rgba(255,255,255,0.25);font-family:monospace;font-size:10.5px;margin-top:24px;line-height:1.6}
+  @media(max-width:640px){.panes{flex-direction:column}.pane textarea{height:150px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Tulna <span>text diff</span></h1>
+  <div class="panes">
+    <div class="pane">
+      <label>left (original)</label>
+      <textarea id="left" placeholder="Paste original text here…"></textarea>
+    </div>
+    <div class="pane">
+      <label>right (changed)</label>
+      <textarea id="right" placeholder="Paste changed text here…"></textarea>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" id="diffBtn">diff</button>
+    <button class="btn" id="swapBtn">swap</button>
+    <button class="btn" id="clearBtn">clear</button>
+  </div>
+  <div class="meta" id="meta"></div>
+  <div class="diff" id="diff"></div>
+  <footer>Nothing is uploaded or stored remotely — all processing happens in your browser.</footer>
+</div>
+<script>
+(function(){
+  var L=document.getElementById('left'),R=document.getElementById('right');
+  var D=document.getElementById('diff'),M=document.getElementById('meta');
+
+  function diff(a,b){
+    var al=a.split('\n'),bl=b.split('\n');
+    var m=al.length,n=bl.length;
+    var dp=Array.from({length:m+1},function(){return Array(n+1).fill(0)});
+    for(var i=1;i<=m;i++)for(var j=1;j<=n;j++)dp[i][j]=al[i-1]===bl[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+    var out=[],i=m,j=n;
+    while(i>0||j>0){
+      if(i>0&&j>0&&al[i-1]===bl[j-1]){out.unshift(al[i-1]);i--;j--}
+      else if(j>0&&(i===0||dp[i][j-1]>=dp[i-1][j])){out.unshift('<ins>'+esc(bl[j-1])+'</ins>');j--}
+      else{out.unshift('<del>'+esc(al[i-1])+'</del>');i--}
+    }
+    M.innerHTML='Lines: L='+al.length+' R='+bl.length+' <span>|</span> Δ='+(bl.length-al.length>=0?'+':'')+(bl.length-al.length);
+    return out.join('\n');
+  }
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+  document.getElementById('diffBtn').onclick=function(){
+    var l=L.value,r=R.value;
+    if(!l||!r){D.textContent='Both panes must have text.';D.classList.add('show');return}
+    D.innerHTML=diff(l,r);D.classList.add('show');
+  };
+  document.getElementById('swapBtn').onclick=function(){var t=L.value;L.value=R.value;R.value=t};
+  document.getElementById('clearBtn').onclick=function(){L.value='';R.value='';D.classList.remove('show');M.innerHTML=''};
+  document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='Enter')document.getElementById('diffBtn').click()});
+})();
+</script>
+<script src="../assets/nav.js" data-tool="tulna"></script>
+</body>
+</html>
