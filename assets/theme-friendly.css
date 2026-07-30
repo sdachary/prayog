@@ -1,0 +1,75 @@
+/* theme-friendly.css — Light/warm theme for Shuddhi (PC cleanup guide).
+   Deliberately diverges from theme.css's dark hacker-terminal aesthetic:
+   Shuddhi targets non-technical users cleaning a compromised PC, where
+   a dark theme would signal the wrong tone. See wiki/ARCHITECTURE.md. */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #f8f6f3;
+  --panel: #ffffff;
+  --panel-hover: #faf8f5;
+  --line: #e8e4de;
+  --line-accent: #d6d0c8;
+  --text: #1a1816;
+  --text-secondary: #6b6560;
+  --muted: #9c9590;
+  --accent: #0d9488;
+  --accent-dim: rgba(13,148,136,0.08);
+  --accent-light: rgba(13,148,136,0.5);
+  --success: #15803d;
+  --success-dim: rgba(21,128,61,0.08);
+  --warning: #b45309;
+  --warning-dim: rgba(180,83,9,0.08);
+
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12120f;
+    --panel: #1a1816;
+    --panel-hover: #22201d;
+    --line: #2a2825;
+    --line-accent: #3a3834;
+    --text: #e8e4de;
+    --text-secondary: #9c9590;
+    --muted: #6b6560;
+    --accent: #14b8a6;
+    --accent-dim: rgba(20,184,166,0.1);
+    --accent-light: rgba(20,184,166,0.5);
+    --success: #22c55e;
+    --success-dim: rgba(34,197,94,0.1);
+    --warning: #f59e0b;
+    --warning-dim: rgba(245,158,11,0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body {
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.visually-hidden {
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}

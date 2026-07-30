@@ -6,8 +6,8 @@
   <title>Badhai - Video Audio Extraction</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/site.webmanifest">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script async src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
+  <script src="../assets/nav.js" defer data-tool="badhai"></script>
+
   <style>
     * {
       margin: 0;
@@ -81,29 +81,7 @@
       margin-bottom: 15px;
     }
 
-    .dropzone {
-      border: 2px dashed #58d68d;
-      border-radius: 8px;
-      padding: 40px 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: rgba(88, 214, 141, 0.05);
-    }
-
-    .dropzone:hover {
-      background: rgba(88, 214, 141, 0.1);
-      border-color: #7dd999;
-    }
-
-    .dropzone.dragover {
-      background: rgba(88, 214, 141, 0.2);
-      border-color: #7dd999;
-      transform: scale(1.02);
-    }
-
-    .dropzone i {
-      font-size: 48px;
+    .dropzone svg {
       color: #58d68d;
       margin-bottom: 10px;
       display: block;
@@ -475,16 +453,16 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1><i class="fas fa-music"></i> Badhai</h1>
+      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Badhai</h1>
       <p>Extract audio from video files • Local processing • No uploads</p>
     </div>
 
     <!-- Upload Card -->
     <div class="card">
-      <h2><i class="fas fa-cloud-upload-alt"></i> Step 1: Upload Video</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M4 14.9A7 7 0 1 1 15.9 9h.1a4 4 0 0 1 0 8H7a3 3 0 0 1-3-3Z"/><path d="M12 13V7"/><polyline points="9 10 12 7 15 10"/></svg> Step 1: Upload Video</h2>
       
-      <div class="dropzone" id="dropzone">
-        <i class="fas fa-video"></i>
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drag and drop your video here, or press Enter to browse for a file (MP4, MKV, AVI, WebM, MOV, etc.)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="48px" height="48px" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><polyline points="10 9 16 12 10 15"/></svg>
         <p><strong>Drag & drop your video here</strong></p>
         <p class="dropzone-hint">or click to browse (MP4, MKV, AVI, WebM, MOV, etc.)</p>
       </div>
@@ -512,31 +490,31 @@
       </div>
 
       <div class="info-box">
-        <i class="fas fa-info-circle"></i> <strong>Privacy:</strong> All processing happens on your computer. No files are uploaded to any server.
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> <strong>Privacy:</strong> All processing happens on your computer. No files are uploaded to any server.
       </div>
     </div>
 
     <!-- Format Card -->
     <div class="card">
-      <h2><i class="fas fa-cog"></i> Step 2: Choose Output Format</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Step 2: Choose Output Format</h2>
       
       <div class="form-group">
         <label>Audio Format:</label>
         <div class="format-grid">
           <button class="format-btn active" data-format="mp3">
-            <i class="fas fa-music"></i> MP3
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> MP3
             <div class="format-info">Best compatibility</div>
           </button>
           <button class="format-btn" data-format="wav">
-            <i class="fas fa-wave-square"></i> WAV
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="3" y="11" width="4" height="6" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="10" rx="1"/></svg> WAV
             <div class="format-info">Lossless</div>
           </button>
           <button class="format-btn" data-format="aac">
-            <i class="fas fa-music"></i> AAC
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> AAC
             <div class="format-info">Good quality</div>
           </button>
           <button class="format-btn" data-format="ogg">
-            <i class="fas fa-music"></i> OGG
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> OGG
             <div class="format-info">Open format</div>
           </button>
         </div>
@@ -545,14 +523,14 @@
 
     <!-- Extraction Mode Card -->
     <div class="card">
-      <h2><i class="fas fa-cut"></i> Step 3: Extraction Mode</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Step 3: Extraction Mode</h2>
 
       <div class="extraction-mode">
         <button class="mode-btn active" data-mode="full">
-          <i class="fas fa-arrows-alt-h"></i> Extract Full Audio
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Extract Full Audio
         </button>
         <button class="mode-btn" data-mode="segment">
-          <i class="fas fa-sliders-h"></i> Extract Segment
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><circle cx="4" cy="12" r="2"/><circle cx="12" cy="10" r="2"/><circle cx="20" cy="14" r="2"/></svg> Extract Segment
         </button>
       </div>
 
@@ -584,14 +562,14 @@
       </div>
 
       <div class="warning-box" id="warningBox">
-        <i class="fas fa-exclamation-triangle"></i> First time? FFmpeg will download (~30MB). This is cached for future use.
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> First time? FFmpeg will download (~30MB). This is cached for future use.
       </div>
     </div>
 
     <!-- Extract Button -->
     <div class="card">
       <button class="extract-btn" id="extractBtn" disabled>
-        <i class="fas fa-download"></i> Extract Audio
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Extract Audio
       </button>
 
       <div class="progress-section" id="progressSection">
@@ -606,7 +584,7 @@
       </div>
 
       <button class="reset-btn" id="resetBtn" style="display: none;">
-        <i class="fas fa-redo"></i> Process Another File
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Process Another File
       </button>
     </div>
 
@@ -715,6 +693,12 @@
 
     // Dropzone handlers
     dropzone.addEventListener('click', () => videoFileInput.click());
+    dropzone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        videoFileInput.click();
+      }
+    });
     
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -890,6 +874,5 @@
     // Initial time preview
     updateTimePreview();
   </script>
-<script src="../assets/nav.js" data-tool="badhai"></script>
 </body>
 </html>

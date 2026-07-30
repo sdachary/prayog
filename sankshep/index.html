@@ -6,40 +6,35 @@
 <title>Sankshep — Prayog</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
+<script src="../assets/nav.js" defer data-tool="sankshep"></script>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:#0b0e1a;overflow-x:hidden}
+  body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg);overflow-x:hidden}
   .wrap{max-width:640px;width:100%}
-  .card{background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border-radius:1.5rem;padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-top:1rem}
-  h1{font-size:1.3rem;font-weight:700;color:#e0e0e0;letter-spacing:0.02em}
-  .dropzone{border:2px dashed rgba(255,255,255,0.2);border-radius:1rem;padding:2rem;text-align:center;cursor:pointer;transition:.2s;color:#888}
-  .dropzone:hover,.dropzone.dragover{border-color:#e8a33d;background:rgba(232,163,61,0.06);color:#e8a33d}
+  .card{background:rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-top:1rem}
+  h1{font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:0.02em}
   .preview{display:none;margin-top:1rem}
   .preview.show{display:block}
   .img-row{display:flex;gap:1rem;margin:1rem 0}
   .img-box{flex:1;text-align:center}
-  .img-box img{max-width:100%;border-radius:0.75rem;background:rgba(0,0,0,0.3)}
-  .img-box .label{font-size:0.75rem;color:#888;margin-top:0.3rem}
-  .img-box .size{font-size:0.7rem;color:#e8a33d;font-family:monospace}
+  .img-box img{max-width:100%;border-radius:var(--radius-md);background:rgba(0,0,0,0.3)}
+  .img-box .label{font-size:0.75rem;color:var(--muted);margin-top:0.3rem}
+  .img-box .size{font-size:0.7rem;color:var(--amber);font-family:monospace}
   .controls{display:flex;flex-direction:column;gap:0.75rem;margin:1rem 0}
   .ctrl-row{display:flex;align-items:center;gap:0.75rem}
-  .ctrl-row label{font-size:0.8rem;color:#aaa;min-width:80px}
-  .ctrl-row input[type=range]{flex:1;accent-color:#e8a33d}
-  .ctrl-row .val{font-family:monospace;font-size:0.8rem;color:#e8a33d;min-width:3rem;text-align:right}
-  .ctrl-row select{padding:0.4rem 0.6rem;border-radius:0.5rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#e0e0e0;font-size:0.85rem}
-  .btn{display:inline-block;padding:0.6rem 1.5rem;border-radius:100px;border:none;font-weight:600;font-size:0.85rem;cursor:pointer;transition:.2s;text-decoration:none}
-  .btn-primary{background:#e8a33d;color:#0b0e1a}
-  .btn-primary:hover{background:#d4912e}
-  .btn-secondary{background:rgba(255,255,255,0.08);color:#ccc}
-  .btn-secondary:hover{background:rgba(255,255,255,0.14)}
-  footer{text-align:center;color:rgba(255,255,255,0.25);font-family:monospace;font-size:10.5px;margin-top:24px;line-height:1.6}
+  .ctrl-row label{font-size:0.8rem;color:var(--muted);min-width:80px}
+  .ctrl-row input[type=range]{flex:1;accent-color:var(--amber)}
+  .ctrl-row .val{font-family:monospace;font-size:0.8rem;color:var(--amber);min-width:3rem;text-align:right}
+  .ctrl-row select{padding:0.4rem 0.6rem;border-radius:var(--radius-sm);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:var(--text);font-size:0.85rem}
+  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Sankshep <span style="font-size:0.8rem;font-weight:400;color:#888">image compressor</span></h1>
+  <h1>Sankshep <span style="font-size:0.8rem;font-weight:400;color:var(--muted)">image compressor</span></h1>
   <div class="card">
-    <div class="dropzone" id="dropzone">Drop an image here, or click to browse</div>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop an image here, or press Enter to browse for one">Drop an image here, or click to browse</div>
     <input type="file" id="fileInput" accept="image/*" style="display:none">
     <div class="preview" id="preview">
       <div class="img-row">
@@ -90,11 +85,12 @@
   var dl=document.getElementById('downloadBtn');
   var _img, _origFile;
 
-  q.oninput=function(){qv.textContent=this.value+'%';render()};
-  mw.oninput=function(){mwv.textContent=this.value;render()};
+  q.oninput=function(){qv.textContent=this.value+'%';this.setAttribute('aria-valuetext',this.value+'%');render()};
+  mw.oninput=function(){mwv.textContent=this.value;this.setAttribute('aria-valuetext',this.value+' pixels');render()};
   fmt.onchange=render;
 
   dz.onclick=function(){fi.click()};
+  dz.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fi.click()}};
   dz.ondragover=function(e){e.preventDefault();dz.classList.add('dragover')};
   dz.ondragleave=function(){dz.classList.remove('dragover')};
   dz.ondrop=function(e){e.preventDefault();dz.classList.remove('dragover');load(e.dataTransfer.files[0])};
@@ -102,7 +98,7 @@
 
   function load(f){if(!f||!f.type.match(/image\//))return;_origFile=f;var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){_img=i;show()};i.src=r.result};r.readAsDataURL(f)}
   function show(){
-    origImg=_img.cloneNode();origImg.style.maxHeight='200px';
+    origImg=_img.cloneNode();origImg.style.maxHeight='200px';origImg.alt='Original image preview';
     document.getElementById('origImage').innerHTML='';document.getElementById('origImage').appendChild(origImg);
     origSizeEl.textContent=formatSize(_origFile.size);
     pv.classList.add('show');render()
@@ -117,7 +113,7 @@
     var qv2=parseInt(q.value)/100,f=fmt.value;
     c.toBlob(function(blob){
       if(!blob)return;
-      compImgEl.innerHTML='';var ci=new Image();ci.src=URL.createObjectURL(blob);ci.style.maxHeight='200px';compImgEl.appendChild(ci);
+      compImgEl.innerHTML='';var ci=new Image();ci.src=URL.createObjectURL(blob);ci.style.maxHeight='200px';ci.alt='Compressed image preview';compImgEl.appendChild(ci);
       compSizeEl.textContent=formatSize(blob.size);
       dl.onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='compressed.'+f.split('/')[1];a.click()};
     },f,qv2)
@@ -125,6 +121,5 @@
   function formatSize(b){if(!b)return'—';return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'}
 })();
 </script>
-<script src="../assets/nav.js" data-tool="sankshep"></script>
 </body>
 </html>

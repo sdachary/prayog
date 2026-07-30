@@ -6,38 +6,12 @@
 <title>Shuddhi — PC Cleanup Guide</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="../assets/nav.js" defer data-tool="shuddhi"></script>
+<link rel="stylesheet" href="/assets/theme-friendly.css">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-
 :root {
-  --bg: #f8f6f3;
-  --surface: #ffffff;
-  --surface-hover: #faf8f5;
-  --border: #e8e4de;
-  --border-accent: #d6d0c8;
-  --text: #1a1816;
-  --text-secondary: #6b6560;
-  --text-muted: #9c9590;
-  --accent: #0d9488;
-  --accent-dim: rgba(13,148,136,0.08);
-  --accent-light: rgba(13,148,136,0.5);
-  --success: #15803d;
-  --success-dim: rgba(21,128,61,0.08);
-  --warning: #b45309;
-  --warning-dim: rgba(180,83,9,0.08);
   --radius: 14px;
   --radius-sm: 8px;
-}
-
-body {
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
 }
 
 .wrap {
@@ -106,8 +80,8 @@ body {
 
 /* --- Download Button --- */
 .dl-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--panel);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 24px 24px 20px;
   margin-bottom: 32px;
@@ -115,7 +89,7 @@ body {
 }
 
 .dl-wrap:hover {
-  border-color: var(--border-accent);
+  border-color: var(--line-accent);
 }
 
 .dl-label {
@@ -123,7 +97,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .08em;
-  color: var(--text-muted);
+  color: var(--muted);
   margin-bottom: 12px;
 }
 
@@ -184,7 +158,7 @@ body {
 
 .dl-note {
   text-align: center;
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: .75rem;
   margin-top: 12px;
 }
@@ -193,14 +167,14 @@ body {
 .step {
   margin-bottom: 12px;
   border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--panel);
+  border: 1px solid var(--line);
   overflow: hidden;
   transition: border-color .25s;
 }
 
 .step:hover {
-  border-color: var(--border-accent);
+  border-color: var(--line-accent);
 }
 
 .step-h {
@@ -214,8 +188,9 @@ body {
 }
 
 .step-h:hover {
-  background: var(--surface-hover);
+  background: var(--panel-hover);
 }
+.step-h:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
 .step-num {
   width: 30px;
@@ -239,7 +214,7 @@ body {
 }
 
 .step-toggle {
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: .7rem;
   transition: transform .25s;
   flex-shrink: 0;
@@ -305,7 +280,7 @@ body {
   font-size: .7rem;
   text-transform: uppercase;
   letter-spacing: .08em;
-  color: var(--text-muted);
+  color: var(--muted);
   margin-top: 14px;
   margin-bottom: 6px;
   font-weight: 600;
@@ -313,7 +288,7 @@ body {
 
 .step-b .box {
   background: rgba(0,0,0,0.02);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 12px 14px;
   margin: 10px 0;
@@ -352,11 +327,11 @@ body {
 
 .step-b .img-placeholder {
   background: rgba(0,0,0,0.02);
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--line);
   border-radius: var(--radius-sm);
   padding: 24px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: .78rem;
   margin: 10px 0;
   display: flex;
@@ -386,8 +361,8 @@ body {
   width: 100%;
   padding: 13px;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid var(--line);
+  background: var(--panel);
   color: var(--text-secondary);
   font-family: inherit;
   font-size: .85rem;
@@ -426,12 +401,12 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: .73rem;
   padding: 4px 12px;
   border-radius: 100px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--panel);
+  border: 1px solid var(--line);
 }
 
 .status-item svg {
@@ -443,7 +418,7 @@ body {
 .footer {
   text-align: center;
   margin-top: 28px;
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: .7rem;
 }
 
@@ -481,23 +456,6 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12120f;
-    --surface: #1a1816;
-    --surface-hover: #22201d;
-    --border: #2a2825;
-    --border-accent: #3a3834;
-    --text: #e8e4de;
-    --text-secondary: #9c9590;
-    --text-muted: #6b6560;
-    --accent: #14b8a6;
-    --accent-dim: rgba(20,184,166,0.1);
-    --success: #22c55e;
-    --success-dim: rgba(34,197,94,0.1);
-    --warning: #f59e0b;
-    --warning-dim: rgba(245,158,11,0.1);
-  }
-
   .dl-btn {
     background: var(--accent);
     color: #12120f;
@@ -514,11 +472,11 @@ body {
 
   .step-b .img-placeholder {
     background: rgba(255,255,255,0.03);
-    border-color: var(--border);
+    border-color: var(--line);
   }
 
   .status-item {
-    background: var(--surface);
+    background: var(--panel);
   }
 }
 </style>
@@ -557,7 +515,7 @@ body {
   </div>
 
   <div class="step open" id="s1">
-    <div class="step-h" onclick="toggle(this)">
+    <div class="step-h" onclick="toggle(this)" tabindex="0" role="button" aria-expanded="true" onkeydown="toggleOnKey(event, this)">
       <div class="step-num">1</div>
       <h2>Windows Defender Offline Scan</h2>
       <span class="step-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -587,7 +545,7 @@ body {
   </div>
 
   <div class="step" id="s2">
-    <div class="step-h" onclick="toggle(this)">
+    <div class="step-h" onclick="toggle(this)" tabindex="0" role="button" aria-expanded="false" onkeydown="toggleOnKey(event, this)">
       <div class="step-num">2</div>
       <h2>Remove Unknown Programs</h2>
       <span class="step-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -609,7 +567,7 @@ body {
   </div>
 
   <div class="step" id="s3">
-    <div class="step-h" onclick="toggle(this)">
+    <div class="step-h" onclick="toggle(this)" tabindex="0" role="button" aria-expanded="false" onkeydown="toggleOnKey(event, this)">
       <div class="step-num">3</div>
       <h2>Disable Suspicious Startup Apps</h2>
       <span class="step-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -626,7 +584,7 @@ body {
   </div>
 
   <div class="step" id="s4">
-    <div class="step-h" onclick="toggle(this)">
+    <div class="step-h" onclick="toggle(this)" tabindex="0" role="button" aria-expanded="false" onkeydown="toggleOnKey(event, this)">
       <div class="step-num">4</div>
       <h2>Reset Your Browser</h2>
       <span class="step-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -655,7 +613,7 @@ body {
   </div>
 
   <div class="step" id="s5">
-    <div class="step-h" onclick="toggle(this)">
+    <div class="step-h" onclick="toggle(this)" tabindex="0" role="button" aria-expanded="false" onkeydown="toggleOnKey(event, this)">
       <div class="step-num">5</div>
       <h2>Change Passwords (from your Phone)</h2>
       <span class="step-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -702,7 +660,14 @@ body {
 
 <script>
 function toggle(el) {
-  el.parentElement.classList.toggle('open')
+  el.parentElement.classList.toggle('open');
+  el.setAttribute('aria-expanded', el.parentElement.classList.contains('open'));
+}
+function toggleOnKey(e, el) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    toggle(el);
+  }
 }
 
 function expandAll(btn) {
@@ -710,11 +675,11 @@ function expandAll(btn) {
   var allOpen = true
   steps.forEach(function(s) { if (!s.classList.contains('open')) allOpen = false })
   if (allOpen) {
-    steps.forEach(function(s) { s.classList.remove('open') })
+    steps.forEach(function(s) { s.classList.remove('open'); var h=s.querySelector('.step-h');if(h)h.setAttribute('aria-expanded','false') })
     btn.classList.remove('expanded')
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg> Expand All Steps'
   } else {
-    steps.forEach(function(s) { s.classList.add('open') })
+    steps.forEach(function(s) { s.classList.add('open'); var h=s.querySelector('.step-h');if(h)h.setAttribute('aria-expanded','true') })
     btn.classList.add('expanded')
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg> Collapse All Steps'
   }
@@ -722,6 +687,5 @@ function expandAll(btn) {
 
 document.getElementById('s1').classList.add('open')
 </script>
-<script src="../assets/nav.js" data-tool="shuddhi"></script>
 </body>
 </html>

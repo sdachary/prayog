@@ -9,8 +9,6 @@
 <link rel="stylesheet" href="/assets/theme.css">
 <script src="/assets/nav.js" defer data-tool="DRISHTI"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-
   .wrap{ min-height:100%; display:flex; flex-direction:column; align-items:center; padding:32px 16px 64px; }
   header{ width:100%; max-width:560px; display:flex; align-items:baseline; justify-content:space-between; margin-bottom:28px; }
   .brand{ font-family:var(--mono); font-weight:600; font-size:15px; letter-spacing:0.06em; }
@@ -91,7 +89,6 @@
   .action-row .ghost-btn{ flex:1; text-align:center; }
 
   .hidden{ display:none !important; }
-  footer{ max-width:560px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:10.5px; margin-top:8px; line-height:1.6; }
 </style>
 </head>
 <body>
@@ -258,7 +255,7 @@
     const item = document.createElement('div');
     item.className = 'result-item';
     item.innerHTML = `
-      <div class="r-path">${escapeHtml(path)}</div>
+      <div class="r-path"><span class="visually-hidden">Unreadable: </span>${escapeHtml(path)}</div>
       <div class="r-meta">${fmtBytes(size)}</div>
       <div class="r-err">${escapeHtml(error)}</div>
     `;
