@@ -1,5 +1,25 @@
 # Prayog — Tool Reference
 
+## rin-ledger — Home loan amortization
+
+| | |
+|---|---|
+| **What** | Calculate EMI, track payoff schedules, simulate prepayments, and compare rent vs buy — all in-browser. |
+| **Dependencies** | None (pure JavaScript, SVG charts) |
+| **Limits** | Large tenures (40+ years) may have many rows but still performant. |
+
+---
+
+## vahak-uploader — Mass uploader to Google Drive
+
+| | |
+|---|---|
+| **What** | Pick a local folder, mirror its tree into Google Drive file by file, move each to a "processed" folder on success. Resumable chunked uploads with pause/resume/cancel. |
+| **Dependencies** | Google Identity Services (CDN), File System Access API |
+| **Limits** | Requires HTTPS/localhost. Browser memory limits large files. OAuth Client ID required. |
+
+---
+
 ## sandesh — WebRTC file transfer
 
 | | |

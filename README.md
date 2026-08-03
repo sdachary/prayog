@@ -4,6 +4,8 @@ Standalone browser utilities — each tool is a self-contained HTML file, zero b
 
 | Tool | What |
 |------|------|
+| [Rin Ledger](rin-ledger/) | Home loan amortization calculator — track payoff, prepayments, and rent-vs-buy math. |
+| [Vahak](vahak-uploader/) | Mass uploader to Google Drive — mirror a local folder tree, file by file. |
 | [Sandesh](sandesh/) | Local network file transfer via WebRTC. Pair devices with a 6-digit code and send files directly browser-to-browser. |
 | [Drishti](drishti/) | Read-only file scanner. Point it at a folder and it reports which files fail to open — nothing is modified. |
 | [Shuddhi](shuddhi/) | Windows PC cleanup guide and malware scanner. Step-by-step + automated script. |

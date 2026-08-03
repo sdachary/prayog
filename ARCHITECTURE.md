@@ -33,6 +33,8 @@ prayog/
 ├── sankshep/          Image compressor & resizer
 ├── tulna/             Text diff
 ├── zarya/             External drive repair guide (Linux/macOS)
+├── rin-ledger/        Home loan amortization calculator
+├── vahak-uploader/    Mass uploader to Google Drive
 └── games/             Browser games (Snake & Ladder, Color Match)
 ```
 

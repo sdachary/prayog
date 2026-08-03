@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vahak — Prayog</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
+<script src="../assets/nav.js" defer data-tool="vahak-uploader"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  /* Vahak specific styles */
+  .mark{ font-family:var(--mono); font-size:2.38rem; color:var(--teal); line-height:1; }
+  h1{ font-family:var(--mono); font-weight:600; font-size:1.88rem; margin:0; }
+  .subtitle{ color:var(--muted); font-size:0.875rem; margin-top:6px; max-width:620px; line-height:1.5; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:18px; }
+  .cardLabel{ font-family:var(--mono); font-size:1rem; font-weight:600; margin-bottom:14px; }
+  .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:220px; }
+  .field label{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  input[type=text], input[type=number]{
+    background:#0B1116; border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
+    color:var(--text); font-family:var(--mono),monospace; font-size:0.84rem; outline:none; width:100%;
+  }
+  input:focus{ border-color:var(--teal); }
+  select{
+    background:#0B1116; border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
+    color:var(--text); font-family:var(--mono),monospace; font-size:0.81rem;
+  }
+  .pill{ display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; padding:4px 10px; border-radius:var(--radius-full); border:1px solid var(--line); color:var(--muted); }
+  .dot{ width:8px; height:8px; border-radius:50%; background:var(--red); }
+  .dot.on{ background:var(--teal); }
+  .folderPath{ font-family:var(--mono),monospace; font-size:0.78rem; color:var(--teal); word-break:break-all; }
+  .noteBox{ margin-top:12px; font-size:0.78rem; color:var(--muted); line-height:1.6; border-left:2px solid var(--line); padding-left:12px; }
+
+  .statsGrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
+  .stat{ background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px 16px; }
+  .statLabel{ font-size:0.69rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+  .statValue{ font-family:var(--mono),monospace; font-size:1.13rem; font-weight:600; }
+  .progressOuter{ height:8px; background:#0B1116; border-radius:5px; overflow:hidden; margin-top:14px; }
+  .progressInner{ height:100%; background:linear-gradient(90deg, #1a6b58, var(--teal)); width:0%; transition:width .3s; }
+
+  .logWrap{ max-height:440px; overflow-y:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
+  table{ width:100%; border-collapse:collapse; font-family:var(--mono),monospace; font-size:0.75rem; }
+  thead th{ position:sticky; top:0; background:#1B2530; color:var(--teal); text-align:left; padding:9px 12px; font-size:0.69rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line); }
+  tbody td{ padding:7px 12px; border-bottom:1px solid #1c2731; }
+  tbody tr:nth-child(even){ background:var(--panel-2); }
+  .status-queued{ color:var(--muted); }
+  .status-uploading{ color:#D9A441; }
+  .status-moving{ color:#D9A441; }
+  .status-done{ color:var(--teal); }
+  .status-error{ color:var(--red); }
+  .rowProgress{ display:inline-block; width:60px; height:5px; background:#0B1116; border-radius:3px; overflow:hidden; vertical-align:middle; margin-right:6px; }
+  .rowProgressInner{ height:100%; background:var(--teal); }
+
+  footer{ text-align:center; color:var(--muted); font-family:var(--mono); font-size:0.75rem; margin-top:30px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">⇪</div>
+    <div>
+      <h1>Vahak</h1>
+      <p class="subtitle">A local, no-install uploader that carries a folder tree into Google Drive — file by file, moving each into a "processed" folder once it's safely confirmed uploaded.</p>
+    </div>
+  </header>
+
+  <!-- Connection -->
+  <section class="card">
+    <div class="cardLabel">Connect to Google Drive</div>
+    <div class="row">
+      <div class="field">
+        <label>OAuth Client ID</label>
+        <input type="text" id="clientId" placeholder="xxxxxxxx.apps.googleusercontent.com">
+      </div>
+      <button class="btn btn-primary" id="connectBtn">Connect</button>
+      <span class="pill"><span class="dot" id="connDot"></span><span id="connText">Not connected</span></span>
+    </div>
+    <div class="noteBox">Your Client ID is saved in this browser only (localStorage), never sent anywhere except Google. Access tokens live in memory only and are refreshed automatically while a job is running.</div>
+  </section>
+
+  <!-- Folders -->
+  <section class="card">
+    <div class="cardLabel">Folders</div>
+    <div class="row" style="margin-bottom:12px;">
+      <button class="btn btn-secondary" id="pickSourceBtn">Choose source folder…</button>
+      <span class="folderPath" id="sourcePathOut">none selected</span>
+    </div>
+    <div class="row" style="margin-bottom:12px;">
+      <button class="btn btn-secondary" id="pickProcessedBtn">Choose processed folder…</button>
+      <span class="folderPath" id="processedPathOut">none selected</span>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Destination Drive folder ID</label>
+        <input type="text" id="destFolderId" placeholder="paste folder ID, or use root">
+      </div>
+      <button class="btn btn-secondary" id="useRootBtn">Use My Drive root</button>
+      <button class="btn btn-secondary" id="listFoldersBtn">List root folders</button>
+      <button class="btn btn-secondary" id="createFolderBtn">Create new folder</button>
+    </div>
+    <select id="rootFolderSelect" style="margin-top:10px; width:100%; display:none;"></select>
+    <div class="noteBox">To find a folder ID: open it in Google Drive in your browser, and copy the string after <code>/folders/</code> in the address bar.</div>
+  </section>
+
+  <!-- Controls -->
+  <section class="card">
+    <div class="cardLabel">Run</div>
+    <div class="row">
+      <button class="btn btn-primary" id="startBtn">Start upload</button>
+      <button class="btn btn-secondary" id="pauseBtn" disabled>Pause</button>
+      <button class="btn btn-danger" id="cancelBtn" disabled>Cancel</button>
+    </div>
+    <div class="noteBox">Scans the source folder recursively when you hit Start. Files already moved into "processed" (from a previous run) won't be in the source folder anymore, so re-running after an interruption naturally resumes where you left off.</div>
+  </section>
+
+  <!-- Stats -->
+  <section class="card">
+    <div class="cardLabel">Progress</div>
+    <div class="statsGrid">
+      <div class="stat"><div class="statLabel">Files</div><div class="statValue" id="statFiles">0 / 0</div></div>
+      <div class="stat"><div class="statLabel">Data</div><div class="statValue" id="statBytes">0 / 0 GB</div></div>
+      <div class="stat"><div class="statLabel">Speed</div><div class="statValue" id="statSpeed">—</div></div>
+      <div class="stat"><div class="statLabel">ETA</div><div class="statValue" id="statEta">—</div></div>
+      <div class="stat"><div class="statLabel">Elapsed</div><div class="statValue" id="statElapsed">—</div></div>
+    </div>
+    <div class="progressOuter"><div class="progressInner" id="overallBar"></div></div>
+  </section>
+
+  <!-- Log -->
+  <section class="card">
+    <div class="cardLabel">Log</div>
+    <div class="logWrap">
+      <table>
+        <thead><tr><th>File</th><th>Size</th><th>Status</th><th>Progress</th><th>Speed</th><th>ETA</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Vahak — runs entirely in this browser tab. Keep this tab open and the machine awake for the duration of the upload.</footer>
+</div>
+
+<script>
+// ================= Config persistence =================
+const clientIdInput = document.getElementById('clientId');
+clientIdInput.value = localStorage.getItem('vahak_client_id') || '';
+clientIdInput.addEventListener('change', () => localStorage.setItem('vahak_client_id', clientIdInput.value.trim()));
+
+// ================= Auth =================
+let tokenClient = null;
+let accessToken = null;
+let tokenExpiryTime = 0;
+
+function setConnected(on){
+  document.getElementById('connDot').classList.toggle('on', on);
+  document.getElementById('connText').textContent = on ? 'Connected' : 'Not connected';
+}
+
+function initTokenClient(){
+  const clientId = clientIdInput.value.trim();
+  if(!clientId){ alert('Paste your OAuth Client ID first.'); return null; }
+  return google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: 'https://www.googleapis.com/auth/drive',
+    callback: () => {}, // overridden per-call
+  });
+}
+
+function requestToken(promptType){
+  return new Promise((resolve, reject) => {
+    if(!tokenClient){
+      tokenClient = initTokenClient();
+      if(!tokenClient) return reject(new Error('No client ID'));
+    }
+    tokenClient.callback = (resp) => {
+      if(resp.error){ reject(new Error(resp.error)); return; }
+      accessToken = resp.access_token;
+      tokenExpiryTime = Date.now() + (resp.expires_in * 1000);
+      setConnected(true);
+      resolve(accessToken);
+    };
+    tokenClient.requestAccessToken({ prompt: promptType });
+  });
+}
+
+async function getValidToken(){
+  if(!accessToken || Date.now() > tokenExpiryTime - 60000){
+    await requestToken('');
+  }
+  return accessToken;
+}
+
+document.getElementById('connectBtn').addEventListener('click', async () => {
+  try{ await requestToken('consent'); }
+  catch(err){ alert('Connection failed: ' + err.message); }
+});
+
+// ================= Folder pickers =================
+let sourceDirHandle = null;
+let processedDirHandle = null;
+
+document.getElementById('pickSourceBtn').addEventListener('click', async () => {
+  try{
+    sourceDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    document.getElementById('sourcePathOut').textContent = sourceDirHandle.name;
+  }catch(err){ /* user cancelled */ }
+});
+document.getElementById('pickProcessedBtn').addEventListener('click', async () => {
+  try{
+    processedDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    document.getElementById('processedPathOut').textContent = processedDirHandle.name;
+  }catch(err){ /* user cancelled */ }
+});
+
+// ================= Drive folder helpers =================
+const destFolderIdInput = document.getElementById('destFolderId');
+
+document.getElementById('useRootBtn').addEventListener('click', () => {
+  destFolderIdInput.value = 'root';
+});
+
+document.getElementById('listFoldersBtn').addEventListener('click', async () => {
+  try{
+    const token = await getValidToken();
+    const parent = destFolderIdInput.value.trim() || 'root';
+    const q = encodeURIComponent(`'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=200`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const data = await res.json();
+    const sel = document.getElementById('rootFolderSelect');
+    sel.innerHTML = '<option value="">— select a folder —</option>';
+    (data.files || []).forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.id; opt.textContent = f.name;
+      sel.appendChild(opt);
+    });
+    sel.style.display = 'block';
+  }catch(err){ alert('Could not list folders: ' + err.message); }
+});
+document.getElementById('rootFolderSelect').addEventListener('change', (e) => {
+  if(e.target.value) destFolderIdInput.value = e.target.value;
+});
+
+document.getElementById('createFolderBtn').addEventListener('click', async () => {
+  const name = prompt('New folder name:');
+  if(!name) return;
+  try{
+    const token = await getValidToken();
+    const parent = destFolderIdInput.value.trim() || 'root';
+    const res = await fetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parent] })
+    });
+    const data = await res.json();
+    if(data.id){ destFolderIdInput.value = data.id; alert('Created folder "' + name + '". Set as destination.'); }
+    else alert('Failed: ' + JSON.stringify(data));
+  }catch(err){ alert('Could not create folder: ' + err.message); }
+});
+
+const driveFolderCache = new Map(); // "parentId|name" -> id
+async function ensureDriveFolder(relPathParts, rootId){
+  let parentId = rootId;
+  let accumPath = '';
+  for(const segment of relPathParts){
+    accumPath += '/' + segment;
+    const cacheKey = accumPath;
+    if(driveFolderCache.has(cacheKey)){ parentId = driveFolderCache.get(cacheKey); continue; }
+    const token = await getValidToken();
+    const escaped = segment.replace(/'/g, "\\'");
+    const q = encodeURIComponent(`'${parentId}' in parents and name='${escaped}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const data = await res.json();
+    let id;
+    if(data.files && data.files.length){
+      id = data.files[0].id;
+    } else {
+      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: segment, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
+      });
+      const createData = await createRes.json();
+      id = createData.id;
+    }
+    driveFolderCache.set(cacheKey, id);
+    parentId = id;
+  }
+  return parentId;
+}
+
+// ================= Local recursive walk & mirrored dirs =================
+async function walkSource(dirHandle, relParts){
+  const items = [];
+  for await (const [name, handle] of dirHandle.entries()){
+    if(handle.kind === 'file'){
+      items.push({ name, relParts: relParts.slice(), fileHandle: handle, parentDirHandle: dirHandle });
+    } else if(handle.kind === 'directory'){
+      const sub = await walkSource(handle, relParts.concat(name));
+      items.push(...sub);
+    }
+  }
+  return items;
+}
+
+async function ensureLocalDir(rootHandle, relParts){
+  let dir = rootHandle;
+  for(const part of relParts){
+    dir = await dir.getDirectoryHandle(part, { create: true });
+  }
+  return dir;
+}
+
+async function copyFileToProcessed(fileHandle, destParentDir, name){
+  const file = await fileHandle.getFile();
+  const destHandle = await destParentDir.getFileHandle(name, { create: true });
+  const writable = await destHandle.createWritable();
+  await file.stream().pipeTo(writable);
+}
+
+// ================= Resumable upload =================
+const CHUNK_SIZE = 8 * 1024 * 1024; // 8MB, multiple of 256KB
+
+async function createResumableSession(name, parentId){
+  const token = await getValidToken();
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json; charset=UTF-8' },
+    body: JSON.stringify({ name, parents: [parentId] })
+  });
+  if(!res.ok) throw new Error('Failed to start upload session: ' + res.status);
+  return res.headers.get('Location');
+}
+
+async function uploadFile(fileHandle, name, parentId, onProgress){
+  const file = await fileHandle.getFile();
+  const total = file.size;
+  const sessionUrl = await createResumableSession(name, parentId);
+  let start = 0;
+  const MAX_RETRIES = 6;
+
+  // handle zero-byte files
+  if(total === 0){
+    const token = await getValidToken();
+    const res = await fetch(sessionUrl, {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Range': 'bytes */0' }
+    });
+    if(!res.ok) throw new Error('Upload failed for empty file: ' + res.status);
+    onProgress(0);
+    return;
+  }
+
+  while(start < total){
+    const end = Math.min(start + CHUNK_SIZE, total) - 1;
+    const chunk = file.slice(start, end + 1);
+    let attempt = 0;
+    let done = false;
+    while(!done){
+      try{
+        const token = await getValidToken();
+        const res = await fetch(sessionUrl, {
+          method: 'PUT',
+          headers: {
+            Authorization: 'Bearer ' + token,
+            'Content-Range': `bytes ${start}-${end}/${total}`
+          },
+          body: chunk
+        });
+        if(res.status === 200 || res.status === 201){
+          onProgress(total);
+          done = true;
+        } else if(res.status === 308){
+          onProgress(end + 1);
+          done = true;
+        } else if(res.status === 401){
+          accessToken = null; // force refresh next loop
+          throw new Error('token expired');
+        } else if(res.status >= 500 || res.status === 429){
+          throw new Error('server error ' + res.status);
+        } else {
+          const body = await res.text();
+          throw new Error('upload chunk failed: ' + res.status + ' ' + body);
+        }
+      }catch(err){
+        attempt++;
+        if(attempt > MAX_RETRIES) throw err;
+        await sleep(Math.min(30000, 1000 * Math.pow(2, attempt)));
+      }
+    }
+    start = end + 1;
+  }
+}
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+// ================= Formatting =================
+function fmtBytes(n){
+  if(n < 1024) return n + ' B';
+  const units = ['KB','MB','GB','TB'];
+  let u = -1;
+  do{ n /= 1024; u++; }while(n >= 1024 && u < units.length - 1);
+  return n.toFixed(n < 10 ? 2 : 1) + ' ' + units[u];
+}
+function fmtSpeed(bytesPerSec){ return fmtBytes(bytesPerSec) + '/s'; }
+function fmtEta(seconds){
+  if(!isFinite(seconds) || seconds <= 0) return '—';
+  const h = Math.floor(seconds/3600), m = Math.floor((seconds%3600)/60), s = Math.floor(seconds%60);
+  return (h>0?h+'h ':'') + (m>0||h>0?m+'m ':'') + s+'s';
+}
+function fmtElapsed(ms){
+  const s = Math.floor(ms/1000);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+
+// ================= Job control =================
+let isPaused = false;
+let cancelRequested = false;
+let jobStartTime = 0;
+let overallTotalBytes = 0, overallDoneBytes = 0, overallTotalFiles = 0, overallDoneFiles = 0;
+let speedSamples = []; // {t, bytes}
+
+function updateOverallUI(){
+  document.getElementById('statFiles').textContent = overallDoneFiles + ' / ' + overallTotalFiles;
+  document.getElementById('statBytes').textContent = fmtBytes(overallDoneBytes) + ' / ' + fmtBytes(overallTotalBytes);
+  const pct = overallTotalBytes ? (overallDoneBytes/overallTotalBytes*100) : 0;
+  document.getElementById('overallBar').style.width = pct.toFixed(1) + '%';
+  document.getElementById('statElapsed').textContent = fmtElapsed(Date.now() - jobStartTime);
+
+  const now = Date.now();
+  speedSamples.push({ t: now, bytes: overallDoneBytes });
+  speedSamples = speedSamples.filter(s => now - s.t < 20000);
+  let speed = 0;
+  if(speedSamples.length > 1){
+    const oldest = speedSamples[0];
+    const dt = (now - oldest.t) / 1000;
+    if(dt > 0) speed = (overallDoneBytes - oldest.bytes) / dt;
+  }
+  document.getElementById('statSpeed').textContent = speed > 0 ? fmtSpeed(speed) : '—';
+  const remaining = overallTotalBytes - overallDoneBytes;
+  document.getElementById('statEta').textContent = speed > 0 ? fmtEta(remaining/speed) : '—';
+}
+setInterval(updateOverallUI, 1000);
+
+function makeRow(item){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${item.relParts.concat(item.name).join('/')}</td>
+    <td>${fmtBytes(item.size)}</td>
+    <td class="status-queued" data-role="status">queued</td>
+    <td><span class="rowProgress"><span class="rowProgressInner" style="width:0%" data-role="bar"></span></span><span data-role="pct">0%</span></td>
+    <td data-role="speed">—</td>
+    <td data-role="eta">—</td>`;
+  document.getElementById('logBody').appendChild(tr);
+  item._row = tr;
+  return tr;
+}
+function setRowStatus(item, status, extra){
+  const cell = item._row.querySelector('[data-role="status"]');
+  cell.textContent = extra ? status + ': ' + extra : status;
+  cell.className = 'status-' + status;
+}
+function setRowProgress(item, doneBytes, speed, eta){
+  const pct = item.size ? Math.min(100, doneBytes/item.size*100) : 100;
+  item._row.querySelector('[data-role="bar"]').style.width = pct.toFixed(0) + '%';
+  item._row.querySelector('[data-role="pct"]').textContent = pct.toFixed(0) + '%';
+  item._row.querySelector('[data-role="speed"]').textContent = speed ? fmtSpeed(speed) : '—';
+  item._row.querySelector('[data-role="eta"]').textContent = eta ? fmtEta(eta) : '—';
+}
+
+async function waitWhilePaused(){
+  while(isPaused && !cancelRequested) await sleep(300);
+}
+
+async function runJob(){
+  const destRoot = destFolderIdInput.value.trim();
+  if(!destRoot){ alert('Set a destination Drive folder ID first.'); return; }
+  if(!sourceDirHandle){ alert('Choose a source folder first.'); return; }
+  if(!processedDirHandle){ alert('Choose a processed folder first.'); return; }
+  try{ await getValidToken(); }catch(err){ alert('Not connected to Google Drive.'); return; }
+
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('pauseBtn').disabled = false;
+  document.getElementById('cancelBtn').disabled = false;
+  document.getElementById('logBody').innerHTML = '';
+  isPaused = false; cancelRequested = false;
+
+  const items = await walkSource(sourceDirHandle, []);
+  for(const item of items){
+    const file = await item.fileHandle.getFile();
+    item.size = file.size;
+    makeRow(item);
+  }
+
+  overallTotalFiles = items.length;
+  overallTotalBytes = items.reduce((a,b) => a + b.size, 0);
+  overallDoneFiles = 0; overallDoneBytes = 0;
+  jobStartTime = Date.now();
+  speedSamples = [{ t: Date.now(), bytes: 0 }];
+
+  for(const item of items){
+    if(cancelRequested) break;
+    await waitWhilePaused();
+    if(cancelRequested) break;
+
+    let fileStartBytes = overallDoneBytes;
+    let lastSampleTime = Date.now();
+    let lastSampleBytes = 0;
+
+    try{
+      setRowStatus(item, 'uploading');
+      const parentId = await ensureDriveFolder(item.relParts, destRoot);
+      await uploadFile(item.fileHandle, item.name, parentId, (bytesSoFar) => {
+        overallDoneBytes = fileStartBytes + bytesSoFar;
+        const now = Date.now();
+        const dt = (now - lastSampleTime) / 1000;
+        const speed = dt > 0 ? (bytesSoFar - lastSampleBytes) / dt : 0;
+        lastSampleTime = now; lastSampleBytes = bytesSoFar;
+        const remaining = item.size - bytesSoFar;
+        setRowProgress(item, bytesSoFar, speed, speed > 0 ? remaining/speed : 0);
+      });
+
+      setRowStatus(item, 'moving');
+      const destDir = await ensureLocalDir(processedDirHandle, item.relParts);
+      await copyFileToProcessed(item.fileHandle, destDir, item.name);
+      await item.parentDirHandle.removeEntry(item.name);
+
+      setRowStatus(item, 'done');
+      setRowProgress(item, item.size, 0, 0);
+      overallDoneBytes = fileStartBytes + item.size;
+      overallDoneFiles++;
+    }catch(err){
+      setRowStatus(item, 'error', err.message);
+      overallDoneBytes = fileStartBytes + item.size; // count as processed for ETA purposes
+      overallDoneFiles++;
+    }
+    updateOverallUI();
+  }
+
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('pauseBtn').disabled = true;
+  document.getElementById('cancelBtn').disabled = true;
+  document.getElementById('pauseBtn').textContent = 'Pause';
+}
+
+document.getElementById('startBtn').addEventListener('click', runJob);
+document.getElementById('pauseBtn').addEventListener('click', (e) => {
+  isPaused = !isPaused;
+  e.target.textContent = isPaused ? 'Resume' : 'Pause';
+});
+document.getElementById('cancelBtn').addEventListener('click', () => {
+  cancelRequested = true;
+});
+</script>
+</body>
+</html>
