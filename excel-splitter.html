@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Excel Batch Splitter — Split large XLSX/CSV files into smaller parts</title>
+<meta name="description" content="Split large Excel or CSV files into smaller files by row count, entirely in your browser. No upload, no server, your data never leaves your device." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --bg:#f7f7f8; --card:#ffffff; --ink:#18181b; --ink-soft:#6b7280;
+    --border:#e5e7eb; --accent:#2563eb; --accent-soft:#eff6ff;
+    --success:#16a34a; --danger:#dc2626;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); min-height:100vh; padding:40px 16px;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:32px; box-shadow:0 1px 3px rgba(0,0,0,.04);
+  }
+  h1{font-size:24px; font-weight:700; margin:0 0 4px;}
+  .sub{color:var(--ink-soft); font-size:14px; margin:0 0 28px; line-height:1.5;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px;}
+  @media(max-width:480px){.grid{grid-template-columns:1fr;}}
+  label{display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;}
+  input[type=number], input[type=text], select{
+    width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+    font-size:14px; background:#fafafa; transition:.15s;
+  }
+  input:focus, select:focus{outline:none; border-color:var(--accent); background:#fff; box-shadow:0 0 0 3px var(--accent-soft);}
+  .dropzone{
+    border:2px dashed var(--border); border-radius:14px; padding:36px 20px; text-align:center;
+    cursor:pointer; transition:.15s; background:#fafafa; margin-bottom:20px;
+  }
+  .dropzone.drag{border-color:var(--accent); background:var(--accent-soft);}
+  .dropzone svg{width:40px; height:40px; color:#9ca3af; margin-bottom:10px;}
+  .dropzone .title{font-weight:600; font-size:14px;}
+  .dropzone .hint{color:var(--ink-soft); font-size:12px; margin-top:4px;}
+  .filename{font-size:13px; color:var(--accent); font-weight:600; margin-top:8px; word-break:break-all;}
+  select#sheetSelect{margin-bottom:20px; display:none;}
+  .status{margin-bottom:20px; display:none;}
+  .status p{font-size:13px; font-weight:600; color:var(--accent); margin:0 0 8px;}
+  .bar-track{width:100%; background:var(--border); border-radius:99px; height:6px; overflow:hidden;}
+  .bar-fill{background:var(--accent); height:100%; width:0%; transition:width .2s;}
+  .error{
+    display:none; background:#fef2f2; border:1px solid #fecaca; color:var(--danger);
+    padding:12px 14px; border-radius:10px; font-size:13px; margin-bottom:20px;
+  }
+  .results{display:none;}
+  .results-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+  .results-head h2{font-size:15px; font-weight:700; margin:0;}
+  .btn{
+    border:none; border-radius:10px; font-weight:600; font-size:13px; cursor:pointer;
+    padding:9px 16px; transition:.15s; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-primary{background:var(--success); color:#fff;}
+  .btn-primary:hover{background:#15803d;}
+  .btn-secondary{background:#f3f4f6; color:#374151; border:1px solid var(--border);}
+  .btn-secondary:hover{background:#e5e7eb;}
+  ul.filelist{
+    list-style:none; margin:0; padding:0; border:1px solid var(--border); border-radius:12px;
+    max-height:240px; overflow-y:auto;
+  }
+  ul.filelist li{
+    display:flex; justify-content:space-between; align-items:center; padding:10px 14px;
+    font-size:13px; border-bottom:1px solid var(--border);
+  }
+  ul.filelist li:last-child{border-bottom:none;}
+  ul.filelist .fname{font-weight:600;}
+  ul.filelist .frows{color:var(--ink-soft); font-size:12px; margin-left:6px;}
+  ul.filelist a{color:var(--accent); font-weight:600; text-decoration:none; font-size:13px;}
+  ul.filelist a:hover{text-decoration:underline;}
+  .footer-note{margin-top:20px; font-size:12px; color:var(--ink-soft); text-align:center;}
+  .privacy-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--success);
+    background:#f0fdf4; border:1px solid #bbf7d0; padding:6px 12px; border-radius:99px; margin-bottom:20px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Excel Batch Splitter</h1>
+      <p class="sub">Split a large Excel or CSV file into smaller files by row count. Everything runs locally in your browser.</p>
+      <span class="privacy-badge">🔒 Your file never leaves this device</span>
+
+      <div class="grid">
+        <div>
+          <label for="rowCountInput">Rows per file</label>
+          <input type="number" id="rowCountInput" value="5000" min="1" />
+        </div>
+        <div>
+          <label for="prefixInput">Output file prefix</label>
+          <input type="text" id="prefixInput" value="Split_Data" />
+        </div>
+      </div>
+
+      <div id="sheetSelectWrap" style="display:none;">
+        <label for="sheetSelect" id="sheetSelectLabel">Sheet to split</label>
+        <select id="sheetSelect"></select>
+        <label style="display:flex; align-items:center; gap:8px; font-weight:500; margin-top:10px; cursor:pointer;">
+          <input type="checkbox" id="combineSheetsCheck" style="width:auto;" />
+          Combine all sheets into one before splitting (use if your data is spread across multiple sheets)
+        </label>
+      </div>
+
+      <div id="detectedRowsBanner" style="display:none; background:var(--accent-soft); border:1px solid #bfdbfe; color:#1d4ed8; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:600; margin-bottom:20px;"></div>
+
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" class="hidden" style="display:none;" />
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <div class="title">Click to upload, or drag a file here</div>
+        <div class="hint">Supports .xlsx, .xls, .csv</div>
+        <div class="filename" id="filenameLabel"></div>
+      </div>
+
+      <div class="error" id="errorBox"></div>
+
+      <div class="status" id="statusContainer">
+        <p id="statusText">Processing...</p>
+        <div class="bar-track"><div class="bar-fill" id="progressBar"></div></div>
+      </div>
+
+      <div class="results" id="resultsContainer">
+        <div class="results-head">
+          <h2 id="resultsTitle">Generated files</h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary" id="resetBtn">Start over</button>
+            <button class="btn btn-primary" id="downloadZipBtn">Download all (.zip)</button>
+          </div>
+        </div>
+        <ul class="filelist" id="fileList"></ul>
+      </div>
+
+      <p class="footer-note">Processing happens entirely client-side using SheetJS. No data is uploaded to any server.</p>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const fileInput = document.getElementById('excelFileInput');
+  const dropzone = document.getElementById('dropzone');
+  const filenameLabel = document.getElementById('filenameLabel');
+  const rowCountInput = document.getElementById('rowCountInput');
+  const prefixInput = document.getElementById('prefixInput');
+  const sheetSelect = document.getElementById('sheetSelect');
+  const sheetSelectLabel = document.getElementById('sheetSelectLabel');
+  const sheetSelectWrap = document.getElementById('sheetSelectWrap');
+  const combineSheetsCheck = document.getElementById('combineSheetsCheck');
+  const detectedRowsBanner = document.getElementById('detectedRowsBanner');
+  const statusContainer = document.getElementById('statusContainer');
+  const statusText = document.getElementById('statusText');
+  const progressBar = document.getElementById('progressBar');
+  const resultsContainer = document.getElementById('resultsContainer');
+  const resultsTitle = document.getElementById('resultsTitle');
+  const fileList = document.getElementById('fileList');
+  const downloadZipBtn = document.getElementById('downloadZipBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const errorBox = document.getElementById('errorBox');
+
+  let workbook = null;
+  let currentFile = null;
+  let generatedFiles = [];
+  let objectUrls = [];
+
+  const showError = (msg) => {
+    errorBox.textContent = msg;
+    errorBox.style.display = 'block';
+  };
+  const clearError = () => { errorBox.style.display = 'none'; errorBox.textContent = ''; };
+
+  const revokeUrls = () => {
+    objectUrls.forEach(u => URL.revokeObjectURL(u));
+    objectUrls = [];
+  };
+
+  const resetAll = () => {
+    revokeUrls();
+    generatedFiles = [];
+    workbook = null;
+    currentFile = null;
+    fileInput.value = '';
+    filenameLabel.textContent = '';
+    sheetSelectWrap.style.display = 'none';
+    sheetSelect.innerHTML = '';
+    combineSheetsCheck.checked = false;
+    detectedRowsBanner.style.display = 'none';
+    resultsContainer.style.display = 'none';
+    statusContainer.style.display = 'none';
+    clearError();
+    fileList.innerHTML = '';
+  };
+
+  // Drag & drop
+  ['dragenter','dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag'); })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag'); })
+  );
+  dropzone.addEventListener('drop', (e) => {
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (f) handleFile(f);
+  });
+
+  async function handleFile(file) {
+    clearError();
+    resultsContainer.style.display = 'none';
+    generatedFiles = [];
+    fileList.innerHTML = '';
+    revokeUrls();
+
+    const validExt = /\.(xlsx|xls|csv)$/i.test(file.name);
+    if (!validExt) {
+      showError('Unsupported file type. Please upload a .xlsx, .xls, or .csv file.');
+      return;
+    }
+
+    currentFile = file;
+    filenameLabel.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
+
+    try {
+      statusContainer.style.display = 'block';
+      statusText.textContent = 'Reading file...';
+      progressBar.style.width = '20%';
+      await tick();
+
+      const data = await file.arrayBuffer();
+      workbook = XLSX.read(data, { type: 'array' });
+
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+        throw new Error('No sheets found in this file.');
+      }
+
+      // Count data rows in every sheet so we can show the user what's actually in the file
+      statusText.textContent = 'Scanning sheets...';
+      progressBar.style.width = '60%';
+      await tick();
+
+      const sheetRowCounts = {};
+      let bestSheet = workbook.SheetNames[0];
+      let bestCount = -1;
+      workbook.SheetNames.forEach(name => {
+        let count = 0;
+        try {
+          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+          count = Math.max(0, rows.length - 1); // minus header row
+        } catch (e) { count = 0; }
+        sheetRowCounts[name] = count;
+        if (count > bestCount) { bestCount = count; bestSheet = name; }
+      });
+
+      // Populate sheet selector with row counts, default to the sheet with the most data
+      sheetSelect.innerHTML = '';
+      workbook.SheetNames.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = `${name} (${sheetRowCounts[name]} rows)`;
+        if (name === bestSheet) opt.selected = true;
+        sheetSelect.appendChild(opt);
+      });
+
+      sheetSelectWrap.style.display = workbook.SheetNames.length > 1 ? 'block' : 'none';
+
+      const totalAcrossSheets = Object.values(sheetRowCounts).reduce((a, b) => a + b, 0);
+      if (workbook.SheetNames.length > 1) {
+        detectedRowsBanner.style.display = 'block';
+        detectedRowsBanner.textContent = totalAcrossSheets !== bestCount
+          ? `⚠ This file has ${workbook.SheetNames.length} sheets totalling ${totalAcrossSheets} rows. Currently selected: "${bestSheet}" (${bestCount} rows). Check "combine all sheets" above if your data spans more than one sheet.`
+          : `${bestCount} data rows detected in "${bestSheet}".`;
+      } else {
+        detectedRowsBanner.style.display = 'block';
+        detectedRowsBanner.textContent = `${bestCount} data rows detected.`;
+      }
+
+      statusContainer.style.display = 'none';
+    } catch (err) {
+      statusContainer.style.display = 'none';
+      showError('Could not read this file: ' + err.message);
+      workbook = null;
+    }
+  }
+
+  async function runSplit() {
+    if (!workbook || !currentFile) return;
+    clearError();
+
+    const chunkSize = parseInt(rowCountInput.value, 10);
+    if (!chunkSize || chunkSize < 1) {
+      showError('Please enter a valid number of rows per file (1 or more).');
+      return;
+    }
+    const prefix = (prefixInput.value.trim() || 'Split_Data').replace(/[\\/:*?"<>|]/g, '_');
+    const combineAll = combineSheetsCheck.checked && workbook.SheetNames.length > 1;
+
+    resultsContainer.style.display = 'none';
+    fileList.innerHTML = '';
+    generatedFiles = [];
+    revokeUrls();
+
+    statusContainer.style.display = 'block';
+    statusText.textContent = combineAll ? 'Parsing and combining all sheets...' : 'Parsing sheet rows...';
+    progressBar.style.width = '30%';
+    await tick();
+
+    let headers = null;
+    let rows = [];
+
+    try {
+      if (combineAll) {
+        for (const name of workbook.SheetNames) {
+          const sheetJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+          if (sheetJson.length === 0) continue;
+          if (!headers) {
+            headers = sheetJson[0];
+            rows.push(...sheetJson.slice(1));
+          } else {
+            // Skip a repeated header row if the next sheet starts with the same header
+            const startIdx = rowsEqual(sheetJson[0], headers) ? 1 : 0;
+            rows.push(...sheetJson.slice(startIdx));
+          }
+        }
+      } else {
+        const sheetName = sheetSelect.value || workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        if (jsonData.length === 0) {
+          statusContainer.style.display = 'none';
+          showError('The selected sheet is empty.');
+          return;
+        }
+        headers = jsonData[0];
+        rows = jsonData.slice(1);
+      }
+    } catch (err) {
+      statusContainer.style.display = 'none';
+      showError('Error parsing sheet(s): ' + err.message);
+      return;
+    }
+
+    if (!headers || rows.length === 0) {
+      statusContainer.style.display = 'none';
+      showError('No data rows found.');
+      return;
+    }
+
+    const totalRows = rows.length;
+
+    if (totalRows === 0) {
+      statusContainer.style.display = 'none';
+      showError('No data rows found below the header row.');
+      return;
+    }
+
+    const fileCount = Math.ceil(totalRows / chunkSize);
+    const isCsvOut = /\.csv$/i.test(currentFile.name) && workbook.SheetNames.length === 1;
+
+    for (let i = 0; i < fileCount; i++) {
+      statusText.textContent = `Building file ${i + 1} of ${fileCount}...`;
+      progressBar.style.width = `${30 + Math.round(((i + 1) / fileCount) * 65)}%`;
+      // Yield to the UI thread periodically so large exports don't freeze the tab
+      if (i % 3 === 0) await tick();
+
+      const start = i * chunkSize;
+      const end = start + chunkSize;
+      const batchRows = rows.slice(start, end);
+      const fileData = [headers, ...batchRows];
+
+      const newSheet = XLSX.utils.aoa_to_sheet(fileData);
+      const newWorkbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(newWorkbook, newSheet, 'Data');
+
+      const ext = isCsvOut ? 'csv' : 'xlsx';
+      const fileName = `${prefix}_Part_${String(i + 1).padStart(2, '0')}.${ext}`;
+
+      let blob;
+      if (isCsvOut) {
+        const csvOut = XLSX.utils.sheet_to_csv(newSheet);
+        blob = new Blob([csvOut], { type: 'text/csv' });
+      } else {
+        const wbout = XLSX.write(newWorkbook, { bookType: 'xlsx', type: 'array' });
+        blob = new Blob([wbout], { type: 'application/octet-stream' });
+      }
+
+      generatedFiles.push({ name: fileName, blob, rowCount: batchRows.length });
+    }
+
+    renderFileList();
+    progressBar.style.width = '100%';
+    statusText.textContent = 'Done!';
+    await tick();
+    statusContainer.style.display = 'none';
+    resultsTitle.textContent = combineAll
+      ? `Generated files (${generatedFiles.length}, ${totalRows} rows total, combined from ${workbook.SheetNames.length} sheets)`
+      : `Generated files (${generatedFiles.length}, ${totalRows} rows total)`;
+    resultsContainer.style.display = 'block';
+  }
+
+  function renderFileList() {
+    fileList.innerHTML = '';
+    generatedFiles.forEach((f) => {
+      const li = document.createElement('li');
+      const url = URL.createObjectURL(f.blob);
+      objectUrls.push(url);
+      li.innerHTML = `
+        <div><span class="fname">${f.name}</span><span class="frows">(${f.rowCount} rows)</span></div>
+        <a href="${url}" download="${f.name}">Download</a>
+      `;
+      fileList.appendChild(li);
+    });
+  }
+
+  downloadZipBtn.addEventListener('click', async () => {
+    if (!generatedFiles.length) return;
+    downloadZipBtn.disabled = true;
+    downloadZipBtn.textContent = 'Zipping...';
+    try {
+      const zip = new JSZip();
+      generatedFiles.forEach(f => zip.file(f.name, f.blob));
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(prefixInput.value.trim() || 'Split_Files')}_Package.zip`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+      showError('Error creating zip: ' + err.message);
+    } finally {
+      downloadZipBtn.disabled = false;
+      downloadZipBtn.textContent = 'Download all (.zip)';
+    }
+  });
+
+  resetBtn.addEventListener('click', resetAll);
+
+  // Trigger split whenever inputs change after a file is loaded, debounced slightly.
+  let splitTimer = null;
+  const scheduleSplit = () => {
+    if (!workbook) return;
+    clearTimeout(splitTimer);
+    splitTimer = setTimeout(runSplit, 250);
+  };
+  rowCountInput.addEventListener('change', scheduleSplit);
+  prefixInput.addEventListener('change', scheduleSplit);
+  sheetSelect.addEventListener('change', scheduleSplit);
+  combineSheetsCheck.addEventListener('change', scheduleSplit);
+
+  // Run split automatically once file is parsed
+  const origHandleFile = handleFile;
+  handleFile = async function(file) {
+    await origHandleFile(file);
+    if (workbook) scheduleSplit();
+  };
+
+  function rowsEqual(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    return a.every((v, i) => String(v ?? '').trim() === String(b[i] ?? '').trim());
+  }
+
+  function tick() { return new Promise(r => setTimeout(r, 0)); }
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+})();
+</script>
+</body>
+</html>
