@@ -1,5 +1,25 @@
 # Prayog — Tool Reference
 
+## vibhajan — Excel batch splitter
+
+| | |
+|---|---|
+| **What** | Split a large XLSX/CSV into smaller files by row count. Pick a sheet (or combine all), choose which columns to include, auto-fill-down merged cells, download parts individually or as ZIP. |
+| **Dependencies** | SheetJS xlsx 0.18.5 + JSZip 3.10.1 (CDN) |
+| **Limits** | Very large files limited by browser memory. Large row counts may take a moment on chunking. |
+
+---
+
+## pahchan — ID card → Excel extractor
+
+| | |
+|---|---|
+| **What** | OCR ID card photos/PDFs into Excel. Upload one sample card to define fields, then bulk-extract Name/ID/Mobile (or custom fields) from many files, review corrections, and export or append to an existing workbook. |
+| **Dependencies** | Tesseract.js v5.0.4 (OCR), pdf.js 3.11.174 (PDF render), SheetJS xlsx 0.18.5 (Excel) — all CDN |
+| **Limits** | First OCR run downloads Tesseract engine (~1–3MB). OCR accuracy depends on photo quality. Large batches limited by browser memory. |
+
+---
+
 ## rin-ledger — Home loan amortization
 
 | | |

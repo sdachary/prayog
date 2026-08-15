@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pahchan — Prayog</title>
+<meta name="description" content="Define fields from one sample ID card, then bulk-extract Name/ID/Mobile (or any fields you define) from many ID photos or PDFs into Excel — entirely in your browser." />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
+<script src="../assets/nav.js" defer data-tool="pahchan"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/tesseract.js@v5.0.4/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  body{font-family:var(--sans);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg);color:var(--text);overflow-x:hidden}
+  .wrap{max-width:820px;width:100%}
+  h1{font-size:1.3rem;font-weight:700;letter-spacing:0.02em;margin:0 0 4px}
+  h2{font-size:0.95rem;font-weight:700;margin:0 0 14px}
+  .sub{color:var(--muted);font-size:0.84rem;margin:0 0 14px;line-height:1.5}
+  .card{background:rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-top:1rem;position:relative}
+  .card.disabled{opacity:.45;pointer-events:none}
+  .privacy-badge{display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--teal);background:rgba(47,163,154,0.1);border:1px solid rgba(47,163,154,0.3);padding:4px 12px;border-radius:var(--radius-full);margin-bottom:16px}
+  .step-label{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal);color:#0b0f14;font-size:0.72rem;font-weight:700;margin-right:8px}
+  .notice{background:rgba(232,163,61,0.08);border:1px solid rgba(232,163,61,0.3);color:var(--amber);padding:12px 14px;border-radius:var(--radius-sm);font-size:0.75rem;margin-bottom:16px;line-height:1.5}
+  label{display:block;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+  .hint-text{font-size:0.75rem;color:var(--muted);margin:-2px 0 12px;line-height:1.4}
+  input[type=text], input[type=number], select{
+    width:100%; padding:9px 12px; border:1px solid rgba(255,255,255,0.12); border-radius:var(--radius-sm);
+    background:rgba(0,0,0,0.25); color:var(--text); font-family:var(--sans); font-size:0.84rem; transition:.15s; outline:none;
+  }
+  input:focus, select:focus{border-color:var(--teal); box-shadow:0 0 0 3px rgba(47,163,154,0.15)}
+  .radio-row{display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap}
+  .radio-opt{display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:500; cursor:pointer; color:var(--text)}
+  .radio-opt input[type=radio]{accent-color:var(--teal)}
+  .dropzone{border:2px dashed rgba(255,255,255,0.15); border-radius:var(--radius-md); padding:1.5rem 1rem; text-align:center; cursor:pointer; transition:.15s; background:rgba(255,255,255,0.02); margin-bottom:8px}
+  .dropzone.drag{border-color:var(--amber); background:rgba(232,163,61,0.05)}
+  .dropzone svg{width:34px; height:34px; color:var(--muted); margin-bottom:8px}
+  .dropzone .title{font-weight:600; font-size:0.86rem}
+  .dropzone .hint{color:var(--muted); font-size:0.75rem; margin-top:4px}
+  .thumbs{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+  .thumb{position:relative; width:64px; height:64px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--line)}
+  .thumb img{width:100%; height:100%; object-fit:cover}
+  .thumb .rm{position:absolute; top:2px; right:2px; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:11px; line-height:18px; cursor:pointer; padding:0}
+  .btn{border:none; border-radius:var(--radius-sm); font-weight:600; font-size:0.8rem; cursor:pointer; padding:10px 18px; transition:.15s; display:inline-flex; align-items:center; gap:6px; font-family:var(--sans)}
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+  .btn-primary{background:var(--teal); color:#0b0f14}
+  .btn-primary:hover:not(:disabled){background:#37b5ab}
+  .btn-success{background:var(--teal); color:#0b0f14}
+  .btn-success:hover:not(:disabled){background:#37b5ab}
+  .btn-secondary{background:rgba(255,255,255,0.08); color:var(--text); border:1px solid rgba(255,255,255,0.12)}
+  .btn-secondary:hover:not(:disabled){background:rgba(255,255,255,0.12)}
+  .btn-sm{padding:6px 10px; font-size:0.72rem}
+  .status{margin:16px 0; display:none}
+  .status p{font-size:0.8rem; font-weight:600; color:var(--teal); margin:0 0 8px}
+  .bar-track{width:100%; background:rgba(255,255,255,0.1); border-radius:var(--radius-full); height:6px; overflow:hidden}
+  .bar-fill{background:linear-gradient(90deg, var(--teal), var(--amber)); height:100%; width:0%; transition:width .2s}
+  .error{display:none; background:rgba(217,83,79,0.1); border:1px solid rgba(217,83,79,0.3); color:var(--red); padding:12px 14px; border-radius:var(--radius-sm); font-size:0.8rem; margin-bottom:16px}
+  table{width:100%; border-collapse:collapse; font-size:0.8rem}
+  thead th{text-align:left; font-size:0.65rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); border-bottom:1px solid rgba(255,255,255,0.1); padding:8px 6px}
+  tbody td{padding:6px; border-bottom:1px solid rgba(255,255,255,0.06); vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  td input[type=text]{padding:6px 8px; font-size:0.78rem}
+  td input[type=checkbox]{width:16px; height:16px; accent-color:var(--teal); cursor:pointer}
+  .row-thumb{width:40px; height:40px; border-radius:var(--radius-sm); object-fit:cover; display:block}
+  .badge{font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:var(--radius-full); display:inline-block}
+  .badge-ok{background:rgba(47,163,154,0.1); color:var(--teal)}
+  .badge-warn{background:rgba(232,163,61,0.1); color:var(--amber)}
+  .chk-cell{text-align:center}
+  .rm-row{background:none; border:none; color:var(--red); cursor:pointer; font-size:0.75rem; font-weight:600}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px}
+  .footer-note{font-size:0.72rem; color:var(--muted); text-align:center; margin-top:16px; font-family:var(--mono)}
+  details summary{cursor:pointer; font-size:0.72rem; color:var(--muted); margin-top:4px}
+  .raw-text{font-size:0.72rem; color:var(--muted); background:rgba(0,0,0,0.2); padding:8px; border-radius:var(--radius-sm); margin-top:6px; white-space:pre-wrap; font-family:var(--mono)}
+  .sample-preview{display:flex; gap:16px; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap}
+  .sample-preview img{width:140px; border-radius:var(--radius-sm); border:1px solid var(--line)}
+  .done-check{color:var(--teal); font-weight:700; font-size:0.75rem; margin-left:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <h1>Pahchan <span style="font-size:0.8rem;font-weight:400;color:var(--muted)">id card → excel extractor</span></h1>
+    <p class="sub">Show it one sample ID, tell it what to call each field, then bulk-process the rest — Name/ID/Mobile or any fields your card has.</p>
+    <span class="privacy-badge">OCR runs fully in your browser — nothing is uploaded anywhere</span>
+    <div class="notice">
+      Browsers can't write to a file path on your computer directly (that's a security boundary, not a limitation of this tool). The last step lets you name the output file, and optionally append into an existing Excel file you upload — then it downloads the result for you to save wherever you like.
+    </div>
+  </div>
+
+  <!-- STEP 1: Sample + dynamic field definition -->
+  <div class="card" id="step1Card">
+    <h2><span class="step-label">1</span>Upload one sample ID and define fields</h2>
+    <p class="hint-text">Upload a single ID card (photo or PDF) to teach the tool what fields look like. You'll name each column yourself.</p>
+
+    <div class="dropzone" id="sampleDropzone">
+      <input type="file" id="sampleInput" accept="image/*,.pdf" style="display:none;" />
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+      <div class="title">Click to upload one sample ID</div>
+      <div class="hint">Image (JPG/PNG) or PDF</div>
+    </div>
+
+    <div class="error" id="sampleError"></div>
+    <div class="status" id="sampleStatus">
+      <p id="sampleStatusText">Reading sample...</p>
+      <div class="bar-track"><div class="bar-fill" id="sampleProgressBar"></div></div>
+    </div>
+
+    <div id="sampleAnalyzedBlock" style="display:none;">
+      <div class="sample-preview">
+        <img id="samplePreviewImg" />
+        <div style="flex:1; min-width:240px;">
+          <details open>
+            <summary>Raw text detected on this sample</summary>
+            <div class="raw-text" id="sampleRawText"></div>
+          </details>
+        </div>
+      </div>
+
+      <label>Fields to extract (name each column as you like)</label>
+      <p class="hint-text">Pre-filled from lines detected on your sample. Edit the column title, adjust the "label on card" if needed, untick to skip, or add a field manually.</p>
+
+      <table>
+        <thead><tr><th class="chk-cell">Use</th><th>Column Title</th><th>Label on card (what to search for)</th><th></th></tr></thead>
+        <tbody id="fieldsBody"></tbody>
+      </table>
+
+      <button class="btn btn-secondary btn-sm" id="addFieldBtn" style="margin-top:12px;">+ Add field manually</button>
+
+      <div style="margin-top:20px;">
+        <button class="btn btn-primary" id="saveFieldsBtn">Save fields & continue</button>
+        <span class="done-check" id="fieldsSavedCheck" style="display:none;">✓ Fields saved</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Bulk upload -->
+  <div class="card disabled" id="step2Card">
+    <h2><span class="step-label">2</span>Upload all ID files</h2>
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="imageInput" accept="image/*,.pdf" multiple style="display:none;" />
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+      <div class="title">Click to upload, or drag multiple files here</div>
+      <div class="hint">JPG, PNG, or PDF — one ID per file (first page used for PDFs)</div>
+    </div>
+    <div class="thumbs" id="thumbs"></div>
+
+    <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-primary" id="runOcrBtn" disabled>Extract data from all files</button>
+      <button class="btn btn-secondary" id="clearImagesBtn">Clear files</button>
+    </div>
+
+    <div class="error" id="errorBox"></div>
+    <div class="status" id="statusContainer">
+      <p id="statusText">Processing...</p>
+      <div class="bar-track"><div class="bar-fill" id="progressBar"></div></div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Review table -->
+  <div class="card disabled" id="step3Card">
+    <h2><span class="step-label">3</span>Review & correct extracted data</h2>
+    <p class="hint-text">OCR isn't perfect — check each row before exporting.</p>
+    <div style="overflow-x:auto;">
+      <table id="resultsTable">
+        <thead><tr id="resultsHeadRow"></tr></thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- STEP 4: Output file -->
+  <div class="card disabled" id="step4Card">
+    <h2><span class="step-label">4</span>Save to Excel</h2>
+
+    <div class="radio-row">
+      <label class="radio-opt"><input type="radio" name="excelMode" value="new" checked> Create a new Excel file</label>
+      <label class="radio-opt"><input type="radio" name="excelMode" value="existing"> Append into an existing Excel file</label>
+    </div>
+
+    <div id="existingExcelBlock" style="display:none;">
+      <label for="existingExcelInput">Upload existing Excel file</label>
+      <input type="file" id="existingExcelInput" accept=".xlsx,.xls" style="margin-bottom:14px;" />
+      <div id="sheetChoiceBlock" style="display:none;">
+        <label for="sheetSelect">Sheet to append to</label>
+        <select id="sheetSelect"></select>
+      </div>
+    </div>
+
+    <label for="sheetNameInput" id="sheetNameLabel">Sheet name (if creating a new sheet)</label>
+    <input type="text" id="sheetNameInput" value="ID Extract" style="margin-bottom:14px;" />
+
+    <label for="outFileNameInput">Output file name</label>
+    <input type="text" id="outFileNameInput" value="ID_Extract.xlsx" />
+
+    <div class="toolbar" style="margin-top:20px;">
+      <span></span>
+      <button class="btn btn-success" id="exportBtn">Export to Excel</button>
+    </div>
+  </div>
+
+  <p class="footer-note">OCR by Tesseract.js · PDF rendering by pdf.js · Excel handling by SheetJS. Nothing leaves this browser tab.</p>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+(() => {
+  // ---------- Shared helpers ----------
+  const tick = () => new Promise(r => setTimeout(r, 0));
+  const escapeAttr = (s) => (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const escapeHtml = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // Renders the first page of a PDF (or passes through an image file) to get
+  // {source: Blob for OCR, thumbUrl: string for preview}
+  async function fileToOcrSource(file) {
+    if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 2 });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      return { source: blob, thumbUrl: canvas.toDataURL('image/png') };
+    }
+    return { source: file, thumbUrl: URL.createObjectURL(file) };
+  }
+
+  function extractField(text, label) {
+    if (!label) return '';
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const labelLower = label.toLowerCase();
+    for (let i = 0; i < lines.length; i++) {
+      const lineLower = lines[i].toLowerCase();
+      if (lineLower.includes(labelLower)) {
+        const idx = lineLower.indexOf(labelLower);
+        let rest = lines[i].slice(idx + label.length).replace(/^[\s:.\-]+/, '').trim();
+        if (rest) return rest;
+        if (lines[i + 1]) return lines[i + 1].trim();
+      }
+    }
+    return '';
+  }
+  function extractMobileFallback(text) {
+    const match = text.match(/(?:\+?91[\s\-]?)?[6-9]\d{9}\b/);
+    return match ? match[0] : '';
+  }
+
+  let sharedWorker = null;
+  async function getWorker() {
+    if (!sharedWorker) sharedWorker = await Tesseract.createWorker('eng');
+    return sharedWorker;
+  }
+  async function ocrFile(file) {
+    const { source, thumbUrl } = await fileToOcrSource(file);
+    const worker = await getWorker();
+    const { data } = await worker.recognize(source);
+    return { text: data.text || '', confidence: Math.round(data.confidence || 0), thumbUrl };
+  }
+
+  // ================= STEP 1: sample + dynamic fields =================
+  const sampleDropzone = document.getElementById('sampleDropzone');
+  const sampleInput = document.getElementById('sampleInput');
+  const sampleError = document.getElementById('sampleError');
+  const sampleStatus = document.getElementById('sampleStatus');
+  const sampleStatusText = document.getElementById('sampleStatusText');
+  const sampleProgressBar = document.getElementById('sampleProgressBar');
+  const sampleAnalyzedBlock = document.getElementById('sampleAnalyzedBlock');
+  const samplePreviewImg = document.getElementById('samplePreviewImg');
+  const sampleRawText = document.getElementById('sampleRawText');
+  const fieldsBody = document.getElementById('fieldsBody');
+  const addFieldBtn = document.getElementById('addFieldBtn');
+  const saveFieldsBtn = document.getElementById('saveFieldsBtn');
+  const fieldsSavedCheck = document.getElementById('fieldsSavedCheck');
+  const step2Card = document.getElementById('step2Card');
+
+  let fields = []; // {title, label, include}
+
+  sampleDropzone.addEventListener('click', () => sampleInput.click());
+  ['dragenter', 'dragover'].forEach(evt => sampleDropzone.addEventListener(evt, e => { e.preventDefault(); sampleDropzone.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(evt => sampleDropzone.addEventListener(evt, e => { e.preventDefault(); sampleDropzone.classList.remove('drag'); }));
+  sampleDropzone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) analyzeSample(f); });
+  sampleInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) analyzeSample(f); });
+
+  async function analyzeSample(file) {
+    sampleError.style.display = 'none';
+    sampleAnalyzedBlock.style.display = 'none';
+    sampleStatus.style.display = 'block';
+    sampleStatusText.textContent = 'Reading sample...';
+    sampleProgressBar.style.width = '20%';
+    await tick();
+    try {
+      const { text, thumbUrl } = await ocrFile(file);
+      sampleProgressBar.style.width = '100%';
+      await tick();
+      samplePreviewImg.src = thumbUrl;
+      sampleRawText.textContent = text.trim() || '(no text detected — try a clearer photo)';
+      fields = guessFieldsFromText(text);
+      renderFieldsTable();
+      sampleAnalyzedBlock.style.display = 'block';
+    } catch (err) {
+      sampleError.textContent = 'Could not read this sample: ' + err.message;
+      sampleError.style.display = 'block';
+    } finally {
+      sampleStatus.style.display = 'none';
+    }
+  }
+
+  function guessFieldsFromText(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const guessed = [];
+    lines.forEach(line => {
+      let label = null, title = null;
+      const colonMatch = line.match(/^([A-Za-z][A-Za-z .\/'-]{1,25}?)\s*[:：]\s*(.+)$/);
+      const gapMatch = line.match(/^([A-Za-z][A-Za-z .\/'-]{1,25}?)\s{2,}(.+)$/);
+      if (colonMatch) { label = colonMatch[1].trim(); title = label; }
+      else if (gapMatch) { label = gapMatch[1].trim(); title = label; }
+      if (label && title && label.length <= 25) {
+        guessed.push({ title, label, include: true });
+      }
+    });
+    const seen = new Set();
+    const deduped = guessed.filter(f => {
+      const k = f.label.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+    return deduped.length ? deduped : [
+      { title: 'Name', label: 'Name', include: true },
+      { title: 'ID', label: 'ID', include: true },
+      { title: 'Mobile Number', label: 'Mobile', include: true },
+    ];
+  }
+
+  function renderFieldsTable() {
+    fieldsBody.innerHTML = '';
+    fields.forEach((f, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="chk-cell"><input type="checkbox" data-idx="${idx}" data-role="include" ${f.include ? 'checked' : ''} /></td>
+        <td><input type="text" data-idx="${idx}" data-role="title" value="${escapeAttr(f.title)}" /></td>
+        <td><input type="text" data-idx="${idx}" data-role="label" value="${escapeAttr(f.label)}" /></td>
+        <td><button class="rm-row" data-idx="${idx}">Remove</button></td>
+      `;
+      fieldsBody.appendChild(tr);
+    });
+    fieldsBody.querySelectorAll('input[data-role]').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const role = e.target.dataset.role;
+        if (role === 'include') fields[idx].include = e.target.checked;
+        else fields[idx][role] = e.target.value;
+      });
+    });
+    fieldsBody.querySelectorAll('.rm-row').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        fields.splice(idx, 1);
+        renderFieldsTable();
+      });
+    });
+  }
+
+  addFieldBtn.addEventListener('click', () => {
+    fields.push({ title: '', label: '', include: true });
+    renderFieldsTable();
+  });
+
+  saveFieldsBtn.addEventListener('click', () => {
+    const activeFields = fields.filter(f => f.include && f.title.trim());
+    if (activeFields.length === 0) {
+      alert('Add at least one field with a column title before continuing.');
+      return;
+    }
+    fieldsSavedCheck.style.display = 'inline';
+    step2Card.classList.remove('disabled');
+    buildResultsHeader();
+    step2Card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // ================= STEP 2: bulk upload + OCR =================
+  const dropzone = document.getElementById('dropzone');
+  const imageInput = document.getElementById('imageInput');
+  const thumbs = document.getElementById('thumbs');
+  const runOcrBtn = document.getElementById('runOcrBtn');
+  const clearImagesBtn = document.getElementById('clearImagesBtn');
+  const errorBox = document.getElementById('errorBox');
+  const statusContainer = document.getElementById('statusContainer');
+  const statusText = document.getElementById('statusText');
+  const progressBar = document.getElementById('progressBar');
+  const step3Card = document.getElementById('step3Card');
+  const step4Card = document.getElementById('step4Card');
+  const resultsHeadRow = document.getElementById('resultsHeadRow');
+  const resultsBody = document.getElementById('resultsBody');
+
+  let bulkFiles = []; // {file, url}
+  let extractedRows = []; // {values: {title: value}, fileName, thumbUrl, rawText}
+
+  const showError = (msg) => { errorBox.textContent = msg; errorBox.style.display = 'block'; };
+  const clearError = () => { errorBox.style.display = 'none'; errorBox.textContent = ''; };
+
+  ['dragenter', 'dragover'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', e => addFiles(Array.from(e.dataTransfer.files || [])));
+  dropzone.addEventListener('click', () => imageInput.click());
+  imageInput.addEventListener('change', e => addFiles(Array.from(e.target.files || [])));
+
+  function addFiles(files) {
+    clearError();
+    const valid = files.filter(f => f.type.startsWith('image/') || f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
+    if (valid.length === 0 && files.length > 0) {
+      showError('Please upload image files or PDFs of the ID cards.');
+      return;
+    }
+    valid.forEach(f => bulkFiles.push({ file: f, url: f.type === 'application/pdf' ? null : URL.createObjectURL(f) }));
+    renderThumbs();
+    runOcrBtn.disabled = bulkFiles.length === 0;
+  }
+
+  function renderThumbs() {
+    thumbs.innerHTML = '';
+    bulkFiles.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'thumb';
+      const isPdf = !item.url;
+      div.innerHTML = isPdf
+        ? `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:rgba(255,255,255,0.06);font-size:11px;font-weight:700;color:var(--muted);">PDF</div><button class="rm" data-idx="${idx}">✕</button>`
+        : `<img src="${item.url}" /><button class="rm" data-idx="${idx}">✕</button>`;
+      thumbs.appendChild(div);
+    });
+    thumbs.querySelectorAll('.rm').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        if (bulkFiles[idx].url) URL.revokeObjectURL(bulkFiles[idx].url);
+        bulkFiles.splice(idx, 1);
+        renderThumbs();
+        runOcrBtn.disabled = bulkFiles.length === 0;
+      });
+    });
+  }
+
+  clearImagesBtn.addEventListener('click', () => {
+    bulkFiles.forEach(f => f.url && URL.revokeObjectURL(f.url));
+    bulkFiles = [];
+    imageInput.value = '';
+    renderThumbs();
+    runOcrBtn.disabled = true;
+    extractedRows = [];
+    resultsBody.innerHTML = '';
+    step3Card.classList.add('disabled');
+    step4Card.classList.add('disabled');
+  });
+
+  function buildResultsHeader() {
+    resultsHeadRow.innerHTML = '<th></th>' +
+      fields.filter(f => f.include && f.title.trim()).map(f => `<th>${escapeHtml(f.title)}</th>`).join('') +
+      '<th>Status</th><th></th>';
+  }
+
+  runOcrBtn.addEventListener('click', runBulkOcr);
+
+  async function runBulkOcr() {
+    clearError();
+    extractedRows = [];
+    resultsBody.innerHTML = '';
+    runOcrBtn.disabled = true;
+    statusContainer.style.display = 'block';
+
+    const activeFields = fields.filter(f => f.include && f.title.trim());
+    buildResultsHeader();
+
+    for (let i = 0; i < bulkFiles.length; i++) {
+      const item = bulkFiles[i];
+      statusText.textContent = `Reading file ${i + 1} of ${bulkFiles.length}: ${item.file.name}`;
+      progressBar.style.width = `${Math.round((i / bulkFiles.length) * 95)}%`;
+      await tick();
+
+      let text = '', thumbUrl = item.url;
+      try {
+        const result = await ocrFile(item.file);
+        text = result.text;
+        thumbUrl = result.thumbUrl;
+      } catch (err) {
+        text = '';
+      }
+
+      const values = {};
+      activeFields.forEach(f => {
+        let v = extractField(text, f.label);
+        if (!v && /mobile|phone|contact/i.test(f.title)) v = extractMobileFallback(text);
+        values[f.title] = v;
+      });
+
+      extractedRows.push({ values, fileName: item.file.name, thumbUrl, rawText: text.trim() });
+    }
+
+    progressBar.style.width = '100%';
+    statusText.textContent = 'Done!';
+    await tick();
+    statusContainer.style.display = 'none';
+    runOcrBtn.disabled = false;
+
+    renderResultsTable();
+    step3Card.classList.remove('disabled');
+    step4Card.classList.remove('disabled');
+    step4Card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderResultsTable() {
+    const activeFields = fields.filter(f => f.include && f.title.trim());
+    resultsBody.innerHTML = '';
+    extractedRows.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      const needsReview = activeFields.some(f => !row.values[f.title]);
+      const cells = activeFields.map(f =>
+        `<td><input type="text" data-field="${escapeAttr(f.title)}" data-idx="${idx}" value="${escapeAttr(row.values[f.title])}" /></td>`
+      ).join('');
+      tr.innerHTML = `
+        <td><img class="row-thumb" src="${row.thumbUrl || ''}" /></td>
+        ${cells}
+        <td><span class="badge ${needsReview ? 'badge-warn' : 'badge-ok'}">${needsReview ? 'Check' : 'OK'}</span></td>
+        <td><button class="rm-row" data-idx="${idx}">Remove</button></td>
+      `;
+      resultsBody.appendChild(tr);
+
+      if (row.rawText) {
+        const detailTr = document.createElement('tr');
+        detailTr.innerHTML = `
+          <td colspan="${activeFields.length + 3}" style="padding-top:0;">
+            <details><summary>Raw OCR text — ${escapeHtml(row.fileName)}</summary>
+            <div class="raw-text">${escapeHtml(row.rawText)}</div></details>
+          </td>`;
+        resultsBody.appendChild(detailTr);
+      }
+    });
+
+    resultsBody.querySelectorAll('input[data-field]').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const field = e.target.dataset.field;
+        extractedRows[idx].values[field] = e.target.value;
+        const row = extractedRows[idx];
+        const tr = e.target.closest('tr');
+        const badge = tr.querySelector('.badge');
+        const needsReview = activeFields.some(f => !row.values[f.title]);
+        badge.className = `badge ${needsReview ? 'badge-warn' : 'badge-ok'}`;
+        badge.textContent = needsReview ? 'Check' : 'OK';
+      });
+    });
+    resultsBody.querySelectorAll('.rm-row').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        extractedRows.splice(idx, 1);
+        renderResultsTable();
+      });
+    });
+  }
+
+  // ================= STEP 4: export =================
+  const excelModeRadios = document.querySelectorAll('input[name=excelMode]');
+  const existingExcelBlock = document.getElementById('existingExcelBlock');
+  const existingExcelInput = document.getElementById('existingExcelInput');
+  const sheetChoiceBlock = document.getElementById('sheetChoiceBlock');
+  const sheetSelect = document.getElementById('sheetSelect');
+  const sheetNameInput = document.getElementById('sheetNameInput');
+  const outFileNameInput = document.getElementById('outFileNameInput');
+  const exportBtn = document.getElementById('exportBtn');
+
+  let existingWorkbook = null;
+
+  excelModeRadios.forEach(r => r.addEventListener('change', () => {
+    const mode = document.querySelector('input[name=excelMode]:checked').value;
+    existingExcelBlock.style.display = mode === 'existing' ? 'block' : 'none';
+    if (mode === 'new') { sheetChoiceBlock.style.display = 'none'; existingWorkbook = null; }
+  }));
+
+  existingExcelInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = await file.arrayBuffer();
+      existingWorkbook = XLSX.read(data, { type: 'array' });
+      sheetSelect.innerHTML = '';
+      existingWorkbook.SheetNames.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        sheetSelect.appendChild(opt);
+      });
+      const newOpt = document.createElement('option');
+      newOpt.value = '__new__'; newOpt.textContent = '+ New sheet';
+      sheetSelect.appendChild(newOpt);
+      sheetChoiceBlock.style.display = 'block';
+      outFileNameInput.value = file.name.replace(/\.(xlsx|xls)$/i, '') + '_updated.xlsx';
+    } catch (err) {
+      alert('Could not read that Excel file: ' + err.message);
+      existingWorkbook = null;
+      sheetChoiceBlock.style.display = 'none';
+    }
+  });
+
+  function findColumn(headerRowLower, candidates) {
+    for (let i = 0; i < headerRowLower.length; i++) {
+      if (candidates.some(c => headerRowLower[i].includes(c))) return i;
+    }
+    return -1;
+  }
+  function uniqueSheetName(workbook, base) {
+    let name = base.slice(0, 31), n = 1;
+    while (workbook.SheetNames.includes(name)) { n++; name = `${base}_${n}`.slice(0, 31); }
+    return name;
+  }
+
+  exportBtn.addEventListener('click', () => {
+    if (extractedRows.length === 0) { alert('No rows to export.'); return; }
+
+    const activeFields = fields.filter(f => f.include && f.title.trim());
+    const stdHeaders = [...activeFields.map(f => f.title), 'Source File', 'Extracted On'];
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const newRows = extractedRows.map(r => [...activeFields.map(f => r.values[f.title]), r.fileName, timestamp]);
+
+    const mode = document.querySelector('input[name=excelMode]:checked').value;
+    let workbook, targetSheetName;
+
+    if (mode === 'existing' && existingWorkbook) {
+      workbook = existingWorkbook;
+      const chosenSheet = sheetSelect.value;
+
+      if (chosenSheet === '__new__' || !chosenSheet) {
+        targetSheetName = uniqueSheetName(workbook, sheetNameInput.value.trim() || 'ID Extract');
+        const ws = XLSX.utils.aoa_to_sheet([stdHeaders, ...newRows]);
+        XLSX.utils.book_append_sheet(workbook, ws, targetSheetName);
+      } else {
+        targetSheetName = chosenSheet;
+        const ws = workbook.Sheets[targetSheetName];
+        const existingData = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+        if (existingData.length === 0) {
+          workbook.Sheets[targetSheetName] = XLSX.utils.aoa_to_sheet([stdHeaders, ...newRows]);
+        } else {
+          const headerRowLower = existingData[0].map(h => String(h || '').trim().toLowerCase());
+          const colMap = activeFields.map(f => findColumn(headerRowLower, [f.title.toLowerCase()]));
+          const hasAllCols = colMap.every(c => c !== -1);
+          const width = existingData[0].length;
+
+          let combined;
+          if (hasAllCols) {
+            const mappedRows = extractedRows.map(r => {
+              const row = new Array(width).fill('');
+              activeFields.forEach((f, i) => { row[colMap[i]] = r.values[f.title]; });
+              return row;
+            });
+            combined = [...existingData, ...mappedRows];
+          } else {
+            const paddedHeader = [...existingData[0], ...stdHeaders];
+            const paddedExisting = existingData.slice(1).map(row => {
+              const r = row.slice();
+              while (r.length < width) r.push('');
+              return r;
+            });
+            const mappedNew = extractedRows.map(r => {
+              const row = new Array(width).fill('');
+              return [...row, ...activeFields.map(f => r.values[f.title]), r.fileName, timestamp];
+            });
+            combined = [paddedHeader, ...paddedExisting, ...mappedNew];
+          }
+          workbook.Sheets[targetSheetName] = XLSX.utils.aoa_to_sheet(combined);
+        }
+      }
+    } else {
+      workbook = XLSX.utils.book_new();
+      targetSheetName = sheetNameInput.value.trim() || 'ID Extract';
+      const ws = XLSX.utils.aoa_to_sheet([stdHeaders, ...newRows]);
+      XLSX.utils.book_append_sheet(workbook, ws, targetSheetName);
+    }
+
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    let outName = outFileNameInput.value.trim() || 'ID_Extract.xlsx';
+    if (!/\.xlsx$/i.test(outName)) outName += '.xlsx';
+    a.href = url;
+    a.download = outName;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  });
+})();
+</script>
+</body>
+</html>

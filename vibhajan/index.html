@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibhajan — Prayog</title>
+<meta name="description" content="Split large Excel or CSV files into smaller files by row count, entirely in your browser. No upload, no server, your data never leaves your device.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
+<script src="../assets/nav.js" defer data-tool="vibhajan"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  body{font-family:var(--sans);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg);color:var(--text);overflow-x:hidden}
+  .wrap{max-width:720px;width:100%}
+  h1{font-size:1.3rem;font-weight:700;letter-spacing:0.02em;margin-bottom:0.25rem}
+  .sub{color:var(--muted);font-size:0.82rem;line-height:1.5;margin-bottom:0.75rem}
+  .card{background:rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-top:1rem}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+  @media(max-width:480px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+  input[type=number], input[type=text], select{
+    width:100%; padding:9px 12px; border:1px solid rgba(255,255,255,0.12); border-radius:var(--radius-sm);
+    background:rgba(0,0,0,0.25); color:var(--text); font-family:var(--mono); font-size:0.84rem; transition:.15s; outline:none;
+  }
+  input:focus, select:focus{border-color:var(--teal)}
+  select#sheetSelect{margin-bottom:20px}
+  .privacy-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; color:var(--teal);
+    background:rgba(47,163,154,0.1); border:1px solid rgba(47,163,154,0.3); padding:4px 12px; border-radius:var(--radius-full); margin-bottom:16px;
+  }
+  .dropzone{border:2px dashed rgba(255,255,255,0.15); border-radius:var(--radius-md); padding:1.5rem 1rem; text-align:center; cursor:pointer; transition:.15s; background:rgba(255,255,255,0.02); margin-bottom:16px}
+  .dropzone.drag{border-color:var(--amber); background:rgba(232,163,61,0.05)}
+  .dropzone svg{width:36px; height:36px; color:var(--muted); margin-bottom:8px}
+  .dropzone .title{font-weight:600; font-size:0.86rem}
+  .dropzone .hint{color:var(--muted); font-size:0.75rem; margin-top:4px}
+  .filename{font-size:0.8rem; color:var(--teal); font-weight:600; margin-top:8px; word-break:break-all}
+  .detected-banner{background:rgba(47,163,154,0.08); border:1px solid rgba(47,163,154,0.3); color:var(--teal); padding:9px 14px; border-radius:var(--radius-sm); font-size:0.78rem; font-weight:600; margin-bottom:16px; display:none}
+  .status{margin-bottom:16px; display:none}
+  .status p{font-size:0.8rem; font-weight:600; color:var(--teal); margin:0 0 8px}
+  .bar-track{width:100%; background:rgba(255,255,255,0.1); border-radius:var(--radius-full); height:6px; overflow:hidden}
+  .bar-fill{background:linear-gradient(90deg, var(--teal), var(--amber)); height:100%; width:0%; transition:width .2s}
+  .error{display:none; background:rgba(217,83,79,0.1); border:1px solid rgba(217,83,79,0.3); color:var(--red); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.8rem; margin-bottom:16px}
+  .results{display:none}
+  .results-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; flex-wrap:wrap}
+  .results-head h2{font-size:0.95rem; font-weight:700; margin:0}
+  ul.filelist{list-style:none; margin:0; padding:0; border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-md); max-height:240px; overflow-y:auto}
+  ul.filelist li{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.06)}
+  ul.filelist li:last-child{border-bottom:none}
+  ul.filelist .fname{font-weight:600}
+  ul.filelist .frows{color:var(--muted); font-size:0.75rem; margin-left:6px}
+  ul.filelist a{color:var(--teal); font-weight:600; text-decoration:none; font-size:0.8rem}
+  ul.filelist a:hover{text-decoration:underline}
+  .col-config{border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:16px; display:none}
+  .col-config-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; gap:8px; flex-wrap:wrap}
+  .col-config-head label{margin-bottom:0}
+  .col-config-actions{display:flex; gap:10px}
+  .col-config-actions button{background:none; border:none; color:var(--teal); font-size:0.75rem; font-weight:600; cursor:pointer; padding:0}
+  .col-config-actions button:hover{text-decoration:underline}
+  .col-config-hint{font-size:0.75rem; color:var(--muted); margin:0 0 10px; line-height:1.4}
+  .col-table{border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius-sm); max-height:280px; overflow-y:auto}
+  .col-table-head{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; padding:8px 12px; font-size:0.68rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.08); position:sticky; top:0}
+  .col-row{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; align-items:center; padding:8px 12px; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.06)}
+  .col-row:last-child{border-bottom:none}
+  .col-row input[type=checkbox]{width:16px; height:16px; margin:0; cursor:pointer; accent-color:var(--teal)}
+  .col-row .col-name{display:flex; flex-direction:column; overflow:hidden}
+  .col-row .col-letter{font-size:0.62rem; font-weight:700; color:var(--teal); letter-spacing:.03em}
+  .col-row .col-header{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .col-row .fill-badge{font-size:0.62rem; font-weight:700; color:var(--amber); background:rgba(232,163,61,0.1); border:1px solid rgba(232,163,61,0.3); padding:1px 6px; border-radius:var(--radius-full); white-space:nowrap}
+  .col-row .fill-cell{display:flex; align-items:center; gap:6px; justify-content:flex-end}
+  .col-row .fill-cell input[type=checkbox]{accent-color:var(--amber)}
+  .footer-note{margin-top:16px; font-size:0.72rem; color:var(--muted); text-align:center; font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vibhajan <span style="font-size:0.8rem;font-weight:400;color:var(--muted)">excel batch splitter</span></h1>
+  <div class="card">
+    <p class="sub">Split a large Excel or CSV file into smaller files by row count. Everything runs locally in your browser.</p>
+    <span class="privacy-badge">Your file never leaves this device</span>
+
+    <div class="grid">
+      <div>
+        <label for="rowCountInput">Rows per file</label>
+        <input type="number" id="rowCountInput" value="5000" min="1">
+      </div>
+      <div>
+        <label for="prefixInput">Output file prefix</label>
+        <input type="text" id="prefixInput" value="Split_Data">
+      </div>
+    </div>
+
+    <div id="sheetSelectWrap" style="display:none;">
+      <label for="sheetSelect" id="sheetSelectLabel">Sheet to split</label>
+      <select id="sheetSelect"></select>
+      <label style="display:flex; align-items:center; gap:8px; font-weight:500; margin-top:10px; cursor:pointer; text-transform:none; font-size:0.8rem; color:var(--text);">
+        <input type="checkbox" id="combineSheetsCheck" style="width:auto; accent-color:var(--teal);">
+        Combine all sheets into one before splitting (use if your data is spread across multiple sheets)
+      </label>
+    </div>
+
+    <div class="detected-banner" id="detectedRowsBanner"></div>
+
+    <div class="col-config" id="colConfig">
+      <div class="col-config-head">
+        <label>Columns to include &amp; merged-cell fill</label>
+        <div class="col-config-actions">
+          <button type="button" id="colSelectAllBtn">Select all</button>
+          <button type="button" id="colSelectNoneBtn">Select none</button>
+        </div>
+      </div>
+      <p class="col-config-hint">Uncheck columns you don't need. If a column looks "merged" (value only on the first row of a group, blank below), check <strong>Fill down</strong> for it — every row will get the value copied down until the next real value. Columns we auto-detected as grouped are pre-checked and marked <span class="fill-badge">grouped?</span>.</p>
+      <div class="col-table">
+        <div class="col-table-head">
+          <div></div>
+          <div>Column</div>
+          <div style="text-align:right;">Fill down</div>
+        </div>
+        <div id="colRows"></div>
+      </div>
+    </div>
+
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop a spreadsheet here, or press Enter to browse for one">
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none;">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+      </svg>
+      <div class="title">Click to upload, or drag a file here</div>
+      <div class="hint">Supports .xlsx, .xls, .csv</div>
+      <div class="filename" id="filenameLabel"></div>
+    </div>
+
+    <div class="error" id="errorBox"></div>
+
+    <div class="status" id="statusContainer">
+      <p id="statusText">Processing...</p>
+      <div class="bar-track"><div class="bar-fill" id="progressBar"></div></div>
+    </div>
+
+    <div class="results" id="resultsContainer">
+      <div class="results-head">
+        <h2 id="resultsTitle">Generated files</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" id="resetBtn">Start over</button>
+          <button class="btn btn-primary" id="downloadZipBtn">Download all (.zip)</button>
+        </div>
+      </div>
+      <ul class="filelist" id="fileList"></ul>
+    </div>
+
+    <p class="footer-note">Processing happens entirely client-side using SheetJS. No data is uploaded to any server.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+  const fileInput = document.getElementById('excelFileInput');
+  const dropzone = document.getElementById('dropzone');
+  const filenameLabel = document.getElementById('filenameLabel');
+  const rowCountInput = document.getElementById('rowCountInput');
+  const prefixInput = document.getElementById('prefixInput');
+  const sheetSelect = document.getElementById('sheetSelect');
+  const sheetSelectLabel = document.getElementById('sheetSelectLabel');
+  const sheetSelectWrap = document.getElementById('sheetSelectWrap');
+  const combineSheetsCheck = document.getElementById('combineSheetsCheck');
+  const detectedRowsBanner = document.getElementById('detectedRowsBanner');
+  const statusContainer = document.getElementById('statusContainer');
+  const statusText = document.getElementById('statusText');
+  const progressBar = document.getElementById('progressBar');
+  const resultsContainer = document.getElementById('resultsContainer');
+  const resultsTitle = document.getElementById('resultsTitle');
+  const fileList = document.getElementById('fileList');
+  const downloadZipBtn = document.getElementById('downloadZipBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const errorBox = document.getElementById('errorBox');
+  const colConfig = document.getElementById('colConfig');
+  const colRows = document.getElementById('colRows');
+  const colSelectAllBtn = document.getElementById('colSelectAllBtn');
+  const colSelectNoneBtn = document.getElementById('colSelectNoneBtn');
+
+  let workbook = null;
+  let currentFile = null;
+  let generatedFiles = [];
+  let objectUrls = [];
+  let sheetJsonCache = {};
+  let columns = [];
+
+  const showError = (msg) => {
+    errorBox.textContent = msg;
+    errorBox.style.display = 'block';
+  };
+  const clearError = () => { errorBox.style.display = 'none'; errorBox.textContent = ''; };
+
+  const revokeUrls = () => {
+    objectUrls.forEach(u => URL.revokeObjectURL(u));
+    objectUrls = [];
+  };
+
+  const resetAll = () => {
+    revokeUrls();
+    generatedFiles = [];
+    workbook = null;
+    currentFile = null;
+    fileInput.value = '';
+    filenameLabel.textContent = '';
+    sheetSelectWrap.style.display = 'none';
+    sheetSelect.innerHTML = '';
+    combineSheetsCheck.checked = false;
+    detectedRowsBanner.style.display = 'none';
+    resultsContainer.style.display = 'none';
+    statusContainer.style.display = 'none';
+    clearError();
+    fileList.innerHTML = '';
+    sheetJsonCache = {};
+    columns = [];
+    colConfig.style.display = 'none';
+    colRows.innerHTML = '';
+  };
+
+  function colLetter(n) {
+    let s = '';
+    n = n + 1;
+    while (n > 0) {
+      const rem = (n - 1) % 26;
+      s = String.fromCharCode(65 + rem) + s;
+      n = Math.floor((n - 1) / 26);
+    }
+    return s;
+  }
+
+  function buildColumnUI(headerRow, dataRows) {
+    const colCount = headerRow.length;
+    const prevByLabel = {};
+    columns.forEach(c => { prevByLabel[c.label] = c; });
+
+    columns = [];
+    for (let i = 0; i < colCount; i++) {
+      const rawLabel = headerRow[i];
+      const label = (rawLabel === undefined || rawLabel === null || String(rawLabel).trim() === '')
+        ? `(Column ${colLetter(i)})`
+        : String(rawLabel).trim();
+
+      let blank = 0, filled = 0;
+      let runs = [], curRun = 0;
+      const sampleLimit = Math.min(dataRows.length, 5000);
+      for (let r = 0; r < sampleLimit; r++) {
+        const v = dataRows[r] ? dataRows[r][i] : undefined;
+        const isBlank = (v === undefined || v === null || String(v).trim() === '');
+        if (isBlank) { blank++; curRun++; }
+        else { filled++; if (curRun > 0) runs.push(curRun); curRun = 0; }
+      }
+      if (curRun > 0) runs.push(curRun);
+      const ratio = blank / Math.max(1, blank + filled);
+      const avgRunLen = runs.length ? runs.reduce((a, b) => a + b, 0) / runs.length : 0;
+
+      let identitySamples = 0, identityLike = 0;
+      for (let r = 0; r < sampleLimit; r++) {
+        const v = dataRows[r] ? dataRows[r][i] : undefined;
+        if (v === undefined || v === null || String(v).trim() === '') continue;
+        identitySamples++;
+        const s = String(v).trim();
+        if (s.includes('@') || /^[+\d][\d\s-]{6,}$/.test(s)) identityLike++;
+      }
+      const looksLikeIdentityField = identitySamples > 0 && (identityLike / identitySamples) > 0.5;
+
+      const looksGrouped = !looksLikeIdentityField && ratio > 0.02 && ratio < 0.98 && avgRunLen > 1.5;
+
+      const existing = prevByLabel[label];
+      columns.push({
+        index: i,
+        letter: colLetter(i),
+        label,
+        include: existing ? existing.include : true,
+        fillDown: existing ? existing.fillDown : looksGrouped,
+        suggested: looksGrouped
+      });
+    }
+    renderColumnUI();
+  }
+
+  function renderColumnUI() {
+    colRows.innerHTML = '';
+    columns.forEach((col) => {
+      const row = document.createElement('div');
+      row.className = 'col-row';
+      row.innerHTML = `
+        <input type="checkbox" class="col-include" data-idx="${col.index}" ${col.include ? 'checked' : ''}>
+        <div class="col-name">
+          <span class="col-letter">COL ${col.letter}</span>
+          <span class="col-header">${col.label}${col.suggested ? ' <span class="fill-badge">grouped?</span>' : ''}</span>
+        </div>
+        <div class="fill-cell">
+          <label style="display:flex; align-items:center; gap:4px; font-weight:500; margin:0; cursor:pointer; text-transform:none; font-size:0.8rem; color:var(--text);">
+            <input type="checkbox" class="col-filldown" data-idx="${col.index}" ${col.fillDown ? 'checked' : ''}>
+          </label>
+        </div>
+      `;
+      colRows.appendChild(row);
+    });
+    colConfig.style.display = columns.length ? 'block' : 'none';
+
+    colRows.querySelectorAll('.col-include').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const col = columns.find(c => c.index === idx);
+        if (col) col.include = e.target.checked;
+        scheduleSplit();
+      });
+    });
+    colRows.querySelectorAll('.col-filldown').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const col = columns.find(c => c.index === idx);
+        if (col) col.fillDown = e.target.checked;
+        scheduleSplit();
+      });
+    });
+  }
+
+  colSelectAllBtn.addEventListener('click', () => {
+    columns.forEach(c => c.include = true);
+    renderColumnUI();
+    scheduleSplit();
+  });
+  colSelectNoneBtn.addEventListener('click', () => {
+    columns.forEach(c => c.include = false);
+    renderColumnUI();
+    scheduleSplit();
+  });
+
+  ['dragenter','dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag'); })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag'); })
+  );
+  dropzone.addEventListener('drop', (e) => {
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  fileInput.addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (f) handleFile(f);
+  });
+
+  async function handleFile(file) {
+    clearError();
+    resultsContainer.style.display = 'none';
+    generatedFiles = [];
+    fileList.innerHTML = '';
+    revokeUrls();
+
+    const validExt = /\.(xlsx|xls|csv)$/i.test(file.name);
+    if (!validExt) {
+      showError('Unsupported file type. Please upload a .xlsx, .xls, or .csv file.');
+      return;
+    }
+
+    currentFile = file;
+    filenameLabel.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
+
+    try {
+      statusContainer.style.display = 'block';
+      statusText.textContent = 'Reading file...';
+      progressBar.style.width = '20%';
+      await tick();
+
+      const data = await file.arrayBuffer();
+      workbook = XLSX.read(data, { type: 'array' });
+
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+        throw new Error('No sheets found in this file.');
+      }
+
+      statusText.textContent = 'Scanning sheets...';
+      progressBar.style.width = '60%';
+      await tick();
+
+      const sheetRowCounts = {};
+      let bestSheet = workbook.SheetNames[0];
+      let bestCount = -1;
+      sheetJsonCache = {};
+      workbook.SheetNames.forEach(name => {
+        let count = 0;
+        try {
+          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+          sheetJsonCache[name] = rows;
+          count = Math.max(0, rows.length - 1);
+        } catch (e) { count = 0; }
+        sheetRowCounts[name] = count;
+        if (count > bestCount) { bestCount = count; bestSheet = name; }
+      });
+
+      sheetSelect.innerHTML = '';
+      workbook.SheetNames.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = `${name} (${sheetRowCounts[name]} rows)`;
+        if (name === bestSheet) opt.selected = true;
+        sheetSelect.appendChild(opt);
+      });
+
+      sheetSelectWrap.style.display = workbook.SheetNames.length > 1 ? 'block' : 'none';
+
+      const totalAcrossSheets = Object.values(sheetRowCounts).reduce((a, b) => a + b, 0);
+      if (workbook.SheetNames.length > 1) {
+        detectedRowsBanner.style.display = 'block';
+        detectedRowsBanner.textContent = totalAcrossSheets !== bestCount
+          ? `⚠ This file has ${workbook.SheetNames.length} sheets totalling ${totalAcrossSheets} rows. Currently selected: "${bestSheet}" (${bestCount} rows). Check "combine all sheets" above if your data spans more than one sheet.`
+          : `${bestCount} data rows detected in "${bestSheet}".`;
+      } else {
+        detectedRowsBanner.style.display = 'block';
+        detectedRowsBanner.textContent = `${bestCount} data rows detected.`;
+      }
+
+      refreshColumnUIFromCurrentSelection();
+
+      statusContainer.style.display = 'none';
+    } catch (err) {
+      statusContainer.style.display = 'none';
+      showError('Could not read this file: ' + err.message);
+      workbook = null;
+    }
+  }
+
+  function refreshColumnUIFromCurrentSelection() {
+    if (!workbook) return;
+    const combineAll = combineSheetsCheck.checked && workbook.SheetNames.length > 1;
+    let sourceName = sheetSelect.value || workbook.SheetNames[0];
+    if (combineAll) {
+      sourceName = workbook.SheetNames.find(n => (sheetJsonCache[n] || []).length > 0) || sourceName;
+    }
+    const data = sheetJsonCache[sourceName];
+    if (!data || data.length === 0) { columns = []; colConfig.style.display = 'none'; return; }
+    buildColumnUI(data[0], data.slice(1));
+  }
+
+  async function runSplit() {
+    if (!workbook || !currentFile) return;
+    clearError();
+
+    const chunkSize = parseInt(rowCountInput.value, 10);
+    if (!chunkSize || chunkSize < 1) {
+      showError('Please enter a valid number of rows per file (1 or more).');
+      return;
+    }
+    const prefix = (prefixInput.value.trim() || 'Split_Data').replace(/[\\/:*?"<>|]/g, '_');
+    const combineAll = combineSheetsCheck.checked && workbook.SheetNames.length > 1;
+
+    resultsContainer.style.display = 'none';
+    fileList.innerHTML = '';
+    generatedFiles = [];
+    revokeUrls();
+
+    statusContainer.style.display = 'block';
+    statusText.textContent = combineAll ? 'Parsing and combining all sheets...' : 'Parsing sheet rows...';
+    progressBar.style.width = '30%';
+    await tick();
+
+    let headers = null;
+    let rows = [];
+
+    try {
+      if (combineAll) {
+        for (const name of workbook.SheetNames) {
+          const sheetJson = sheetJsonCache[name] || XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+          if (sheetJson.length === 0) continue;
+          if (!headers) {
+            headers = sheetJson[0];
+            rows.push(...sheetJson.slice(1));
+          } else {
+            const startIdx = rowsEqual(sheetJson[0], headers) ? 1 : 0;
+            rows.push(...sheetJson.slice(startIdx));
+          }
+        }
+      } else {
+        const sheetName = sheetSelect.value || workbook.SheetNames[0];
+        const jsonData = sheetJsonCache[sheetName] || XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+        if (jsonData.length === 0) {
+          statusContainer.style.display = 'none';
+          showError('The selected sheet is empty.');
+          return;
+        }
+        headers = jsonData[0];
+        rows = jsonData.slice(1);
+      }
+    } catch (err) {
+      statusContainer.style.display = 'none';
+      showError('Error parsing sheet(s): ' + err.message);
+      return;
+    }
+
+    if (!headers || rows.length === 0) {
+      statusContainer.style.display = 'none';
+      showError('No data rows found.');
+      return;
+    }
+
+    const totalRows = rows.length;
+
+    if (totalRows === 0) {
+      statusContainer.style.display = 'none';
+      showError('No data rows found below the header row.');
+      return;
+    }
+
+    const fillDownCols = columns.filter(c => c.fillDown).map(c => c.index);
+    if (fillDownCols.length) {
+      const lastValues = {};
+      for (const row of rows) {
+        for (const idx of fillDownCols) {
+          const v = row[idx];
+          if (v === undefined || v === null || String(v).trim() === '') {
+            if (lastValues[idx] !== undefined) row[idx] = lastValues[idx];
+          } else {
+            lastValues[idx] = v;
+          }
+        }
+      }
+    }
+
+    if (columns.length) {
+      const includedIdx = columns.filter(c => c.include).map(c => c.index);
+      if (includedIdx.length === 0) {
+        statusContainer.style.display = 'none';
+        showError('Select at least one column to include in the output.');
+        return;
+      }
+      if (includedIdx.length < headers.length) {
+        headers = includedIdx.map(i => headers[i]);
+        rows = rows.map(row => includedIdx.map(i => row[i]));
+      }
+    }
+
+    const fileCount = Math.ceil(totalRows / chunkSize);
+    const isCsvOut = /\.csv$/i.test(currentFile.name) && workbook.SheetNames.length === 1;
+
+    for (let i = 0; i < fileCount; i++) {
+      statusText.textContent = `Building file ${i + 1} of ${fileCount}...`;
+      progressBar.style.width = `${30 + Math.round(((i + 1) / fileCount) * 65)}%`;
+      if (i % 3 === 0) await tick();
+
+      const start = i * chunkSize;
+      const end = start + chunkSize;
+      const batchRows = rows.slice(start, end);
+      const fileData = [headers, ...batchRows];
+
+      const newSheet = XLSX.utils.aoa_to_sheet(fileData);
+      const newWorkbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(newWorkbook, newSheet, 'Data');
+
+      const ext = isCsvOut ? 'csv' : 'xlsx';
+      const fileName = `${prefix}_Part_${String(i + 1).padStart(2, '0')}.${ext}`;
+
+      let blob;
+      if (isCsvOut) {
+        const csvOut = XLSX.utils.sheet_to_csv(newSheet);
+        blob = new Blob([csvOut], { type: 'text/csv' });
+      } else {
+        const wbout = XLSX.write(newWorkbook, { bookType: 'xlsx', type: 'array' });
+        blob = new Blob([wbout], { type: 'application/octet-stream' });
+      }
+
+      generatedFiles.push({ name: fileName, blob, rowCount: batchRows.length });
+    }
+
+    renderFileList();
+    progressBar.style.width = '100%';
+    statusText.textContent = 'Done!';
+    await tick();
+    statusContainer.style.display = 'none';
+    resultsTitle.textContent = combineAll
+      ? `Generated files (${generatedFiles.length}, ${totalRows} rows total, combined from ${workbook.SheetNames.length} sheets)`
+      : `Generated files (${generatedFiles.length}, ${totalRows} rows total)`;
+    resultsContainer.style.display = 'block';
+  }
+
+  function renderFileList() {
+    fileList.innerHTML = '';
+    generatedFiles.forEach((f) => {
+      const li = document.createElement('li');
+      const url = URL.createObjectURL(f.blob);
+      objectUrls.push(url);
+      li.innerHTML = `
+        <div><span class="fname">${f.name}</span><span class="frows">(${f.rowCount} rows)</span></div>
+        <a href="${url}" download="${f.name}">Download</a>
+      `;
+      fileList.appendChild(li);
+    });
+  }
+
+  downloadZipBtn.addEventListener('click', async () => {
+    if (!generatedFiles.length) return;
+    downloadZipBtn.disabled = true;
+    downloadZipBtn.textContent = 'Zipping...';
+    try {
+      const zip = new JSZip();
+      generatedFiles.forEach(f => zip.file(f.name, f.blob));
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(prefixInput.value.trim() || 'Split_Files')}_Package.zip`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+      showError('Error creating zip: ' + err.message);
+    } finally {
+      downloadZipBtn.disabled = false;
+      downloadZipBtn.textContent = 'Download all (.zip)';
+    }
+  });
+
+  resetBtn.addEventListener('click', resetAll);
+
+  let splitTimer = null;
+  const scheduleSplit = () => {
+    if (!workbook) return;
+    clearTimeout(splitTimer);
+    splitTimer = setTimeout(runSplit, 250);
+  };
+  rowCountInput.addEventListener('change', scheduleSplit);
+  prefixInput.addEventListener('change', scheduleSplit);
+  sheetSelect.addEventListener('change', () => { refreshColumnUIFromCurrentSelection(); scheduleSplit(); });
+  combineSheetsCheck.addEventListener('change', () => { refreshColumnUIFromCurrentSelection(); scheduleSplit(); });
+
+  const origHandleFile = handleFile;
+  handleFile = async function(file) {
+    await origHandleFile(file);
+    if (workbook) scheduleSplit();
+  };
+
+  function rowsEqual(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    return a.every((v, i) => String(v ?? '').trim() === String(b[i] ?? '').trim());
+  }
+
+  function tick() { return new Promise(r => setTimeout(r, 0)); }
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+})();
+</script>
+</body>
+</html>
