@@ -60,6 +60,16 @@
 
 ---
 
+## safai — Ubuntu app cleanup
+
+| | |
+|---|---|
+| **What** | Step-by-step terminal guide to find and remove unwanted apps on Ubuntu — list installed packages by disk size, check live RAM/CPU with htop, see disk usage visually with baobab, then `remove`/`purge` apps and clean leftover dependencies and the apt cache. Includes a copy-ready one-liner to surface the 30 largest packages immediately. |
+| **Dependencies** | None (static HTML guide) |
+| **Limits** | Commands execute on the user's own machine. `purge` is not reversible for config/settings — the guide calls out using `remove` instead when that matters. |
+
+---
+
 ## shuddhi — Windows PC cleanup
 
 | | |
@@ -108,6 +118,16 @@
 | **What** | Drop an image, adjust quality (JPEG/WebP) and max dimensions, preview the compressed result with size comparison, download. |
 | **Dependencies** | None (Canvas API) |
 | **Limits** | Very large images may be slow. Output limited to formats the browser's Canvas API supports. |
+
+---
+
+## sangrah — yt-dlp setup (clean install)
+
+| | |
+|---|---|
+| **What** | Step-by-step terminal guide to install yt-dlp on Ubuntu the clean way via pipx — isolated environments, mp4-by-default config, deno JS runtime, and an animated `rich` progress bar. Ships with a downloadable one-shot `setup_sangrah.sh` that builds the venv, installs `yt-dlp` + `rich` + deno, writes the mp4 config, and drops `yt-dlp` + a `ytdl-nice` progress wrapper into `~/bin`. |
+| **Dependencies** | Script needs Python 3 venv, `pip`, and `curl` (Ubuntu/Debian). `yt-dlp` and `rich` are pip-installed into the isolated venv; deno is fetched from deno.land. |
+| **Limits** | Guide + script run on the user's own machine. PEP 668 (externally-managed-environment) is sidestepped via pipx or the included venv — both isolate yt-dlp from system Python. |
 
 ---
 

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safai — Prayog</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100dvh;padding:1.5rem 1rem;display:flex;justify-content:center}
+.wrap{max-width:780px;width:100%}
+h1{font-family:var(--mono);font-size:1.35rem;font-weight:700;letter-spacing:.02em;margin-bottom:0;line-height:1.3;color:#f2f6f8}
+h1 small{display:block;font-size:0.78rem;font-weight:400;color:var(--muted);margin-top:2px}
+.sub{font-size:0.78rem;color:var(--muted);margin-top:6px;line-height:1.5;max-width:62ch}
+
+/* quick-answer block */
+.quick{margin-top:22px;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(47,163,154,0.25);border-radius:var(--radius-md);overflow:hidden}
+.quick-head{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);background:rgba(45,212,191,0.05)}
+.quick-head span{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal)}
+.quick pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;color:#c9f7ee;white-space:pre-wrap;word-break:break-all}
+.quick .cpy{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:5px;padding:3px 8px;font-size:0.7rem;cursor:pointer;transition:.15s;font-family:inherit}
+.quick .cpy:hover{background:var(--teal);color:var(--bg)}
+.quick .cpy.copied{background:var(--teal);color:var(--bg)}
+
+.step-id{display:inline-block;background:#1a2836;color:var(--muted);border-radius:var(--radius-full);padding:1px 9px;font-size:0.68rem;font-family:var(--mono);margin-bottom:8px}
+.step-h{font-family:var(--mono);font-weight:600;font-size:0.82rem;color:var(--amber);margin-bottom:10px;letter-spacing:.04em}
+.step-p{font-size:0.82rem;color:#a0abb6;line-height:1.55;margin-bottom:10px;max-width:62ch}
+.step-p code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:0.78rem;color:#c9d1d9}
+.step{margin-bottom:20px;padding:16px;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:var(--radius-md)}
+.cmd{position:relative;background:#0a0e14;border:1px solid #1a2836;border-radius:var(--radius-sm);padding:12px 44px 12px 14px;font-family:var(--mono);font-size:0.82rem;color:#c9d1d9;line-height:1.55;overflow-x:auto;margin-bottom:8px;white-space:pre-wrap;word-break:break-all}
+.cmd code{font-family:inherit;white-space:pre-wrap}
+.cmd .c{color:#6b7785;font-style:italic}
+.cmd .cpy{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:5px;padding:3px 8px;font-size:0.7rem;cursor:pointer;transition:.15s;font-family:inherit}
+.cmd .cpy:hover{background:var(--teal);color:var(--bg)}
+.cmd .cpy.copied{background:var(--teal);color:var(--bg)}
+.verify{font-size:0.74rem;color:var(--muted);font-style:italic;margin:4px 2px 2px}
+.verify strong{color:#a0abb6;font-weight:600;font-style:normal}
+
+.callout{background:rgba(232,163,61,0.07);border:1px solid rgba(232,163,61,0.25);border-radius:var(--radius-md);padding:14px 16px;margin:22px 0}
+.callout-title{font-family:var(--mono);font-size:0.8rem;color:var(--amber);margin-bottom:6px;letter-spacing:.04em}
+.callout p{font-size:0.78rem;color:#a0abb6;line-height:1.55;margin-bottom:6px}
+.callout p:last-child{margin-bottom:0}
+.callout code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:0.76rem;color:#c9d1d9}
+
+.divider{height:1px;background:var(--line);margin:24px 0;border:none}
+footer{text-align:center;color:rgba(255,255,255,0.2);font-family:var(--mono);font-size:10px;margin-top:28px;line-height:1.6}
+@media(max-width:640px){body{padding:1rem 0.6rem}.cmd{padding:10px 36px 10px 10px;font-size:0.75rem}.quick pre{font-size:11.5px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Safai <small>find and remove unwanted apps</small></h1>
+<div class="sub">List every installed application on Ubuntu with its disk size and description, check live RAM usage, then safely remove what you don't need.</div>
+
+<div class="quick">
+  <div class="quick-head"><span>fastest answer — run this first</span><button class="cpy" data-cmd="dpkg-query -W -f='${Package}\t${Installed-Size}\t${binary:Summary}\n' | sort -k2 -n -r | head -30">copy</button></div>
+  <pre>dpkg-query -W -f='${Package}\t${Installed-Size}\t${binary:Summary}\n' | sort -k2 -n -r | head -30</pre>
+</div>
+
+<div class="step">
+  <div class="step-id">step 1</div>
+  <div class="step-h">List installed applications</div>
+  <div class="step-p">See every installed package by name, or a fuller view with size and a one-line description, sorted largest first.</div>
+  <div class="cmd"><code><span class="c">apt list --installed</span>
+<span class="c"># fuller view: name, size (KB), description — largest first</span>
+dpkg-query -W -f='${Package}\t${Installed-Size}\t${binary:Summary}\n' | sort -k2 -n -r | less</code><button class="cpy" data-cmd="apt list --installed
+# fuller view: name, size (KB), description — largest first
+dpkg-query -W -f='${Package}\t${Installed-Size}\t${binary:Summary}\n' | sort -k2 -n -r | less">copy</button></div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 2</div>
+  <div class="step-h">See disk usage per app visually</div>
+  <div class="step-p">Disk Usage Analyzer (baobab) ships with Ubuntu's GUI tools. It shows a visual breakdown of what's eating your storage, folder by folder — easier to scan than a terminal list.</div>
+  <div class="cmd"><code>sudo apt install baobab
+baobab</code><button class="cpy" data-cmd="sudo apt install baobab
+baobab">copy</button></div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 3</div>
+  <div class="step-h">Check RAM and CPU usage live</div>
+  <div class="step-p">Shows every running process with live RAM and CPU percentages, sorted and color-coded. Press <code>F6</code> once open to sort by memory (the RES column) — this shows what's using RAM right now, not just installed size.</div>
+  <div class="cmd"><code>sudo apt install htop
+htop</code><button class="cpy" data-cmd="sudo apt install htop
+htop">copy</button></div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 4</div>
+  <div class="step-h">Identify what's safe to remove</div>
+  <div class="step-p">Cross-reference the apps you don't recognize or use against the list from step 1. Be cautious with anything prefixed <code>lib*</code>, <code>python3-*</code>, or containing <code>-common</code>, <code>-dev</code>, <code>-doc</code> — these are usually dependencies other apps rely on, not standalone applications.</div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 5</div>
+  <div class="step-h">Remove an unwanted application</div>
+  <div class="step-p"><code>remove</code> uninstalls the app but keeps its config files. <code>purge</code> removes the app and its config files together.</div>
+  <div class="cmd"><code>sudo apt remove <package-name>
+<span class="c"># or, to also delete its config files</span>
+sudo apt purge <package-name>
+<span class="c"># example</span>
+sudo apt purge thunderbird</code><button class="cpy" data-cmd="sudo apt remove <package-name>
+# or, to also delete its config files
+sudo apt purge <package-name>
+# example
+sudo apt purge thunderbird">copy</button></div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 6</div>
+  <div class="step-h">Clean up leftover dependencies</div>
+  <div class="step-p">After removing apps, clear out packages that were only installed as dependencies and are no longer needed, then clear the downloaded package cache.</div>
+  <div class="cmd"><code>sudo apt autoremove
+sudo apt clean</code><button class="cpy" data-cmd="sudo apt autoremove
+sudo apt clean">copy</button></div>
+  <div class="verify">run this after every removal session, not just once.</div>
+</div>
+
+<div class="divider"></div>
+
+<div class="callout">
+  <div class="callout-title">Before removing anything</div>
+  <p>If a package name looks unfamiliar, don't guess — check what it is before running <code>purge</code> on it. A quick <code>apt show <package-name></code> prints its full description.</p>
+  <p><code>purge</code> is not reversible for config/settings — if an app has settings you'd want back later, use <code>remove</code> instead of <code>purge</code>.</p>
+</div>
+
+<footer>safai — Ubuntu app cleanup: installed size, RAM usage, removal</footer>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.cpy').forEach(function(btn){
+    btn.onclick = function(){
+      var text = btn.getAttribute('data-cmd');
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){
+          btn.textContent = 'copied';
+          btn.classList.add('copied');
+          setTimeout(function(){btn.textContent = 'copy';btn.classList.remove('copied')}, 1800);
+        });
+      }
+    };
+  });
+})();
+</script>
+<script src="../assets/nav.js" data-tool="safai"></script>
+</body>
+</html>

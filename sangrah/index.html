@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sangrah — Prayog</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100dvh;padding:1.5rem 1rem;display:flex;justify-content:center}
+.wrap{max-width:780px;width:100%}
+h1{font-family:var(--mono);font-size:1.35rem;font-weight:700;letter-spacing:.02em;margin-bottom:0;line-height:1.3;color:#f2f6f8}
+h1 small{display:block;font-size:0.78rem;font-weight:400;color:var(--muted);margin-top:2px}
+.sub{font-size:0.78rem;color:var(--muted);margin-top:6px;line-height:1.5;max-width:62ch}
+
+/* download card — mirrors shuddhi's dl-wrap */
+.dl{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:var(--radius-md);padding:16px 18px;margin:22px 0 4px;transition:border-color var(--duration-base) var(--ease-out)}
+.dl:hover{border-color:var(--amber)}
+.dl-ic{flex:0 0 auto;width:42px;height:42px;border-radius:10px;background:rgba(232,163,61,0.10);display:flex;align-items:center;justify-content:center;color:var(--amber)}
+.dl-ic svg{width:22px;height:22px}
+.dl-t{font-family:var(--mono);font-weight:600;font-size:0.9rem;color:var(--text)}
+.dl-s{font-size:0.72rem;color:var(--muted);margin-top:2px;line-height:1.4}
+.dl-b{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;gap:.4rem;padding:9px 18px;border-radius:var(--radius-md);border:1px solid var(--amber);color:var(--amber);font-family:var(--mono);font-weight:600;font-size:0.78rem;text-decoration:none;cursor:pointer;transition:background var(--duration-base) var(--ease-out),color var(--duration-base) var(--ease-out)}
+.dl-b:hover{background:var(--amber);color:var(--bg)}
+
+.note{background:rgba(47,163,154,0.08);border:1px solid rgba(47,163,154,0.22);border-left:3px solid var(--teal);border-radius:var(--radius-sm);padding:12px 14px;font-size:0.78rem;color:#5cbdb5;line-height:1.55;margin:18px 0}
+.note strong{color:var(--teal)}
+
+/* timestamped step numbers in caps */
+.step-id{display:inline-block;background:#1a2836;color:var(--muted);border-radius:var(--radius-full);padding:1px 9px;font-size:0.68rem;font-family:var(--mono);margin-bottom:8px}
+.step-h{font-family:var(--mono);font-weight:600;font-size:0.82rem;color:var(--amber);margin-bottom:10px;letter-spacing:.04em}
+.step-p{font-size:0.82rem;color:#a0abb6;line-height:1.55;margin-bottom:10px}
+.step-p code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:0.78rem;color:#c9d1d9}
+.step{margin-bottom:20px;padding:16px;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:var(--radius-md)}
+.cmd{position:relative;background:#0a0e14;border:1px solid #1a2836;border-radius:var(--radius-sm);padding:12px 44px 12px 14px;font-family:var(--mono);font-size:0.82rem;color:#c9d1d9;line-height:1.55;overflow-x:auto;margin-bottom:8px;white-space:pre-wrap;word-break:break-all}
+.cmd code{font-family:inherit;white-space:pre-wrap}
+.cmd .c{color:#6b7785;font-style:italic}
+.cmd .flag{color:var(--teal)}
+.cmd .cpy{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:5px;padding:3px 8px;font-size:0.7rem;cursor:pointer;transition:.15s;font-family:inherit}
+.cmd .cpy:hover{background:var(--teal);color:var(--bg)}
+.cmd .cpy.copied{background:var(--teal);color:var(--bg)}
+.verify{font-size:0.74rem;color:var(--muted);font-style:italic;margin:4px 2px 2px}
+.verify strong{color:#a0abb6;font-weight:600;font-style:normal}
+.verified{} /* reserved */
+
+.callout{background:rgba(232,163,61,0.07);border:1px solid rgba(232,163,61,0.25);border-radius:var(--radius-md);padding:14px 16px;margin:22px 0}
+.callout-title{font-family:var(--mono);font-size:0.8rem;color:var(--amber);margin-bottom:6px;letter-spacing:.04em}
+.callout p{font-size:0.78rem;color:#a0abb6;line-height:1.55;margin-bottom:6px}
+.callout p:last-child{margin-bottom:0}
+.callout code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:0.76rem;color:#c9d1d9}
+
+.divider{height:1px;background:var(--line);margin:24px 0;border:none}
+
+footer{text-align:center;color:rgba(255,255,255,0.2);font-family:var(--mono);font-size:10px;margin-top:28px;line-height:1.6}
+@media(max-width:640px){body{padding:1rem 0.6rem}.cmd{padding:10px 36px 10px 10px;font-size:0.75rem}.dl{flex-wrap:wrap}.dl-b{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Sangrah <small>yt-dlp, the clean way</small></h1>
+<div class="sub">Install yt-dlp with pipx so it never fights Ubuntu's system Python, force mp4 as your default output, and wire up an animated download progress bar. Seven steps, no venv to babysit.</div>
+
+<div class="dl">
+  <div class="dl-ic" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  </div>
+  <div>
+    <div class="dl-t">setup_sangrah.sh</div>
+    <div class="dl-s">One-shot script: venv + yt-dlp + rich + deno + mp4 config + <code style="font-family:var(--mono);font-size:0.72rem;color:#a0abb6">ytdl-nice</code> progress wrapper.</div>
+  </div>
+  <a class="dl-b" href="setup_sangrah.sh" download>download</a>
+</div>
+
+<div class="note"><strong>Note —</strong> pipx still uses a virtual environment under the hood. What you're skipping is managing it yourself; pipx creates and hides it for you.</div>
+
+<div class="step">
+  <div class="step-id">step 1</div>
+  <div class="step-h">Install pipx</div>
+  <div class="step-p">pipx installs Python CLI tools into their own isolated environments automatically. This is the officially recommended way around Ubuntu's externally-managed-environment restriction.</div>
+  <div class="cmd"><code>sudo apt update && sudo apt install -y pipx
+pipx ensurepath</code><button class="cpy" data-cmd="sudo apt update && sudo apt install -y pipx
+pipx ensurepath">copy</button></div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 2</div>
+  <div class="step-h">Restart your shell</div>
+  <div class="step-p">Picks up the PATH changes pipx just made, so the <code>pipx</code> and later <code>yt-dlp</code> commands are found.</div>
+  <div class="cmd"><code>source ~/.bashrc</code><button class="cpy" data-cmd="source ~/.bashrc">copy</button></div>
+  <div class="verify">or just close and reopen the terminal window.</div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 3</div>
+  <div class="step-h">Install yt-dlp with pipx</div>
+  <div class="step-p">Drops a working <code>yt-dlp</code> command on your PATH, backed by its own isolated environment — you never have to think about that environment again.</div>
+  <div class="cmd"><code>pipx install yt-dlp</code><button class="cpy" data-cmd="pipx install yt-dlp">copy</button></div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 4</div>
+  <div class="step-h">Inject rich into yt-dlp's environment</div>
+  <div class="step-p">Adds the <code>rich</code> library into that same isolated environment, so a custom script can import both <code>yt_dlp</code> and <code>rich</code> together for the animated progress bar.</div>
+  <div class="cmd"><code>pipx inject yt-dlp rich</code><button class="cpy" data-cmd="pipx inject yt-dlp rich">copy</button></div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 5</div>
+  <div class="step-h">Install deno (JS runtime)</div>
+  <div class="step-p">Clears the "No supported JavaScript runtime" warning and restores full format extraction on YouTube.</div>
+  <div class="cmd"><code>curl -fsSL https://deno.land/install.sh | sh</code><button class="cpy" data-cmd="curl -fsSL https://deno.land/install.sh | sh">copy</button></div>
+  <div class="verify">restart your terminal again after this one.</div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 6</div>
+  <div class="step-h">Force mp4 output by default</div>
+  <div class="step-p">Writes a config so plain <code>yt-dlp <url></code> always merges video + audio into <code>.mp4</code>, instead of whatever container the source streams happen to use.</div>
+  <div class="cmd"><code>mkdir -p ~/.config/yt-dlp
+printf '%s\n' \
+  <span class="flag">'-f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"'</span> \
+  <span class="flag">'--merge-output-format mp4'</span> \
+  >> ~/.config/yt-dlp/config</code><button class="cpy" data-cmd="mkdir -p ~/.config/yt-dlp
+printf '%s\n' \
+  '-f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"' \
+  '--merge-output-format mp4' \
+  >> ~/.config/yt-dlp/config">copy</button></div>
+</div>
+
+<div class="step">
+  <div class="step-id">step 7</div>
+  <div class="step-h">Verify it works</div>
+  <div class="step-p">Confirm the command resolves and (optionally) that mp4 is the default merge format.</div>
+  <div class="cmd"><code>which yt-dlp</code><button class="cpy" data-cmd="which yt-dlp">copy</button></div>
+  <div class="cmd"><code>yt-dlp --print merge-output-format</code><button class="cpy" data-cmd="yt-dlp --print merge-output-format">copy</button></div>
+  <div class="verify">should print <strong>mp4</strong>.</div>
+</div>
+
+<div class="divider"></div>
+
+<div class="callout">
+  <div class="callout-title">Before you start</div>
+  <p>These steps assume Ubuntu/Debian with <code>apt</code> available. If <code>pipx</code> is already installed, step 1 is a no-op — apt will just confirm it's up to date.</p>
+  <p>Each step is independent to run — if one fails partway, fix that step and continue from there rather than starting over.</p>
+</div>
+
+<footer>sangrah — yt-dlp setup, pipx edition</footer>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.cpy').forEach(function(btn){
+    btn.onclick = function(){
+      var text = btn.getAttribute('data-cmd');
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){
+          btn.textContent = 'copied';
+          btn.classList.add('copied');
+          setTimeout(function(){btn.textContent = 'copy';btn.classList.remove('copied')}, 1800);
+        });
+      }
+    };
+  });
+})();
+</script>
+<script src="../assets/nav.js" data-tool="sangrah"></script>
+</body>
+</html>
