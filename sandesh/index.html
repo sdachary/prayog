@@ -155,6 +155,20 @@
     border-bottom:1px solid rgba(232,163,61,0.4);
   }
 
+  details.cable summary{
+    cursor:pointer; font-family:var(--mono); font-size:12px; letter-spacing:0.03em;
+    color:var(--amber); line-height:1.5;
+  }
+  details.cable[open] summary{ margin-bottom:10px; }
+  details.cable ol{ margin:0; padding-left:18px; }
+  details.cable li{ font-size:12.5px; color:var(--muted); line-height:1.7; margin-bottom:6px; }
+  details.cable code{
+    font-family:var(--mono); font-size:11px; color:var(--text);
+    background:var(--bg); border:1px solid var(--line); border-radius:4px;
+    padding:1px 6px; display:inline-block; margin:1px 0;
+    word-break:break-all;
+  }
+
   .hidden{ display:none !important; }
   input[type=file]{ display:none; }
 </style>
@@ -202,6 +216,30 @@
     </div>
     <input type="file" id="fileInput">
     <div class="transfer-list" id="transferList"></div>
+  </div>
+
+  <div class="card">
+    <div class="label-row">
+      <div class="eyebrow">No internet? Cable + terminal transfer</div>
+    </div>
+    <details class="cable">
+      <summary>Neither laptop has Wi-Fi or internet — just a cable? That's enough. Everything here runs in a terminal, nothing to install.</summary>
+      <ol>
+        <li>Connect the cable and give each laptop an IP (find the interface name with <code>ip addr</code>):
+          <br><code>sudo ip addr add 169.254.10.1/24 dev &lt;iface&gt;</code> — yours
+          <br><code>sudo ip addr add 169.254.10.2/24 dev &lt;iface&gt;</code> — theirs
+        </li>
+        <li>Check the link: <code>ping 169.254.10.2</code></li>
+        <li>Easiest — share a folder from your laptop (python3 comes preinstalled):
+          <br><code>cd ~/Videos && python3 -m http.server 8000</code>
+          <br>The other laptop opens <code>http://169.254.10.1:8000</code> in its browser and downloads files. Press <code>Ctrl+C</code> to stop sharing.
+        </li>
+        <li>Or push straight to the other machine over SSH (<code>-r</code> copies whole folders):
+          <br><code>scp -r ./D-Data amarnath@169.254.10.2:~/Downloads/</code>
+          <br>Caveat: the receiving laptop needs <code>openssh-server</code>. Check with <code>systemctl status ssh</code> — if it's missing you can't install it offline, so use the method above instead.
+        </li>
+      </ol>
+    </details>
   </div>
 
   <footer>
