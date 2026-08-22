@@ -169,6 +169,28 @@
     word-break:break-all;
   }
 
+  .pick-row,.dest-row{
+    display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap;
+  }
+  .mini-btn{
+    background:none; border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:8px;
+    cursor:pointer; letter-spacing:0.03em;
+    transition:border-color .2s, background .2s;
+  }
+  .mini-btn:hover{ border-color:var(--teal); background:rgba(47,163,154,0.08); }
+  .dest-row .hint{ margin-top:0; }
+  .t-saved{
+    font-family:var(--mono); font-size:11.5px; color:var(--teal);
+  }
+  .t-stats{
+    display:flex; justify-content:space-between;
+    font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:6px;
+  }
+  .transfer.overall{ border-left:none; background:rgba(47,163,154,0.05); }
+  .transfer.overall .bar-fill{ transition:width .3s ease; }
+  #ovName{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:300px; }
+
   .hidden{ display:none !important; }
   input[type=file]{ display:none; }
 </style>
@@ -208,13 +230,34 @@
 
   <div class="card" id="fileCard">
     <div class="label-row">
-      <div class="eyebrow">Send a file</div>
+      <div class="eyebrow">Send</div>
     </div>
     <div class="dropzone" id="dropzone">
-      <div class="big">drag a file here, or click to browse</div>
+      <div class="big">drag files or a whole folder here</div>
       <div>connect to a peer first</div>
     </div>
-    <input type="file" id="fileInput">
+    <div class="pick-row">
+      <button class="mini-btn" id="pickFilesBtn">choose files</button>
+      <button class="mini-btn" id="pickFolderBtn">choose folder…</button>
+    </div>
+    <div class="dest-row">
+      <span class="eyebrow">receive into</span>
+      <button class="mini-btn" id="destBtn">choose folder…</button>
+      <span class="hint" id="destLabel"></span>
+    </div>
+    <input type="file" id="fileInput" multiple>
+    <input type="file" id="folderInput" webkitdirectory multiple>
+    <div class="transfer overall hidden" id="overallCard">
+      <div class="t-top">
+        <span class="t-name" id="ovName">—</span>
+        <span class="t-meta" id="ovMeta"></span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="ovBar"></div></div>
+      <div class="t-stats">
+        <span id="ovSpeed">—</span>
+        <span id="ovEta"></span>
+      </div>
+    </div>
     <div class="transfer-list" id="transferList"></div>
   </div>
 
@@ -252,7 +295,7 @@
 <script>
 (function(){
   const PREFIX = "freqdrop-";
-  const CHUNK_SIZE = 64 * 1024;
+  const CHUNK_SIZE = 256 * 1024;
   const BUFFERED_AMOUNT_LOW = 1 * 1024 * 1024;
 
   const el = (id) => document.getElementById(id);
@@ -269,11 +312,31 @@
   const fileInput = el('fileInput');
   const transferList = el('transferList');
   const copyBtn = el('copyBtn');
+  const pickFilesBtn = el('pickFilesBtn');
+  const pickFolderBtn = el('pickFolderBtn');
+  const folderInput = el('folderInput');
+  const destBtn = el('destBtn');
+  const destLabel = el('destLabel');
+  const overallCard = el('overallCard');
+  const ovName = el('ovName');
+  const ovMeta = el('ovMeta');
+  const ovBar = el('ovBar');
+  const ovSpeed = el('ovSpeed');
+  const ovEta = el('ovEta');
 
   let peer = null;
   let conn = null;
   let myCode = null;
   let incoming = null;
+
+  // folder/queue state
+  let destDir = null;
+  const sendQueue = [];
+  const staged = [];          // picked before a peer connected
+  let sending = false;
+  let currentSend = null;
+  const totals = { size:0, done:0, count:0, sentCount:0 };
+  let txBytes = 0, rxBytes = 0;
 
   function genCode(){
     return String(Math.floor(100000 + Math.random() * 900000));
@@ -330,12 +393,21 @@
     conn.on('open', () => {
       setStatus('live', 'connected');
       setConnected(true);
+      if(staged.length){ enqueue(staged); staged.length = 0; }
     });
     conn.on('data', handleIncomingData);
     conn.on('close', () => {
       setStatus('searching', 'peer disconnected');
       setConnected(false);
       conn = null;
+      sendQueue.length = 0;
+      sending = false;
+      if(currentSend){ currentSend.ui.setError(); currentSend = null; }
+      if(incoming && incoming.writer){
+        try{ incoming.writer.abort(); }catch(e){}
+        incoming.ui.setError();
+        incoming = null;
+      }
     });
     conn.on('error', (e) => console.error('conn error', e));
   }
@@ -362,10 +434,52 @@
     });
   });
 
-  dropzone.addEventListener('click', () => { if(conn) fileInput.click(); });
-  fileInput.addEventListener('change', (e) => {
-    if(e.target.files[0]) sendFile(e.target.files[0]);
+  // ---------- destination folder (receiver) ----------
+  if(window.showDirectoryPicker){
+    destBtn.addEventListener('click', async () => {
+      try{ destDir = await window.showDirectoryPicker({ mode:'readwrite' }); }catch(e){ /* cancelled */ }
+      destBtn.textContent = destDir ? 'change…' : 'choose folder…';
+      destLabel.textContent = destDir ? 'writing straight into "' + destDir.name + '"' : 'files arrive as browser downloads';
+    });
+  } else {
+    destBtn.classList.add('hidden');
+    destLabel.textContent = 'direct folder saving needs Chrome or Edge — files arrive as downloads';
+  }
+
+  async function uniqueName(dir, name){
+    const exists = n => dir.getFileHandle(n).then(() => true, () => false);
+    if(!(await exists(name))) return name;
+    const dot = name.lastIndexOf('.');
+    const base = dot > 0 ? name.slice(0, dot) : name;
+    const ext = dot > 0 ? name.slice(dot) : '';
+    for(let i = 1; ; i++){
+      const n = base + '-' + i + ext;
+      if(!(await exists(n))) return n;
+    }
+  }
+
+  async function openDestWriter(root, path, fallbackName){
+    const parts = (path || '').split('/').filter(Boolean);
+    const fname = parts.pop() || fallbackName;
+    let d = root;
+    for(const p of parts) d = await d.getDirectoryHandle(p, { create:true });
+    const fh = await d.getFileHandle(await uniqueName(d, fname), { create:true });
+    return fh.createWritable();
+  }
+
+  // ---------- picking / dropping ----------
+  pickFilesBtn.addEventListener('click', () => fileInput.click());
+  pickFolderBtn.addEventListener('click', () => folderInput.click());
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    enqueue([...fileInput.files].map(f => ({ file:f })));
+    fileInput.value = '';
   });
+  folderInput.addEventListener('change', () => {
+    enqueue([...folderInput.files].map(f => ({ file:f, relPath:f.webkitRelativePath || f.name })));
+    folderInput.value = '';
+  });
+
   ['dragover','dragenter'].forEach(evt => dropzone.addEventListener(evt, (e) => {
     e.preventDefault();
     if(conn) dropzone.classList.add('drag');
@@ -374,13 +488,113 @@
     e.preventDefault();
     dropzone.classList.remove('drag');
   }));
-  dropzone.addEventListener('drop', (e) => {
-    if(!conn) return;
-    const f = e.dataTransfer.files[0];
-    if(f) sendFile(f);
-  });
+  dropzone.addEventListener('drop', (e) => { collectDrop(e.dataTransfer); });
 
+  // reads dt.items synchronously — they expire when the event handler yields
+  function collectDrop(dt){
+    const out = [];
+    const entries = [];
+    for(const item of dt.items){
+      const entry = item.webkitGetAsEntry && item.webkitGetAsEntry();
+      if(entry) entries.push(entry);
+    }
+    const walkAll = async () => {
+      if(entries.length === 0){
+        for(const f of dt.files) out.push({ file:f });
+        return;
+      }
+      async function walk(entry, prefix){
+        if(entry.isFile){
+          const f = await new Promise((res) => entry.file(res, () => res(null)));
+          if(f) out.push({ file:f, relPath:(prefix ? prefix + '/' : '') + f.name });
+          return;
+        }
+        const reader = entry.createReader();
+        const sub = (prefix ? prefix + '/' : '') + entry.name;
+        for(;;){
+          const batch = await new Promise((res, rej) => reader.readEntries(res, rej));
+          if(batch.length === 0) break;
+          for(const child of batch) await walk(child, sub);
+        }
+      }
+      for(const entry of entries) await walk(entry, '');
+    };
+    walkAll().then(() => enqueue(out)).catch(err => console.error('drop traversal failed', err));
+  }
+
+  // ---------- send queue ----------
+  function subline(){ return dropzone.querySelectorAll('div')[1]; }
+
+  function enqueue(items){
+    if(items.length === 0) return;
+    if(!conn || conn.open === false){
+      staged.push(...items);
+      subline().textContent = staged.length + ' item(s) waiting — connect to a peer to send';
+      return;
+    }
+    for(const it of items){
+      sendQueue.push(it);
+      totals.size += it.file.size;
+      totals.count += 1;
+    }
+    renderOverall();
+    pump();
+  }
+
+  async function pump(){
+    if(sending) return;
+    const st = sendQueue.shift();
+    if(!st) return;
+    if(!conn || conn.open === false){ sendQueue.unshift(st); return; }
+    sending = true;
+    currentSend = st;
+    st.ui = makeTransferRow(st.file.name, st.file.size, 'up');
+    try{
+      await sendItem(st);
+    }catch(err){
+      console.error('send failed', err);
+      st.ui.setError();
+      st.ui.setNote('failed');
+    }
+    currentSend = null;
+    sending = false;
+    pump();
+  }
+
+  async function sendItem(st){
+    const file = st.file;
+    const relPath = (st.relPath || file.name).replace(/^\/+/, '');
+    ovName.textContent = relPath;
+    conn.send({ type:'meta', name:file.name, size:file.size, mime:file.type, path:relPath });
+
+    const dc = conn.dataChannel;
+    let offset = 0;
+    while(offset < file.size){
+      if(!conn || conn.open === false) throw new Error('peer disconnected');
+      if(dc && dc.bufferedAmount > BUFFERED_AMOUNT_LOW){
+        await new Promise(resolve => {
+          dc.onbufferedamountlow = () => { dc.onbufferedamountlow = null; resolve(); };
+        });
+        continue;
+      }
+      const buf = await file.slice(offset, offset + CHUNK_SIZE).arrayBuffer();
+      conn.send({ type:'chunk', data:buf });
+      offset += buf.byteLength;
+      txBytes += buf.byteLength;
+      totals.done += buf.byteLength;
+      st.ui.setProgress(Math.min(100, (offset / file.size) * 100));
+      await new Promise(r => setTimeout(r, 0));
+    }
+    conn.send({ type:'done' });
+    totals.sentCount += 1;
+    st.ui.setProgress(100);
+    st.ui.setNote('sent');
+    renderOverall();
+  }
+
+  // ---------- transfer rows ----------
   function makeTransferRow(name, size, direction){
+    while(transferList.children.length >= 60) transferList.lastChild.remove();
     const row = document.createElement('div');
     row.className = 'transfer';
     row.innerHTML = `
@@ -396,6 +610,11 @@
       row,
       setProgress(pct){ row.querySelector('.bar-fill').style.width = pct + '%'; },
       setError(){ row.querySelector('.bar-fill').classList.add('err'); },
+      setNote(text){
+        const s = document.createElement('span');
+        s.className = 't-saved'; s.textContent = text;
+        row.querySelector('.t-actions').appendChild(s);
+      },
       setDownload(url, fname){
         const a = document.createElement('a');
         a.href = url; a.download = fname; a.textContent = 'save file';
@@ -410,60 +629,102 @@
   function formatBytes(b){
     if(b < 1024) return b + ' B';
     if(b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
-    return (b/(1024*1024)).toFixed(1) + ' MB';
+    if(b < 1024*1024*1024) return (b/(1024*1024)).toFixed(1) + ' MB';
+    if(b < 1024*1024*1024*1024) return (b/(1024*1024*1024)).toFixed(1) + ' GB';
+    return (b/(1024*1024*1024*1024)).toFixed(2) + ' TB';
   }
 
-  async function sendFile(file){
-    if(!conn || conn.open === false) return;
-    const ui = makeTransferRow(file.name, file.size, 'up');
-
-    conn.send({ type: 'meta', name: file.name, size: file.size, mime: file.type });
-
-    const dc = conn.dataChannel;
-    let offset = 0;
-
-    async function sendNextChunk(){
-      if(offset >= file.size){
-        conn.send({ type: 'done' });
-        ui.setProgress(100);
-        return;
-      }
-      if(dc && dc.bufferedAmount > BUFFERED_AMOUNT_LOW){
-        dc.onbufferedamountlow = () => {
-          dc.onbufferedamountlow = null;
-          sendNextChunk();
-        };
-        return;
-      }
-      const slice = file.slice(offset, offset + CHUNK_SIZE);
-      const buf = await slice.arrayBuffer();
-      conn.send({ type: 'chunk', data: buf });
-      offset += buf.byteLength;
-      ui.setProgress(Math.min(100, Math.round((offset / file.size) * 100)));
-      setTimeout(sendNextChunk, 0);
-    }
-    sendNextChunk();
-  }
-
+  // ---------- receive (stream to disk when a destination folder is set) ----------
   function handleIncomingData(msg){
     if(msg.type === 'meta'){
+      const useFs = !!destDir;
       incoming = {
         name: msg.name, size: msg.size, mime: msg.mime || 'application/octet-stream',
-        chunks: [], received: 0,
+        path: msg.path || msg.name,
+        chunks: useFs ? null : [],   // RAM fallback path
+        writer: null,
+        pending: useFs ? [] : null,  // chunks arriving while the writer opens
+        received: 0,
         ui: makeTransferRow(msg.name, msg.size, 'down')
       };
+      ovName.textContent = incoming.path;
+      totals.size += msg.size;
+      totals.count += 1;
+      renderOverall();
+      if(useFs){
+        const cur = incoming;
+        openDestWriter(destDir, cur.path, cur.name).then(w => {
+          cur.writer = w;
+          if(cur.pending){ for(const d of cur.pending) w.write(d); cur.pending = null; }
+        }).catch(err => {
+          console.error('destination write failed, falling back to download', err);
+          cur.chunks = [];
+          cur.pending = null;
+        });
+      }
     } else if(msg.type === 'chunk' && incoming){
-      incoming.chunks.push(msg.data);
       incoming.received += msg.data.byteLength;
-      incoming.ui.setProgress(Math.min(100, Math.round((incoming.received / incoming.size) * 100)));
+      rxBytes += msg.data.byteLength;
+      totals.done += msg.data.byteLength;
+      if(incoming.writer) incoming.writer.write(msg.data);
+      else if(incoming.pending) incoming.pending.push(msg.data);
+      else if(incoming.chunks) incoming.chunks.push(msg.data);
+      incoming.ui.setProgress(Math.min(100, (incoming.received / incoming.size) * 100));
     } else if(msg.type === 'done' && incoming){
-      const blob = new Blob(incoming.chunks, { type: incoming.mime });
-      const url = URL.createObjectURL(blob);
-      incoming.ui.setProgress(100);
-      incoming.ui.setDownload(url, incoming.name);
+      totals.sentCount += 1;
+      const inc = incoming;
+      inc.ui.setProgress(100);
+      if(inc.writer){
+        inc.writer.close()
+          .then(() => inc.ui.setNote('saved'))
+          .catch(err => { console.error(err); inc.ui.setError(); });
+      } else if((inc.chunks && inc.chunks.length) || (inc.pending && inc.pending.length)){
+        const blob = new Blob([...(inc.chunks || []), ...(inc.pending || [])], { type:inc.mime });
+        inc.ui.setDownload(URL.createObjectURL(blob), inc.name);
+      } else {
+        inc.ui.setError();
+      }
       incoming = null;
     }
   }
+
+  // ---------- overall progress panel ----------
+  function renderOverall(){
+    if(totals.count === 0){ overallCard.classList.add('hidden'); return; }
+    overallCard.classList.remove('hidden');
+    ovBar.style.width = (totals.size ? Math.min(100, totals.done / totals.size * 100) : 0) + '%';
+    ovMeta.textContent = formatBytes(totals.done) + ' / ' + formatBytes(totals.size) +
+      ' \u00b7 ' + totals.sentCount + '/' + totals.count + ' files' +
+      (sendQueue.length ? ' \u00b7 ' + sendQueue.length + ' queued' : '');
+  }
+
+  function fmtRate(bps){
+    if(!isFinite(bps) || bps <= 0) return '\u2014';
+    if(bps >= 1024*1024) return (bps/(1024*1024)).toFixed(1) + ' MB/s';
+    return Math.max(1, Math.round(bps/1024)) + ' KB/s';
+  }
+  function fmtDur(sec){
+    sec = Math.round(sec);
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+    const p = n => String(n).padStart(2,'0');
+    return h ? h + ':' + p(m) + ':' + p(s) : m + ':' + p(s);
+  }
+
+  let lastTick = performance.now(), lastTx = 0, lastRx = 0, dispSpeed = 0;
+  setInterval(() => {
+    const now = performance.now();
+    const dt = (now - lastTick) / 1000;
+    lastTick = now;
+    if(dt <= 0) return;
+    const inst = ((txBytes - lastTx) + (rxBytes - lastRx)) / dt;
+    lastTx = txBytes; lastRx = rxBytes;
+    dispSpeed = inst > 0 ? (dispSpeed ? dispSpeed*0.6 + inst*0.4 : inst) : dispSpeed * 0.85;
+    if(dispSpeed < 1) dispSpeed = 0;
+    ovSpeed.textContent = fmtRate(dispSpeed);
+    const remain = totals.size - totals.done;
+    ovEta.textContent = remain <= 0 ? '' : (dispSpeed > 0 ? 'ETA ' + fmtDur(remain / dispSpeed) : 'ETA \u2014');
+    if(totals.count) renderOverall();
+  }, 500);
 
   initPeer();
 })();
