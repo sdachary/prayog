@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anukraman — Prayog</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
+<script src="../assets/nav.js" defer data-tool="anukraman"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100dvh}
+  .app{max-width:640px;margin:0 auto;padding:16px 16px 60px}
+
+  header{position:sticky;top:0;z-index:20;background:rgba(11,15,20,0.92);backdrop-filter:blur(10px);padding:14px 0 12px;margin:-16px -16px 16px;padding-left:16px;padding-right:16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+  .title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  h1{font-size:17px;font-weight:700;letter-spacing:-0.01em}
+  h1 span{color:var(--teal)}
+
+  .dir-toggle{display:flex;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;overflow:hidden;margin-bottom:12px}
+  .dir-btn{flex:1;padding:8px 12px;font-size:12px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;transition:all .15s ease;font-family:inherit}
+  .dir-btn.active{background:var(--teal);color:var(--bg)}
+
+  .reset-btn{background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:20px;cursor:pointer;transition:all .15s ease;font-family:inherit}
+  .reset-btn:active{transform:scale(0.95)}
+  .reset-btn:hover{border-color:#ef4444;color:#ef4444}
+
+  .progress-wrap{display:flex;align-items:center;gap:10px}
+  .progress-track{flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:8px;overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:var(--teal);border-radius:8px;transition:width .3s ease}
+  .progress-label{font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;min-width:32px;text-align:right}
+
+  .tabs{display:flex;gap:6px;margin-bottom:16px}
+  .tab-btn{flex:1;padding:10px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s ease;text-align:center;font-family:inherit}
+  .tab-btn.active{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:var(--text)}
+  .tab-btn .tab-num{display:block;font-size:10px;font-weight:400;color:var(--muted);margin-bottom:2px}
+
+  .phase{display:none}
+  .phase.active{display:block}
+  .phase-intro{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;padding:12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06)}
+  .phase-intro.urgent{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)}
+
+  .section-label{font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.06em;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .section-label:first-of-type{margin-top:0}
+
+  .item{display:flex;gap:10px;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;cursor:pointer;transition:all .15s ease;user-select:none}
+  .item:active{transform:scale(0.99)}
+  .item:hover{background:rgba(255,255,255,0.05)}
+  .item.checked{opacity:0.5}
+  .item.checked .item-title{text-decoration:line-through;color:var(--muted)}
+
+  .checkbox{width:20px;height:20px;border-radius:6px;border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s ease;margin-top:1px}
+  .item.checked .checkbox{background:var(--teal);border-color:var(--teal)}
+  .checkbox svg{width:13px;height:13px;opacity:0;transform:scale(0.5);transition:all .15s ease}
+  .item.checked .checkbox svg{opacity:1;transform:scale(1)}
+
+  .item-content{flex:1;min-width:0}
+  .item-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;transition:all .2s ease}
+  .item-sub{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px;transition:opacity .2s ease}
+  .item.checked .item-sub{opacity:0.5}
+
+  .why-tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--amber);background:rgba(245,158,11,0.1);padding:2px 7px;border-radius:6px;margin-top:6px}
+  .danger-tag{color:#ef4444;background:rgba(239,68,68,0.1)}
+
+  .timer-banner{background:linear-gradient(135deg,rgba(255,255,255,0.03),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px;margin-bottom:16px;text-align:center}
+  .timer-banner .big{font-size:26px;font-weight:800;color:#ef4444;font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+  .timer-banner .small{font-size:11px;color:var(--muted);margin-top:2px}
+  .timer-controls{display:flex;gap:8px;justify-content:center;margin-top:10px}
+  .timer-controls button{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:inherit}
+  .timer-controls button:active{transform:scale(0.95)}
+
+  .footer-note{display:block;text-align:center;font-size:11px;color:rgba(255,255,255,0.25);margin-top:24px;line-height:1.6}
+
+  .complete-banner{display:none;background:linear-gradient(135deg,rgba(20,184,166,0.1),transparent);border:1px solid var(--teal);border-radius:12px;padding:14px;text-align:center;margin-bottom:16px;font-size:13px;font-weight:700;color:var(--teal)}
+  .complete-banner.show{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="app">
+  <header>
+    <div class="title-row">
+      <h1>Anukraman <span>migration guide</span></h1>
+      <button class="reset-btn" id="resetBtn">Reset all</button>
+    </div>
+    <div class="dir-toggle">
+      <button class="dir-btn active" data-dir="ios-to-android">iOS → Android</button>
+      <button class="dir-btn" data-dir="android-to-ios">Android → iOS</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">0%</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-phase="1"><span class="tab-num">Before</span>Cloud Prep</button>
+    <button class="tab-btn" data-phase="2"><span class="tab-num">The Swap</span>15-Min Window</button>
+    <button class="tab-btn" data-phase="3"><span class="tab-num">After</span>Setup</button>
+  </div>
+
+  <div class="complete-banner" id="completeBanner">All steps complete — migration done!</div>
+
+  <!-- PHASE 1 -->
+  <section class="phase active" id="phase-1"></section>
+  <!-- PHASE 2 -->
+  <section class="phase" id="phase-2"></section>
+  <!-- PHASE 3 -->
+  <section class="phase" id="phase-3"></section>
+
+  <div class="footer-note">Progress is saved automatically in this browser session.</div>
+</div>
+</div>
+
+<script>
+(function(){
+  var CHECKBOX_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
+
+  var DATA = {
+    'ios-to-android': {
+      phases: [
+        {
+          intro: 'Do this the night before. Get Photos, Contacts, and WhatsApp fully backed up to the cloud so the in-store cable transfer only moves the small stuff (settings, app list, Wi-Fi passwords).',
+          sections: [
+            { label:'Photos & Videos', items:[
+              { t:'Open Settings → [Your Name] → iCloud → Photos and confirm "Sync this iPhone" is ON', s:'Check that "iCloud Photos is up to date" appears at the bottom of the Photos app — do not proceed until fully synced.' },
+              { t:'Connect to Wi-Fi and leave the phone charging overnight to finish the upload', s:'Large libraries (10k+ photos, 4K videos) can take hours on the last mile of sync.' }
+            ]},
+            { label:'Contacts', items:[
+              { t:'Settings → [Your Name] → iCloud → toggle ON "Contacts"' },
+              { t:'Also export contacts to your Google Account (Settings → Contacts → Accounts → Add Gmail → sync)', s:'iCloud contacts don\'t automatically appear on Android unless you dual-sync to Gmail now.', trap:true, why:'iCloud contacts don\'t cross to Android by default' }
+            ]},
+            { label:'WhatsApp', items:[
+              { t:'Open WhatsApp → Settings → Chats → Chat Backup → Back Up Now', s:'This must finish and show a recent timestamp before you leave — it\'s the only way chat history survives the platform switch.', trap:true, why:'This is the ONLY bridge for chats between iOS and Android' },
+              { t:'Note the phone number registered on WhatsApp — you\'ll need to verify it again' }
+            ]},
+            { label:'Carrier & Accounts', items:[
+              { t:'Confirm your carrier SIM is nano-SIM or eSIM already active, note your mobile number' },
+              { t:'Charge iPhone to 50%+ and fully charge the new Android phone if possible' },
+              { t:'Write down your Apple ID password and Google account password somewhere accessible', s:'You\'ll need to authenticate both accounts fast under time pressure.' }
+            ]}
+          ]
+        },
+        {
+          intro: 'This is the in-store, high-pressure phase. Phase 1 means you don\'t need to transfer Photos or Apps over cable — only settings and small data. Move fast, but don\'t skip the eSIM/OTP steps.',
+          urgent: true,
+          timer: true,
+          sections: [
+            { label:'Cable Transfer Setup', items:[
+              { t:'Power on Android phone, connect iPhone via USB-C-to-Lightning cable/adapter when prompted' },
+              { t:'On "Copy apps & data", UNCHECK Photos & Videos and UNCHECK Apps', s:'Leave Contacts, Messages, Wi-Fi networks, and Accounts checked — those are small and fast.', trap:true, why:'Photos/Apps blow the transfer past 15 minutes' },
+              { t:'Confirm transfer and let it run — should complete in under 3 minutes with Photos/Apps unchecked' }
+            ]},
+            { label:'eSIM / Carrier Swap (India)', items:[
+              { t:'On Android, go to Settings → Network & Internet → SIMs → Add eSIM, note the EID shown', s:'Also note the IMEI (Settings → About Phone) — the store/carrier rep needs both to provision your number.', trap:true, why:'EID + IMEI are required by the carrier to bind your number' },
+              { t:'Keep the iPhone ON and able to receive SMS until the eSIM activation OTP arrives', s:'The OTP lands on your currently active SIM (still in the iPhone). Do not wipe or power off before capturing it.', trap:true, tag:'danger', why:'Wiping the iPhone before OTP arrives can strand your number' },
+              { t:'Understand the TRAI cooling period: eSIM/SIM swap can trigger a 2–24 hour outgoing SMS block', s:'This is regulatory anti-fraud — calls and data usually work, but outgoing SMS may be delayed. Don\'t panic.', trap:true, why:'This is normal TRAI policy, not a broken SIM' }
+            ]},
+            { label:'Before You Wipe the iPhone', items:[
+              { t:'Confirm new eSIM shows "Active" / signal bars on Android' },
+              { t:'Sign out of Find My iPhone (Settings → [Name] → Find My → Off) so it isn\'t Activation Locked for trade-in' },
+              { t:'Erase iPhone (Settings → General → Transfer or Reset → Erase All Content and Settings) and hand it over' }
+            ]}
+          ]
+        },
+        {
+          intro: 'Cloud backups from Phase 1 get pulled down now. No time pressure — take your time to verify everything restored.',
+          sections: [
+            { label:'Google Account & Basics', items:[
+              { t:'Sign into your Google Account fully and let Play Store restore your app list in the background' },
+              { t:'Confirm Wi-Fi and mobile data both work, then connect to a charger — restores are data-heavy' }
+            ]},
+            { label:'Pulling Photos & Files from iCloud', items:[
+              { t:'Open Chrome on Android and go to icloud.com, sign in with your Apple ID' },
+              { t:'In iCloud.com → Photos, select all and download (or use "Download originals" in batches)', s:'Batch downloads through the browser can be slow for big libraries — consider Apple\'s "Transfer a copy of your data" tool as an alternative.' },
+              { t:'In iCloud.com → Notes, open each note and copy/paste into Google Keep or Docs', s:'No bulk "export all notes" from iCloud.com — attachments and formatting may need manual re-creation.' },
+              { t:'In iCloud.com → iCloud Drive / Files, download anything not already synced elsewhere' }
+            ]},
+            { label:'Contacts', items:[
+              { t:'iCloud.com → Contacts → select all → export vCard → import into Google Contacts (contacts.google.com)', s:'Only needed if you didn\'t dual-sync to Gmail in Phase 1.' }
+            ]},
+            { label:'WhatsApp Restore', items:[
+              { t:'Install WhatsApp on Android, verify your number, choose "Transfer from iPhone" or restore from cross-platform link', s:'If Move to iOS transfer isn\'t offered, WhatsApp falls back to Google Drive backup — only works if signed into the same Google account.', trap:true, why:'Cross-platform WhatsApp restore only has one shot' },
+              { t:'Verify chat history, media, and groups all appear correctly before deleting anything' }
+            ]},
+            { label:'Known Limitations', items:[
+              { t:'Accept that Call History does not transfer between iOS and Android', s:'No official Apple/Google bridge for call logs — this is expected, not a setup error.', trap:true, why:'Don\'t waste time troubleshooting something that isn\'t broken' },
+              { t:'Re-download and sign into remaining apps (banking, authenticator, etc.) and re-enroll 2FA where needed' },
+              { t:'Remove old iPhone from Apple ID device list and consider the migration complete' }
+            ]}
+          ]
+        }
+      ]
+    },
+    'android-to-ios': {
+      phases: [
+        {
+          intro: 'Do this the night before. Back up photos, contacts, and WhatsApp to Google/cloud so the transfer only moves the small stuff.',
+          sections: [
+            { label:'Photos & Videos', items:[
+              { t:'Open Google Photos → Settings → Backup → confirm Backup is ON', s:'Check that "Backup complete" shows a recent timestamp. Leave on Wi-Fi and charging overnight for large libraries.' },
+              { t:'Also sync to Google Drive: open Drive app → ensure "Backup" folder exists with recent sync', s:'Google Photos backup is the primary bridge — Drive is a safety net.' }
+            ]},
+            { label:'Contacts', items:[
+              { t:'Settings → Google → check "Contacts" sync is ON', s:'Google contacts sync to Gmail automatically — they\'ll appear on iPhone when you sign in.' },
+              { t:'Open contacts.google.com in a browser and verify all contacts are present and correct' }
+            ]},
+            { label:'WhatsApp', items:[
+              { t:'Open WhatsApp → ⋮ → Settings → Chats → Chat backup → Back Up Now to Google Drive', s:'This is the ONLY way chat history survives the platform switch. Must show a recent timestamp.', trap:true, why:'Cross-platform WhatsApp restore has one shot' },
+              { t:'Note your registered WhatsApp phone number' }
+            ]},
+            { label:'Other Data', items:[
+              { t:'If you use Samsung Smart Switch, ensure it\'s updated — it can export to a computer as backup' },
+              { t:'Note down your Google account password and any Samsung account password', s:'You\'ll need these during iPhone setup under time pressure.' },
+              { t:'Check that your SIM is nano-SIM (iPhone uses nano-SIM; eSIM support varies by model)' }
+            ]}
+          ]
+        },
+        {
+          intro: 'In-store, high-pressure phase. Only transfer contacts, messages, and accounts over cable — Photos and Apps are already in the cloud.',
+          urgent: true,
+          timer: true,
+          sections: [
+            { label:'Transfer Setup', items:[
+              { t:'Power on iPhone, connect Android via USB-C-to-Lightning or USB-C-to-USB-C cable when prompted' },
+              { t:'On "Transfer Data from Android", UNCHECK Photos and UNCHECK Apps', s:'Leave Contacts, Messages, and Accounts checked — small and fast.', trap:true, why:'Photos/Apps blow the transfer past 15 minutes' },
+              { t:'Confirm transfer — should complete in under 3 minutes with Photos/Apps unchecked' }
+            ]},
+            { label:'eSIM / SIM Swap (India)', items:[
+              { t:'On iPhone, go to Settings → Cellular → Add eSIM, note the EID and IMEI', s:'The carrier rep needs both to provision your number on the new device.', trap:true, why:'EID + IMEI are required by the carrier' },
+              { t:'Keep the Android phone ON and able to receive SMS until the eSIM activation OTP arrives', s:'Capture the OTP immediately — it lands on your currently active SIM. Do not wipe Android before this.', trap:true, tag:'danger', why:'Wiping before OTP arrives can strand your number' },
+              { t:'TRAI cooling period: eSIM/SIM swap can trigger 2–24 hour outgoing SMS block', s:'Calls and data usually work. Outgoing SMS and some OTP-dependent logins may be delayed.', trap:true, why:'Normal TRAI policy, not a broken SIM' }
+            ]},
+            { label:'Before You Wipe Android', items:[
+              { t:'Confirm iPhone shows eSIM "Active" / signal bars' },
+              { t:'If using Samsung: sign out of Samsung account and disable Find My Mobile' },
+              { t:'Erase Android (Settings → System → Reset → Factory Reset) and hand it over for trade-in' }
+            ]}
+          ]
+        },
+        {
+          intro: 'Cloud backups from Phase 1 get pulled down. No time pressure — verify everything restored properly.',
+          sections: [
+            { label:'Apple ID & Basics', items:[
+              { t:'Sign into your Apple ID fully and let the App Store restore your app list in the background' },
+              { t:'Confirm Wi-Fi and mobile data work, connect to charger — restores are data-heavy' }
+            ]},
+            { label:'Pulling Photos from Google', items:[
+              { t:'Install Google Photos from the App Store, sign in, and let it sync your library', s:'Google Photos on iOS syncs your entire library. This is the primary bridge for photos.' },
+              { t:'Verify all photos and videos appear — scroll through recent months to spot-check' },
+              { t:'If you used Google Drive for backup, install Drive app and access any non-photo files' }
+            ]},
+            { label:'Contacts', items:[
+              { t:'Settings → Contacts → Accounts → Add Gmail account → toggle ON Contacts', s:'If you backed up to Google in Phase 1, contacts will sync automatically.' },
+              { t:'Open Contacts app and verify all contacts appear' }
+            ]},
+            { label:'WhatsApp Restore', items:[
+              { t:'Install WhatsApp on iPhone, verify your number, choose "Move Chats from Android" when prompted', s:'The cross-platform transfer uses a temporary local connection. Keep both phones close.', trap:true, why:'Cross-platform WhatsApp restore only has one shot' },
+              { t:'Verify chat history, media, and groups all appear correctly before deleting anything' }
+            ]},
+            { label:'Known Limitations', items:[
+              { t:'Call History does not transfer between Android and iOS', s:'No official bridge for call logs — expected, not a setup error.', trap:true, why:'Don\'t waste time troubleshooting this' },
+              { t:'SMS/message history does not transfer (iMessage is iOS-only going forward)' },
+              { t:'Re-download and sign into remaining apps (banking, authenticator, etc.) and re-enroll 2FA' },
+              { t:'Remove old Android from Google account device list, consider migration complete' }
+            ]}
+          ]
+        }
+      ]
+    }
+  };
+
+  var state = { dir:'ios-to-android', phase:1, checked:{}, timer:{running:false,remaining:900} };
+  var STORAGE = 'anukramanState';
+
+  function loadState(){
+    try{ var s=JSON.parse(sessionStorage.getItem(STORAGE)); if(s) state.checked=s.checked||{}; }catch(e){}
+  }
+  function saveState(){
+    try{ sessionStorage.setItem(STORAGE, JSON.stringify({checked:state.checked})); }catch(e){}
+  }
+  function itemKey(dir,phase,si,ii){ return dir+'|'+phase+'|'+si+'|'+ii; }
+
+  function render(){
+    var d = DATA[state.dir];
+    // render phases
+    for(var p=0;p<3;p++){
+      var sec = document.getElementById('phase-'+(p+1));
+      var ph = d.phases[p];
+      var html = '<div class="phase-intro'+(ph.urgent?' urgent':'')+'">'+ph.intro+'</div>';
+      if(ph.timer){
+        html += '<div class="timer-banner"><div class="big" id="timerDisplay">15:00</div><div class="small">Suggested countdown for the cable transfer window</div><div class="timer-controls"><button id="timerStart">Start</button><button id="timerReset">Reset</button></div></div>';
+      }
+      for(var s=0;s<ph.sections.length;s++){
+        var sec2 = ph.sections[s];
+        html += '<div class="section-label">'+sec2.label+'</div>';
+        for(var i=0;i<sec2.items.length;i++){
+          var it = sec2.items[i];
+          var k = itemKey(state.dir,p+1,s,i);
+          var chk = state.checked[k];
+          html += '<div class="item'+(chk?' checked':'')+'" data-key="'+k+'">';
+          html += '<div class="checkbox">'+CHECKBOX_SVG+'</div>';
+          html += '<div class="item-content">';
+          html += '<div class="item-title">'+it.t+'</div>';
+          if(it.s) html += '<div class="item-sub">'+it.s+'</div>';
+          if(it.trap) html += '<div class="why-tag'+(it.tag==='danger?' danger-tag':'')+'">⚠ '+it.why+'</div>';
+          html += '</div></div>';
+        }
+      }
+      sec.innerHTML = html;
+    }
+    // activate correct phase
+    document.querySelectorAll('.phase').forEach(function(el){el.classList.remove('active')});
+    document.getElementById('phase-'+state.phase).classList.add('active');
+    // tabs
+    document.querySelectorAll('.tab-btn').forEach(function(t){
+      t.classList.toggle('active', parseInt(t.getAttribute('data-phase'))===state.phase);
+    });
+    // direction
+    document.querySelectorAll('.dir-btn').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-dir')===state.dir);
+    });
+    // progress
+    updateProgress();
+    // re-bind items
+    document.querySelectorAll('.item').forEach(function(el){
+      el.addEventListener('click', function(){
+        var k = el.getAttribute('data-key');
+        el.classList.toggle('checked');
+        state.checked[k] = el.classList.contains('checked');
+        saveState();
+        updateProgress();
+      });
+    });
+    // timer
+    bindTimer();
+  }
+
+  function updateProgress(){
+    var items = document.querySelectorAll('#phase-'+state.phase+' .item');
+    var total = items.length;
+    var checked = document.querySelectorAll('#phase-'+state.phase+' .item.checked').length;
+    var pct = total ? Math.round((checked/total)*100) : 0;
+    document.getElementById('progressFill').style.width = pct+'%';
+    document.getElementById('progressLabel').textContent = pct+'%';
+    var banner = document.getElementById('completeBanner');
+    if(pct===100) banner.classList.add('show'); else banner.classList.remove('show');
+  }
+
+  function bindTimer(){
+    var disp = document.getElementById('timerDisplay');
+    var startBtn = document.getElementById('timerStart');
+    var resetBtn = document.getElementById('timerReset');
+    if(!disp) return;
+    var total = 15*60, remaining = total, interval = null;
+    function renderTime(){
+      var m = Math.floor(remaining/60).toString().padStart(2,'0');
+      var s = (remaining%60).toString().padStart(2,'0');
+      disp.textContent = m+':'+s;
+      disp.style.color = remaining<=180?'#f59e0b':'#ef4444';
+    }
+    startBtn.addEventListener('click',function(){
+      if(interval){clearInterval(interval);interval=null;startBtn.textContent='Resume';return;}
+      startBtn.textContent='Pause';
+      interval=setInterval(function(){remaining=Math.max(0,remaining-1);renderTime();if(remaining===0){clearInterval(interval);interval=null;startBtn.textContent='Start';}},1000);
+    });
+    resetBtn.addEventListener('click',function(){clearInterval(interval);interval=null;remaining=total;startBtn.textContent='Start';renderTime();});
+    renderTime();
+  }
+
+  // tabs
+  document.querySelectorAll('.tab-btn').forEach(function(t){
+    t.addEventListener('click',function(){
+      state.phase = parseInt(t.getAttribute('data-phase'));
+      render();
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  // direction
+  document.querySelectorAll('.dir-btn').forEach(function(b){
+    b.addEventListener('click',function(){
+      state.dir = b.getAttribute('data-dir');
+      state.phase = 1;
+      render();
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  // reset
+  document.getElementById('resetBtn').addEventListener('click',function(){
+    if(!confirm('Reset all checked items?'))return;
+    state.checked={};saveState();render();
+  });
+
+  loadState();
+  render();
+})();
+</script>
+</body>
+</html>

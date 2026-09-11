@@ -158,3 +158,13 @@
 | **What** | Two games: Snake & Ladder (vs CPU) and Color Match (guess the odd color). |
 | **Dependencies** | None |
 | **Limits** | Simple single-player games. No save state. |
+
+---
+
+## anukraman — iOS ↔ Android migration guide
+
+| | |
+|---|---|
+| **What** | Bidirectional migration checklist for switching between iOS and Android. Direction toggle (iOS→Android / Android→iOS), three phases (Cloud Prep, The Swap, After Setup), interactive checkboxes with progress tracking, 15-min countdown timer, trap/warning tags for critical steps. |
+| **Dependencies** | None (pure HTML/CSS/JS, uses prayog theme.css) |
+| **Limits** | Guide only — no automation. Steps may vary by device model and carrier. India-specific eSIM/TRAI steps included. |
