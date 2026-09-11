@@ -191,6 +191,11 @@
   .transfer.overall .bar-fill{ transition:width .3s ease; }
   #ovName{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:300px; }
 
+  .pend-row{ display:flex; gap:8px; margin-top:12px; }
+  .mini-btn.reject{ border-color:var(--red); color:var(--red); }
+  .mini-btn.reject:hover{ background:rgba(232,61,61,0.08); }
+  #pendingPeer{ font-family:var(--mono); color:var(--text); }
+
   .hidden{ display:none !important; }
   input[type=file]{ display:none; }
 </style>
@@ -210,7 +215,7 @@
     <div class="freq">
       <span class="hz">#</span><span id="myCode">------</span>
     </div>
-    <div class="hint">Open this same page on the other device (same Wi-Fi network works best) and enter this code to connect.</div>
+    <div class="hint">Open this same page on the other device (any network — it works over the internet) and enter this code to connect.</div>
     <button class="copy-btn" id="copyBtn">copy code</button>
     <div class="waveform searching" id="waveform">
       <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
@@ -222,10 +227,22 @@
       <div class="eyebrow">Tune to a channel</div>
     </div>
     <div class="tune-row">
-      <input type="text" class="code-input" id="peerCodeInput" placeholder="000000" maxlength="6" inputmode="numeric">
+      <input type="text" class="code-input" id="peerCodeInput" placeholder="00000000" maxlength="8" inputmode="numeric">
       <button class="connect-btn" id="connectBtn">connect</button>
     </div>
     <div class="hint" id="connectHint">Enter the code shown on the other device.</div>
+  </div>
+
+  <div class="card hidden" id="incomingCard">
+    <div class="label-row">
+      <div class="eyebrow">Incoming connection</div>
+      <div class="status-dot"><span class="dot searching"></span><span>from peer #<span id="pendingPeer">unknown</span></span></div>
+    </div>
+    <div class="hint">Someone at this channel wants to send you files. Accepting opens an encrypted link to them.</div>
+    <div class="pend-row">
+      <button class="mini-btn" id="acceptBtn">accept</button>
+      <button class="mini-btn reject" id="rejectBtn">reject</button>
+    </div>
   </div>
 
   <div class="card" id="fileCard">
@@ -298,6 +315,15 @@
   const CHUNK_SIZE = 256 * 1024;
   const BUFFERED_AMOUNT_LOW = 1 * 1024 * 1024;
 
+  // ICE: public STUN for NAT discovery. Add your TURN here once deployed
+  // (e.g. on oradev) so connections behind symmetric NAT/CGNAT still complete.
+  // TURN relays crypto-only bytes, never file content.
+  const ICE_SERVERS = [
+    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+    { urls: ['stun:stun.cloudflare.com:3478'] }
+  ];
+  const TURN_SERVERS = []; // push { urls:'turn:host:3478', username, credential } when live
+
   const el = (id) => document.getElementById(id);
   const myCodeEl = el('myCode');
   const statusDot = el('statusDot');
@@ -308,6 +334,10 @@
   const connectBtn = el('connectBtn');
   const peerCodeInput = el('peerCodeInput');
   const connectHint = el('connectHint');
+  const incomingCard = el('incomingCard');
+  const pendingPeer = el('pendingPeer');
+  const acceptBtn = el('acceptBtn');
+  const rejectBtn = el('rejectBtn');
   const dropzone = el('dropzone');
   const fileInput = el('fileInput');
   const transferList = el('transferList');
@@ -326,6 +356,11 @@
 
   let peer = null;
   let conn = null;
+  let connReady = false;
+  let pendingConn = null;
+  let pendingBuf = [];
+  let pendingBytes = 0;
+  const PENDING_ACCEPT_LIMIT = 4 * 1024 * 1024;
   let myCode = null;
   let incoming = null;
 
@@ -339,7 +374,7 @@
   let txBytes = 0, rxBytes = 0;
 
   function genCode(){
-    return String(Math.floor(100000 + Math.random() * 900000));
+    return String(Math.floor(10000000 + Math.random() * 90000000));
   }
 
   function setStatus(state, text){
@@ -363,14 +398,26 @@
   function initPeer(){
     myCode = genCode();
     myCodeEl.textContent = myCode;
-    peer = new Peer(PREFIX + myCode, { debug: 0 });
+    peer = new Peer(PREFIX + myCode, {
+      debug: 0,
+      config: { iceServers: ICE_SERVERS.concat(TURN_SERVERS) }
+    });
 
     peer.on('open', () => {
       setStatus('searching', 'waiting for peer…');
     });
 
     peer.on('connection', (c) => {
-      bindConnection(c);
+      if(conn || pendingConn){ console.log('busy, rejecting', c.peer); c.close(); return; }
+      setStatus('searching', 'incoming connection… accept to receive');
+      pendingConn = c;
+      pendingConn.on('data', bufferPending);
+      pendingConn.on('close', () => {
+        if(pendingConn === c){ pendingConn = null; pendingBuf = []; pendingBytes = 0; rejectBtn.disabled = false; acceptBtn.disabled = false; }
+      });
+      pendingConn.on('error', () => {});
+      pendingPeer.textContent = c.peer.slice(PREFIX.length);
+      incomingCard.classList.remove('hidden');
     });
 
     peer.on('error', (err) => {
@@ -388,34 +435,93 @@
     });
   }
 
-  function bindConnection(c){
-    conn = c;
-    conn.on('open', () => {
+  function acceptIncoming(){
+    if(!pendingConn) return;
+    const c = pendingConn;
+    pendingConn = null;
+    if(c.off) c.off('data', bufferPending);
+    incomingCard.classList.add('hidden');
+    bindConnection(c, true);
+    connReady = true;
+    if(c.open){
       setStatus('live', 'connected');
       setConnected(true);
-      if(staged.length){ enqueue(staged); staged.length = 0; }
+      c.send({ type:'ok' });
+    } else {
+      c.on('open', () => c.send({ type:'ok' }));
+    }
+    for(const msg of pendingBuf) handleIncomingData(msg);
+    pendingBuf = [];
+    pendingBytes = 0;
+    if(staged.length){ enqueue(staged); staged.length = 0; }
+  }
+
+  function bufferPending(msg){
+    pendingBuf.push(msg);
+    const len = typeof msg === 'string' ? msg.length : (msg.buffer ? msg.buffer.byteLength : 0);
+    pendingBytes += len;
+    if(pendingBytes > PENDING_ACCEPT_LIMIT) rejectIncoming();
+  }
+
+  function rejectIncoming(){
+    if(!pendingConn) return;
+    const c = pendingConn;
+    pendingConn = null;
+    pendingBuf = [];
+    pendingBytes = 0;
+    incomingCard.classList.add('hidden');
+    c.close();
+    setStatus('searching', 'waiting for peer…');
+  }
+
+  acceptBtn.addEventListener('click', acceptIncoming);
+  rejectBtn.addEventListener('click', rejectIncoming);
+
+  function markReady(){
+    if(connReady) return;
+    connReady = true;
+    setStatus('live', 'connected');
+    setConnected(true);
+    if(staged.length){ enqueue(staged); staged.length = 0; }
+  }
+
+  function resetConnState(){
+    conn = null;
+    connReady = false;
+    sendQueue.length = 0;
+    sending = false;
+    if(currentSend){ currentSend.ui.setError(); currentSend = null; }
+    if(incoming && incoming.writer){
+      try{ incoming.writer.abort(); }catch(e){}
+      incoming.ui.setError();
+      incoming = null;
+    }
+  }
+
+  function onData(msg){
+    if(msg && msg.type === 'ok'){ markReady(); return; }
+    handleIncomingData(msg);
+  }
+
+  function bindConnection(c, autoReady){
+    conn = c;
+    conn.on('open', () => {
+      if(autoReady) markReady();
+      else setStatus('searching', 'waiting for the other device to accept…');
     });
-    conn.on('data', handleIncomingData);
+    conn.on('data', onData);
     conn.on('close', () => {
       setStatus('searching', 'peer disconnected');
       setConnected(false);
-      conn = null;
-      sendQueue.length = 0;
-      sending = false;
-      if(currentSend){ currentSend.ui.setError(); currentSend = null; }
-      if(incoming && incoming.writer){
-        try{ incoming.writer.abort(); }catch(e){}
-        incoming.ui.setError();
-        incoming = null;
-      }
+      resetConnState();
     });
     conn.on('error', (e) => console.error('conn error', e));
   }
 
   connectBtn.addEventListener('click', () => {
     const code = peerCodeInput.value.trim();
-    if(!/^\d{6}$/.test(code)){
-      connectHint.textContent = 'Enter the 6-digit code exactly as shown.';
+    if(!/^\d{8}$/.test(code)){
+      connectHint.textContent = 'Enter the 8-digit code exactly as shown.';
       connectHint.style.color = 'var(--red)';
       return;
     }
@@ -424,7 +530,7 @@
     connectBtn.disabled = true;
     connectBtn.textContent = 'connecting…';
     const c = peer.connect(PREFIX + code, { reliable: true });
-    bindConnection(c);
+    bindConnection(c, false);
   });
 
   copyBtn.addEventListener('click', () => {
