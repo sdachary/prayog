@@ -322,7 +322,7 @@
     { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
     { urls: ['stun:stun.cloudflare.com:3478'] }
   ];
-  const TURN_SERVERS = []; // push { urls:'turn:host:3478', username, credential } when live
+  const TURN_SERVERS = [{ urls: 'turn:68.233.97.153:3478', username: 'turnserver', credential: 'ba4c2e1fdf5c89ee734f8bbe' }];
 
   const el = (id) => document.getElementById(id);
   const myCodeEl = el('myCode');
