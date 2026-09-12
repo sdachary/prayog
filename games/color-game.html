@@ -86,14 +86,6 @@
   <div class="best">🏆 Best Streak: <span id="bestStreak">0</span></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@sentry/browser@8"></script>
-<script>
-Sentry.init({
-  dsn: 'https://72cc148a47b87a0356b1db9dbc28b1ec@o4511755199774720.ingest.us.sentry.io/4511755229069312',
-  environment: 'production',
-  tracesSampleRate: 0.2,
-});
-
 let state = { streak: 0, correct: 0, total: 0, current: null, locked: false };
 
 function loadBest() {
