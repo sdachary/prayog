@@ -2,13 +2,14 @@
 
 ## Current (Phase 0-4 complete)
 
-9 tools across 3 categories:
+17 tools:
 
 | Type | Tools |
 |------|-------|
-| **File** | Sandesh (transfer), Drishti (scan), Rachna (convert), Sankshep (compress), Badhai (extract) |
-| **Dev** | Tulna (diff), Sanket (QR) |
-| **Guide** | Shuddhi (Windows cleanup), Zarya (drive repair) |
+| **File** | Vibhajan (split), Pahchan (ID→Excel OCR), Sandesh (transfer), Drishti (scan), Rachna (convert), Sankshep (compress), Badhai (extract) |
+| **Dev** | Tulna (diff), Sanket (QR), Games (Snake & Ladder, Color Match) |
+| **Guide** | Shuddhi (Windows cleanup), Zarya (drive repair), Safai (Ubuntu cleanup), Sangrah (yt-dlp install), Anukraman (iOS↔Android migration) |
+| **Finance** | Rin Ledger (amortization), Vahak (Drive uploader) |
 
 Infrastructure: shared `assets/theme.css` + `assets/nav.js`, `favicon.svg`, `site.webmanifest`, privacy footers, git hygiene (`.wrangler/` untracked, `.editorconfig`, MIT LICENSE).
 
@@ -22,7 +23,6 @@ Infrastructure: shared `assets/theme.css` + `assets/nav.js`, `favicon.svg`, `sit
 
 ### Improvements
 
-- **Sandesh**: Add file transfer progress indicator and estimated time remaining.
 - **Sankshep**: Add batch processing (compress multiple images at once).
 - **Badhai**: Add waveform visualization preview before extraction.
 - **Tulna**: Add character-level diff mode for code comparison.

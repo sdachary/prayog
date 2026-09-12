@@ -32,7 +32,12 @@ prayog/
 ├── sanket/            QR code generator + scanner
 ├── sankshep/          Image compressor & resizer
 ├── tulna/             Text diff
+├── vibhajan/          Excel/CSV batch splitter
+├── pahchan/           ID card → Excel OCR extractor
 ├── zarya/             External drive repair guide (Linux/macOS)
+├── safai/             Ubuntu app cleanup guide
+├── sangrah/           yt-dlp install guide + setup script
+├── anukraman/         iOS ↔ Android migration guide
 ├── rin-ledger/        Home loan amortization calculator
 ├── vahak-uploader/    Mass uploader to Google Drive
 └── games/             Browser games (Snake & Ladder, Color Match)
