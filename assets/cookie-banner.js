@@ -29,8 +29,8 @@
       '<button id="acharylab-cookie-reject" style="background:transparent;color:#c9c4b8;border:1px solid #333;' +
       'border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">' + CONFIG.REJECT + '</button>') +
     (CONFIG.POLICIES ?
-      '<a href="/privacy" style="color:#c9c4b8;align-self:center;margin-left:auto;text-decoration:underline">Privacy</a>' +
-      '<a href="/terms" style="color:#c9c4b8;align-self:center;text-decoration:underline">Terms</a>' : '') +
+      '<a href="' + (CONFIG.PRIVACY || '/privacy') + '" style="color:#c9c4b8;align-self:center;margin-left:auto;text-decoration:underline">Privacy</a>' +
+      '<a href="' + (CONFIG.TERMS || '/terms') + '" style="color:#c9c4b8;align-self:center;text-decoration:underline">Terms</a>' : '') +
     '</div></div>';
 
   window.initCookieBanner = function (opts) {
@@ -39,16 +39,17 @@
       if (localStorage.getItem('acharylab-cookie-consent')) return; // already decided
       var el = document.createElement('div');
       el.innerHTML = HTML;
-      document.body.appendChild(el.firstChild);
-      var accept = document.getElementById('acharylab-cookie-accept');
-      var reject = document.getElementById('acharylab-cookie-reject');
+      var banner = el.firstChild; // appendChild MOVES it out of el — never remove el
+      document.body.appendChild(banner);
+      var accept = banner.querySelector('#acharylab-cookie-accept');
+      var reject = banner.querySelector('#acharylab-cookie-reject');
       if (accept) accept.addEventListener('click', function () {
         localStorage.setItem('acharylab-cookie-consent', CONFIG.REQUIRED ? 'v1' : 'granted');
-        el.remove();
+        banner.remove();
       });
       if (reject) reject.addEventListener('click', function () {
         localStorage.setItem('acharylab-cookie-consent', 'reject');
-        el.remove();
+        banner.remove();
       });
     } catch (e) { /* storage unavailable; show nothing */ }
   };
