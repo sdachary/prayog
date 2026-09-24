@@ -16,13 +16,13 @@
   .wrap{max-width:720px;width:100%}
   h1{font-size:1.3rem;font-weight:700;letter-spacing:0.02em;margin-bottom:0.25rem}
   .sub{color:var(--muted);font-size:0.82rem;line-height:1.5;margin-bottom:0.75rem}
-  .card{background:rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-top:1rem}
+  .card{background:var(--fill);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid var(--fill-2);margin-top:1rem}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
   @media(max-width:480px){.grid{grid-template-columns:1fr}}
   label{display:block;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
   input[type=number], input[type=text], select{
-    width:100%; padding:9px 12px; border:1px solid rgba(255,255,255,0.12); border-radius:var(--radius-sm);
-    background:rgba(0,0,0,0.25); color:var(--text); font-family:var(--mono); font-size:0.84rem; transition:.15s; outline:none;
+    width:100%; padding:9px 12px; border:1px solid var(--hair); border-radius:var(--radius-sm);
+    background:var(--fill-2); color:var(--text); font-family:var(--mono); font-size:0.84rem; transition:.15s; outline:none;
   }
   input:focus, select:focus{border-color:var(--teal)}
   select#sheetSelect{margin-bottom:20px}
@@ -30,7 +30,7 @@
     display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; color:var(--teal);
     background:rgba(47,163,154,0.1); border:1px solid rgba(47,163,154,0.3); padding:4px 12px; border-radius:var(--radius-full); margin-bottom:16px;
   }
-  .dropzone{border:2px dashed rgba(255,255,255,0.15); border-radius:var(--radius-md); padding:1.5rem 1rem; text-align:center; cursor:pointer; transition:.15s; background:rgba(255,255,255,0.02); margin-bottom:16px}
+  .dropzone{border:2px dashed var(--hair); border-radius:var(--radius-md); padding:1.5rem 1rem; text-align:center; cursor:pointer; transition:.15s; background:rgba(255,255,255,0.02); margin-bottom:16px}
   .dropzone.drag{border-color:var(--amber); background:rgba(232,163,61,0.05)}
   .dropzone svg{width:36px; height:36px; color:var(--muted); margin-bottom:8px}
   .dropzone .title{font-weight:600; font-size:0.86rem}
@@ -39,29 +39,29 @@
   .detected-banner{background:rgba(47,163,154,0.08); border:1px solid rgba(47,163,154,0.3); color:var(--teal); padding:9px 14px; border-radius:var(--radius-sm); font-size:0.78rem; font-weight:600; margin-bottom:16px; display:none}
   .status{margin-bottom:16px; display:none}
   .status p{font-size:0.8rem; font-weight:600; color:var(--teal); margin:0 0 8px}
-  .bar-track{width:100%; background:rgba(255,255,255,0.1); border-radius:var(--radius-full); height:6px; overflow:hidden}
+  .bar-track{width:100%; background:var(--hair); border-radius:var(--radius-full); height:6px; overflow:hidden}
   .bar-fill{background:linear-gradient(90deg, var(--teal), var(--amber)); height:100%; width:0%; transition:width .2s}
   .error{display:none; background:rgba(217,83,79,0.1); border:1px solid rgba(217,83,79,0.3); color:var(--red); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.8rem; margin-bottom:16px}
   .results{display:none}
   .results-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; flex-wrap:wrap}
   .results-head h2{font-size:0.95rem; font-weight:700; margin:0}
-  ul.filelist{list-style:none; margin:0; padding:0; border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-md); max-height:240px; overflow-y:auto}
-  ul.filelist li{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.06)}
+  ul.filelist{list-style:none; margin:0; padding:0; border:1px solid var(--hair); border-radius:var(--radius-md); max-height:240px; overflow-y:auto}
+  ul.filelist li{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; font-size:0.8rem; border-bottom:1px solid var(--fill)}
   ul.filelist li:last-child{border-bottom:none}
   ul.filelist .fname{font-weight:600}
   ul.filelist .frows{color:var(--muted); font-size:0.75rem; margin-left:6px}
   ul.filelist a{color:var(--teal); font-weight:600; text-decoration:none; font-size:0.8rem}
   ul.filelist a:hover{text-decoration:underline}
-  .col-config{border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:16px; display:none}
+  .col-config{border:1px solid var(--hair); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:16px; display:none}
   .col-config-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; gap:8px; flex-wrap:wrap}
   .col-config-head label{margin-bottom:0}
   .col-config-actions{display:flex; gap:10px}
   .col-config-actions button{background:none; border:none; color:var(--teal); font-size:0.75rem; font-weight:600; cursor:pointer; padding:0}
   .col-config-actions button:hover{text-decoration:underline}
   .col-config-hint{font-size:0.75rem; color:var(--muted); margin:0 0 10px; line-height:1.4}
-  .col-table{border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius-sm); max-height:280px; overflow-y:auto}
-  .col-table-head{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; padding:8px 12px; font-size:0.68rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.08); position:sticky; top:0}
-  .col-row{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; align-items:center; padding:8px 12px; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.06)}
+  .col-table{border:1px solid var(--fill-2); border-radius:var(--radius-sm); max-height:280px; overflow-y:auto}
+  .col-table-head{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; padding:8px 12px; font-size:0.68rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; background:var(--fill); border-bottom:1px solid var(--fill-2); position:sticky; top:0}
+  .col-row{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; align-items:center; padding:8px 12px; font-size:0.8rem; border-bottom:1px solid var(--fill)}
   .col-row:last-child{border-bottom:none}
   .col-row input[type=checkbox]{width:16px; height:16px; margin:0; cursor:pointer; accent-color:var(--teal)}
   .col-row .col-name{display:flex; flex-direction:column; overflow:hidden}

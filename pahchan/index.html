@@ -18,7 +18,7 @@
   h1{font-size:1.3rem;font-weight:700;letter-spacing:0.02em;margin:0 0 4px}
   h2{font-size:0.95rem;font-weight:700;margin:0 0 14px}
   .sub{color:var(--muted);font-size:0.84rem;margin:0 0 14px;line-height:1.5}
-  .card{background:rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-top:1rem;position:relative}
+  .card{background:var(--fill);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid var(--fill-2);margin-top:1rem;position:relative}
   .card.disabled{opacity:.45;pointer-events:none}
   .privacy-badge{display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--teal);background:rgba(47,163,154,0.1);border:1px solid rgba(47,163,154,0.3);padding:4px 12px;border-radius:var(--radius-full);margin-bottom:16px}
   .step-label{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal);color:#0b0f14;font-size:0.72rem;font-weight:700;margin-right:8px}
@@ -26,14 +26,14 @@
   label{display:block;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
   .hint-text{font-size:0.75rem;color:var(--muted);margin:-2px 0 12px;line-height:1.4}
   input[type=text], input[type=number], select{
-    width:100%; padding:9px 12px; border:1px solid rgba(255,255,255,0.12); border-radius:var(--radius-sm);
-    background:rgba(0,0,0,0.25); color:var(--text); font-family:var(--sans); font-size:0.84rem; transition:.15s; outline:none;
+    width:100%; padding:9px 12px; border:1px solid var(--hair); border-radius:var(--radius-sm);
+    background:var(--fill-2); color:var(--text); font-family:var(--sans); font-size:0.84rem; transition:.15s; outline:none;
   }
   input:focus, select:focus{border-color:var(--teal); box-shadow:0 0 0 3px rgba(47,163,154,0.15)}
   .radio-row{display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap}
   .radio-opt{display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:500; cursor:pointer; color:var(--text)}
   .radio-opt input[type=radio]{accent-color:var(--teal)}
-  .dropzone{border:2px dashed rgba(255,255,255,0.15); border-radius:var(--radius-md); padding:1.5rem 1rem; text-align:center; cursor:pointer; transition:.15s; background:rgba(255,255,255,0.02); margin-bottom:8px}
+  .dropzone{border:2px dashed var(--hair); border-radius:var(--radius-md); padding:1.5rem 1rem; text-align:center; cursor:pointer; transition:.15s; background:rgba(255,255,255,0.02); margin-bottom:8px}
   .dropzone.drag{border-color:var(--amber); background:rgba(232,163,61,0.05)}
   .dropzone svg{width:34px; height:34px; color:var(--muted); margin-bottom:8px}
   .dropzone .title{font-weight:600; font-size:0.86rem}
@@ -48,17 +48,17 @@
   .btn-primary:hover:not(:disabled){background:#37b5ab}
   .btn-success{background:var(--teal); color:#0b0f14}
   .btn-success:hover:not(:disabled){background:#37b5ab}
-  .btn-secondary{background:rgba(255,255,255,0.08); color:var(--text); border:1px solid rgba(255,255,255,0.12)}
-  .btn-secondary:hover:not(:disabled){background:rgba(255,255,255,0.12)}
+  .btn-secondary{background:var(--fill-2); color:var(--text); border:1px solid var(--hair)}
+  .btn-secondary:hover:not(:disabled){background:var(--hair)}
   .btn-sm{padding:6px 10px; font-size:0.72rem}
   .status{margin:16px 0; display:none}
   .status p{font-size:0.8rem; font-weight:600; color:var(--teal); margin:0 0 8px}
-  .bar-track{width:100%; background:rgba(255,255,255,0.1); border-radius:var(--radius-full); height:6px; overflow:hidden}
+  .bar-track{width:100%; background:var(--hair); border-radius:var(--radius-full); height:6px; overflow:hidden}
   .bar-fill{background:linear-gradient(90deg, var(--teal), var(--amber)); height:100%; width:0%; transition:width .2s}
   .error{display:none; background:rgba(217,83,79,0.1); border:1px solid rgba(217,83,79,0.3); color:var(--red); padding:12px 14px; border-radius:var(--radius-sm); font-size:0.8rem; margin-bottom:16px}
   table{width:100%; border-collapse:collapse; font-size:0.8rem}
-  thead th{text-align:left; font-size:0.65rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); border-bottom:1px solid rgba(255,255,255,0.1); padding:8px 6px}
-  tbody td{padding:6px; border-bottom:1px solid rgba(255,255,255,0.06); vertical-align:middle}
+  thead th{text-align:left; font-size:0.65rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); border-bottom:1px solid var(--hair); padding:8px 6px}
+  tbody td{padding:6px; border-bottom:1px solid var(--fill); vertical-align:middle}
   tbody tr:last-child td{border-bottom:none}
   td input[type=text]{padding:6px 8px; font-size:0.78rem}
   td input[type=checkbox]{width:16px; height:16px; accent-color:var(--teal); cursor:pointer}
@@ -434,7 +434,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
       div.className = 'thumb';
       const isPdf = !item.url;
       div.innerHTML = isPdf
-        ? `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:rgba(255,255,255,0.06);font-size:11px;font-weight:700;color:var(--muted);">PDF</div><button class="rm" data-idx="${idx}">✕</button>`
+        ? `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--fill);font-size:11px;font-weight:700;color:var(--muted);">PDF</div><button class="rm" data-idx="${idx}">✕</button>`
         : `<img src="${item.url}" /><button class="rm" data-idx="${idx}">✕</button>`;
       thumbs.appendChild(div);
     });

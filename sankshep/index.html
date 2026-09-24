@@ -12,13 +12,13 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg);overflow-x:hidden}
   .wrap{max-width:640px;width:100%}
-  .card{background:rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-top:1rem}
+  .card{background:var(--fill);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid var(--fill-2);margin-top:1rem}
   h1{font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:0.02em}
   .preview{display:none;margin-top:1rem}
   .preview.show{display:block}
   .img-row{display:flex;gap:1rem;margin:1rem 0}
   .img-box{flex:1;text-align:center}
-  .img-box img{max-width:100%;border-radius:var(--radius-md);background:rgba(0,0,0,0.3)}
+  .img-box img{max-width:100%;border-radius:var(--radius-md);background:var(--fill-2)}
   .img-box .label{font-size:0.75rem;color:var(--muted);margin-top:0.3rem}
   .img-box .size{font-size:0.7rem;color:var(--amber);font-family:monospace}
   .controls{display:flex;flex-direction:column;gap:0.75rem;margin:1rem 0}
@@ -26,7 +26,7 @@
   .ctrl-row label{font-size:0.8rem;color:var(--muted);min-width:80px}
   .ctrl-row input[type=range]{flex:1;accent-color:var(--amber)}
   .ctrl-row .val{font-family:monospace;font-size:0.8rem;color:var(--amber);min-width:3rem;text-align:right}
-  .ctrl-row select{padding:0.4rem 0.6rem;border-radius:var(--radius-sm);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:var(--text);font-size:0.85rem}
+  .ctrl-row select{padding:0.4rem 0.6rem;border-radius:var(--radius-sm);background:var(--fill-2);border:1px solid var(--hair);color:var(--text);font-size:0.85rem}
   .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 </style>
 </head>

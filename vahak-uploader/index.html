@@ -21,12 +21,12 @@
   .field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:220px; }
   .field label{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
   input[type=text], input[type=number]{
-    background:#0B1116; border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
     color:var(--text); font-family:var(--mono),monospace; font-size:0.84rem; outline:none; width:100%;
   }
   input:focus{ border-color:var(--teal); }
   select{
-    background:#0B1116; border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
     color:var(--text); font-family:var(--mono),monospace; font-size:0.81rem;
   }
   .pill{ display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; padding:4px 10px; border-radius:var(--radius-full); border:1px solid var(--line); color:var(--muted); }
@@ -39,7 +39,7 @@
   .stat{ background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px 16px; }
   .statLabel{ font-size:0.69rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
   .statValue{ font-family:var(--mono),monospace; font-size:1.13rem; font-weight:600; }
-  .progressOuter{ height:8px; background:#0B1116; border-radius:5px; overflow:hidden; margin-top:14px; }
+  .progressOuter{ height:8px; background:var(--panel); border-radius:5px; overflow:hidden; margin-top:14px; }
   .progressInner{ height:100%; background:linear-gradient(90deg, #1a6b58, var(--teal)); width:0%; transition:width .3s; }
 
   .logWrap{ max-height:440px; overflow-y:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
@@ -52,7 +52,7 @@
   .status-moving{ color:#D9A441; }
   .status-done{ color:var(--teal); }
   .status-error{ color:var(--red); }
-  .rowProgress{ display:inline-block; width:60px; height:5px; background:#0B1116; border-radius:3px; overflow:hidden; vertical-align:middle; margin-right:6px; }
+  .rowProgress{ display:inline-block; width:60px; height:5px; background:var(--panel); border-radius:3px; overflow:hidden; vertical-align:middle; margin-right:6px; }
   .rowProgressInner{ height:100%; background:var(--teal); }
 
   footer{ text-align:center; color:var(--muted); font-family:var(--mono); font-size:0.75rem; margin-top:30px; line-height:1.6; }
