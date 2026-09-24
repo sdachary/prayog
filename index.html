@@ -4,89 +4,184 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prayog — tools</title>
+<meta name="description" content="Standalone browser utilities. Nothing leaves your machine.">
+<script>
+(function(){try{var t=localStorage.getItem('prayog-theme');
+if(t!=='light'&&t!=='dark')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/assets/theme.css">
+<link rel="stylesheet" href="/assets/landing.css">
 <script src="/assets/nav.js" defer></script>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="brand">PRAYOG<span>//</span>TOOLS</div>
-    <div class="sub">standalone browser utilities</div>
+<div class="shell">
+
+  <header class="hero">
+    <div class="hero-main">
+      <div class="hero-mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="68" font-family="monospace" font-size="54" font-weight="700" fill="#e8a33d" text-anchor="middle">//</text></svg>
+      </div>
+      <div class="hero-brand">PRAYOG<span>//</span>TOOLS</div>
+      <h1 class="hero-tag">Nothing leaves your <em>machine.</em></h1>
+      <div class="hero-sub">Standalone · Local · Zero backend</div>
+    </div>
+    <aside class="hero-meta" aria-label="At a glance">
+      <div class="meta-row"><span>Tools</span><b id="stat-total">17</b></div>
+      <div class="meta-row"><span>Servers</span><b class="accent">0</b></div>
+      <div class="meta-row"><span>Runs in</span><b>your browser</b></div>
+      <div class="meta-status"><span class="pulse" aria-hidden="true"></span> Local by default</div>
+    </aside>
   </header>
-  <div class="grid">
-    <a class="card" href="sandesh/">
-      <div class="tool-name">SANDESH</div>
+
+  <div class="toolbar">
+    <label class="toolbar-label" for="tool-filter">Find a tool</label>
+    <div class="search">
+      <input id="tool-filter" type="search" autocomplete="off"
+             placeholder="transfer, diff, qr, cleanup…"
+             aria-describedby="tool-count">
+    </div>
+    <div class="toolbar-end">
+      <span id="theme-slot"></span>
+      <div class="count" id="tool-count" aria-live="polite"><b>17</b> / 17</div>
+    </div>
+  </div>
+
+  <div class="tools" id="tools">
+    <a class="tool" href="sandesh/" style="--i:0" data-k="sandesh local network file transfer webrtc pair send">
+      <div class="tool-head"><span class="tool-name">SANDESH</span><span class="tool-idx">01</span></div>
       <div class="tool-desc">Local network file transfer via WebRTC. Pair two devices with a 6-digit code and send files directly browser-to-browser.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="drishti/">
-      <div class="tool-name">DRISHTI</div>
+    <a class="tool" href="drishti/" style="--i:1" data-k="drishti read-only file scanner folder broken files">
+      <div class="tool-head"><span class="tool-name">DRISHTI</span><span class="tool-idx">02</span></div>
       <div class="tool-desc">Read-only file scanner. Point it at a folder and it reports which files fail to open — nothing is modified.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="safai/">
-      <div class="tool-name">SAFAI</div>
+    <a class="tool" href="safai/" style="--i:2" data-k="safai ubuntu apps remove purge disk ram cleanup linux">
+      <div class="tool-head"><span class="tool-name">SAFAI</span><span class="tool-idx">03</span></div>
       <div class="tool-desc">Find and remove unwanted apps on Ubuntu. List installed packages by size, check live RAM, safely purge, clean leftovers.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="shuddhi/">
-      <div class="tool-name">SHUDDHI</div>
+    <a class="tool" href="shuddhi/" style="--i:3" data-k="shuddhi windows pc cleanup malware scanner guide">
+      <div class="tool-head"><span class="tool-name">SHUDDHI</span><span class="tool-idx">04</span></div>
       <div class="tool-desc">Clean a compromised Windows PC. Step-by-step guide with a built-in scanner script — no tech knowledge needed.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="badhai/">
-      <div class="tool-name">BADHAI</div>
+    <a class="tool" href="badhai/" style="--i:4" data-k="badhai video audio convert mp3 wav aac ogg ffmpeg extract">
+      <div class="tool-head"><span class="tool-name">BADHAI</span><span class="tool-idx">05</span></div>
       <div class="tool-desc">Extract audio from video files in your browser. Drop a video, pick MP3/WAV/AAC/OGG, download. Nothing leaves your machine.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="rachna/">
-      <div class="tool-name">RACHNA</div>
+    <a class="tool" href="rachna/" style="--i:5" data-k="rachna json yaml csv format validate convert pretty">
+      <div class="tool-head"><span class="tool-name">RACHNA</span><span class="tool-idx">06</span></div>
       <div class="tool-desc">JSON / YAML / CSV formatter, validator &amp; converter. Paste or drop a file, auto-detect, pretty-print, convert.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="sanket/">
-      <div class="tool-name">SANKET</div>
+    <a class="tool" href="sanket/" style="--i:6" data-k="sanket qr code generator camera scanner png svg">
+      <div class="tool-head"><span class="tool-name">SANKET</span><span class="tool-idx">07</span></div>
       <div class="tool-desc">QR code generator and camera scanner. Generate with text/URLs, download PNG/SVG, scan with your camera.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="sankshep/">
-      <div class="tool-name">SANKSHEP</div>
+    <a class="tool" href="sankshep/" style="--i:7" data-k="sankshep image compress resize quality dimensions">
+      <div class="tool-head"><span class="tool-name">SANKSHEP</span><span class="tool-idx">08</span></div>
       <div class="tool-desc">Image compressor and resizer. Drop an image, adjust quality and dimensions, preview size, download.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="sangrah/">
-      <div class="tool-name">SANGRAH</div>
+    <a class="tool" href="sangrah/" style="--i:8" data-k="sangrah ytdlp install youtube download ubuntu pipx">
+      <div class="tool-head"><span class="tool-name">SANGRAH</span><span class="tool-idx">09</span></div>
       <div class="tool-desc">Install yt-dlp the clean way on Ubuntu — pipx isolation, mp4-by-default, deno, plus an animated progress-bar download script.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="tulna/">
-      <div class="tool-name">TULNA</div>
+    <a class="tool" href="tulna/" style="--i:9" data-k="tulna text diff compare word-level highlighting">
+      <div class="tool-head"><span class="tool-name">TULNA</span><span class="tool-idx">10</span></div>
       <div class="tool-desc">Text diff tool. Compare two texts with side-by-side word-level diff highlighting. Paste, diff, copy.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="zarya/">
-      <div class="tool-name">ZARYA</div>
+    <a class="tool" href="zarya/" style="--i:10" data-k="zarya external drive repair linux macos filesystem disk health">
+      <div class="tool-head"><span class="tool-name">ZARYA</span><span class="tool-idx">11</span></div>
       <div class="tool-desc">External drive repair for Linux &amp; macOS. Step-by-step guide to find corrupted files, repair filesystems, and check drive health.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="rin-ledger/">
-      <div class="tool-name">RIN LEDGER</div>
+    <a class="tool" href="rin-ledger/" style="--i:11" data-k="rin ledger home loan amortization calculator prepayment rent buy emi finance">
+      <div class="tool-head"><span class="tool-name">RIN LEDGER</span><span class="tool-idx">12</span></div>
       <div class="tool-desc">Home loan amortization calculator. Track payoff schedules, simulate prepayments, and compare rent vs buy — all in-browser.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="vahak-uploader/">
-      <div class="tool-name">VAHAK</div>
+    <a class="tool" href="vahak-uploader/" style="--i:12" data-k="vahak google drive mass uploader folder mirror upload">
+      <div class="tool-head"><span class="tool-name">VAHAK</span><span class="tool-idx">13</span></div>
       <div class="tool-desc">Mass uploader to Google Drive. Pick a local folder, mirror its tree into Drive file by file, move to "processed" on success.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="vibhajan/">
-      <div class="tool-name">VIBHAJAN</div>
+    <a class="tool" href="vibhajan/" style="--i:13" data-k="vibhajan excel xlsx csv batch splitter rows zip spreadsheet">
+      <div class="tool-head"><span class="tool-name">VIBHAJAN</span><span class="tool-idx">14</span></div>
       <div class="tool-desc">Excel batch splitter. Split a large XLSX/CSV into smaller files by row count, pick columns, fill down merged cells, download as ZIP.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="pahchan/">
-      <div class="tool-name">PAHCHAN</div>
+    <a class="tool" href="pahchan/" style="--i:14" data-k="pahchan id card ocr excel extractor photos pdf bulk">
+      <div class="tool-head"><span class="tool-name">PAHCHAN</span><span class="tool-idx">15</span></div>
       <div class="tool-desc">ID card to Excel extractor. Show one sample card, define fields, then bulk-OCR photos/PDFs into an editable table and export to Excel.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="anukraman/">
-      <div class="tool-name">ANUKRAMAN</div>
+    <a class="tool" href="anukraman/" style="--i:15" data-k="anukraman ios android migration phone switch checklist">
+      <div class="tool-head"><span class="tool-name">ANUKRAMAN</span><span class="tool-idx">16</span></div>
       <div class="tool-desc">iOS ↔ Android migration guide. Step-by-step checklist for switching phones — cloud prep, cable transfer, and post-swap setup for both directions.</div>
+      <span class="tool-go">Open →</span>
     </a>
-    <a class="card" href="games/">
-      <div class="tool-name">GAMES</div>
+    <a class="tool" href="games/" style="--i:16" data-k="games snake ladder color match play browser">
+      <div class="tool-head"><span class="tool-name">GAMES</span><span class="tool-idx">17</span></div>
       <div class="tool-desc">Snake &amp; Ladder and Color Match — two quick browser games. Play against the CPU or test your luck.</div>
+      <span class="tool-go">Open →</span>
     </a>
   </div>
-  <footer>All tools run entirely in your browser. Nothing is uploaded or stored remotely. <a href="/privacy.html" style="color:inherit">Privacy</a> · <a href="/terms.html" style="color:inherit">Terms</a></footer>
+
+  <div class="empty" id="empty" hidden>
+    <div class="empty-title">No tool matches <span id="empty-q">""</span></div>
+    <div class="empty-desc">Try a verb or format — “diff”, “qr”, “xlsx”, “cleanup”. All 17 tools run locally.</div>
+    <button class="btn btn-secondary" type="button" id="empty-clear">Clear filter</button>
+  </div>
+
+  <footer class="landing-footer">
+    <span>All tools run entirely in your browser. Nothing is uploaded or stored remotely.</span>
+    <span><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></span>
+  </footer>
+
 </div>
+<script>
+(function () {
+  var input = document.getElementById('tool-filter');
+  var tools = Array.prototype.slice.call(document.querySelectorAll('.tool'));
+  var countEl = document.getElementById('tool-count');
+  var empty = document.getElementById('empty');
+  var emptyQ = document.getElementById('empty-q');
+  var clearBtn = document.getElementById('empty-clear');
+  var total = tools.length;
+  document.getElementById('stat-total').textContent = total;
+
+  function apply() {
+    var q = input.value.trim().toLowerCase();
+    var shown = 0;
+    tools.forEach(function (el) {
+      var hay = (el.getAttribute('data-k') || '') + ' ' + el.textContent.toLowerCase();
+      var hit = !q || hay.indexOf(q) !== -1;
+      el.hidden = !hit;
+      if (hit) shown++;
+    });
+    countEl.innerHTML = '<b>' + shown + '</b> / ' + total;
+    empty.hidden = shown !== 0;
+    if (!empty.hidden) emptyQ.textContent = '"' + input.value.trim() + '"';
+  }
+
+  input.addEventListener('input', apply);
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    apply();
+    input.focus();
+  });
+})();
+</script>
 <script src="/assets/cookie-banner.js" defer></script>
 <script>window.addEventListener('load', function () { if (window.initCookieBanner) initCookieBanner({ NO_COOKIES: true, PRIVACY: '/privacy.html', TERMS: '/terms.html' }); });</script>
 </body>
