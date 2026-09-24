@@ -40,13 +40,13 @@
 
 ---
 
-## sandesh — WebRTC file transfer
+## sandesh — WebRTC file transfer + E2EE chat
 
 | | |
 |---|---|
-| **What** | Local network file transfer between two browsers. Pair devices with a 6-digit room code. |
-| **Dependencies** | None (WebRTC is native in modern browsers) |
-| **Limits** | Both devices must be on the same local network (or have STUN/TURN). Large files limited by browser memory. |
+| **What** | Send files between two browsers only after the receiver accepts each batch (per-batch folder or downloads destination). Chat tab with end-to-end encrypted ephemeral messages (ECDH + AES-GCM, safety-number verification). Pair devices with an 8-digit code. |
+| **Dependencies** | PeerJS 1.5.4 (signaling only — no file/chat data passes through it); WebCrypto (native) |
+| **Limits** | Both devices must be on the same local network (or have STUN/TURN). Large files limited by browser memory. Chat messages vanish on disconnect. |
 
 ---
 

@@ -196,8 +196,46 @@
   .mini-btn.reject:hover{ background:rgba(232,61,61,0.08); }
   #pendingPeer{ font-family:var(--mono); color:var(--text); }
 
+  .t-files{ display:flex; flex-direction:column; gap:4px; margin:8px 0; }
+  .t-file{ display:flex; justify-content:space-between; gap:12px;
+    font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .t-file span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .t-actions{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .t-actions .mini-btn:disabled{ opacity:0.45; cursor:default; }
   .hidden{ display:none !important; }
   input[type=file]{ display:none; }
+
+  /* ponytail: chat tab + safety strip reuse file-transfer tokens */
+  .tab-row{ width:100%; max-width:640px; display:flex; gap:8px; margin:4px 0 12px; }
+  .tab-btn{ flex:1; background:none; border:1px solid var(--line); color:var(--muted);
+    font-family:var(--mono); font-size:12px; letter-spacing:0.06em; padding:9px; border-radius:10px; cursor:pointer; }
+  .tab-btn.active{ border-color:var(--teal); color:var(--text); background:rgba(47,163,154,0.08); }
+  .tab-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--amber); margin-left:6px; vertical-align:1px; }
+  .safety-strip{ display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; color:var(--muted);
+    border:1px dashed var(--line); border-radius:8px; padding:8px 12px; margin:10px 0 6px; }
+  .safety-strip .lock{ color:var(--teal); }
+  .safety-code{ color:var(--text); font-weight:600; letter-spacing:0.14em; }
+  .verify-btn{ padding:4px 10px; font-size:11px; }
+  .verified-tag{ color:var(--teal); font-size:12px; }
+  .chat-log{ display:flex; flex-direction:column; gap:8px; margin:12px 0;
+    height:300px; overflow-y:auto; padding:4px 2px; }
+  .chat-msg{ max-width:82%; padding:8px 12px; border-radius:12px; font-size:13.5px; line-height:1.45;
+    overflow-wrap:anywhere; }
+  .chat-msg.me{ align-self:flex-end; background:rgba(47,163,154,0.14); border:1px solid rgba(47,163,154,0.35); }
+  .chat-msg.peer{ align-self:flex-start; background:var(--fill,rgba(0,0,0,0.04)); border:1px solid var(--line); }
+  .chat-row{ display:flex; gap:8px; }
+  .chat-input{ flex:1; margin-top:0 !important; }
+  /* ponytail: linked dashboard — channel card slims to a status bar, no page scroll on laptop */
+  body.linked #sessionCard .freq,
+  body.linked #sessionCard .hint,
+  body.linked #sessionCard #copyBtn,
+  body.linked #sessionCard .waveform{ display:none; }
+  body.linked #sessionCard{ padding-top:14px; padding-bottom:14px; }
+  @media (min-width:900px){
+    body.linked .wrap{ padding-top:20px; }
+    body.linked .chat-log{ height:340px; }
+  }
 </style>
 </head>
 <body>
@@ -276,6 +314,30 @@
       </div>
     </div>
     <div class="transfer-list" id="transferList"></div>
+  </div>
+
+  <div class="tab-row hidden" id="sessionTabs">
+    <button class="tab-btn active" id="tabFiles">files</button>
+    <button class="tab-btn" id="tabChat">chat <span class="tab-dot hidden" id="chatDot"></span></button>
+  </div>
+
+  <div class="card hidden" id="chatCard">
+    <div class="label-row">
+      <div class="eyebrow">Chat</div>
+      <div class="status-dot"><span class="dot" id="cryptoDot"></span><span id="cryptoText">establishing encryption…</span></div>
+    </div>
+    <div class="safety-strip" id="safetyStrip">
+      <span class="lock">🔒 end-to-end encrypted</span>
+      <span class="safety-code" id="safetyCode">···&nbsp;···</span>
+      <button class="mini-btn verify-btn hidden" id="verifyBtn">we compared ✓</button>
+      <span class="verified-tag hidden" id="verifiedTag">verified ✓</span>
+    </div>
+    <div class="hint">Compare the 6 digits on both screens once — if they match, nobody in between can read this chat. Messages vanish when you disconnect.</div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="chat-row">
+      <input type="text" class="code-input chat-input" id="chatInput" placeholder="establishing encryption…" maxlength="500" disabled>
+      <button class="connect-btn" id="chatSendBtn" disabled>send</button>
+    </div>
   </div>
 
   <div class="card">
@@ -385,13 +447,18 @@
   }
 
   function setConnected(isConnected){
+    document.body.classList.toggle('linked', isConnected);
     if(isConnected){
       dropzone.classList.add('enabled');
       const subline = dropzone.querySelectorAll('div')[1];
       if(subline) subline.textContent = 'ready to send';
       connectCard.classList.add('hidden');
+      sessionTabs.classList.remove('hidden');
+      showTab('files');
     } else {
       dropzone.classList.remove('enabled');
+      sessionTabs.classList.add('hidden');
+      resetCrypto();
     }
   }
 
@@ -448,11 +515,14 @@
       setConnected(true);
       c.send({ type:'ok' });
     } else {
-      c.on('open', () => c.send({ type:'ok' }));
+      // ponytail: callee side must also enter connected UI when the channel
+      // opens late — otherwise tabs/status stay stale forever.
+      c.on('open', () => { setStatus('live', 'connected'); setConnected(true); c.send({ type:'ok' }); });
     }
     for(const msg of pendingBuf) handleIncomingData(msg);
     pendingBuf = [];
     pendingBytes = 0;
+    startHandshake();
     if(staged.length){ enqueue(staged); staged.length = 0; }
   }
 
@@ -482,12 +552,14 @@
     connReady = true;
     setStatus('live', 'connected');
     setConnected(true);
+    startHandshake();
     if(staged.length){ enqueue(staged); staged.length = 0; }
   }
 
   function resetConnState(){
     conn = null;
     connReady = false;
+    batchDirs.clear();
     sendQueue.length = 0;
     sending = false;
     if(currentSend){ currentSend.ui.setError(); currentSend = null; }
@@ -498,8 +570,175 @@
     }
   }
 
+  // ---------- E2EE chat (ECDH P-256 + AES-GCM, WebCrypto, no deps) ----------
+  // Transport (DTLS) already hides bytes; this hides meaning too: even a
+  // signaling-server MITM sees only ciphertext. Safety digits let both ends
+  // confirm no one sits in between. Ephemeral — keys + log die on disconnect.
+  let ecdhPair = null, aesKey = null, cryptoReady = false, helloSent = false;
+  let safetyDigits = '', verified = false;
+  const chatLog = [];
+  const chatLogEl = el('chatLog'), chatInput = el('chatInput'), chatSendBtn = el('chatSendBtn');
+  const cryptoDot = el('cryptoDot'), cryptoText = el('cryptoText');
+  const safetyCode = el('safetyCode'), verifyBtn = el('verifyBtn'), verifiedTag = el('verifiedTag');
+  const sessionTabs = el('sessionTabs'), tabFiles = el('tabFiles'), tabChat = el('tabChat');
+  const chatCard = el('chatCard'), fileCard = document.querySelector('#fileCard'), chatDot = el('chatDot');
+
+  function b64encode(buf){
+    const u = new Uint8Array(buf);
+    let s = '';
+    for(let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]);
+    return btoa(s);
+  }
+  function b64decode(s){
+    const b = atob(s);
+    const u = new Uint8Array(b.length);
+    for(let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+    return u.buffer;
+  }
+  async function ensureEcdh(){
+    if(!ecdhPair) ecdhPair = await crypto.subtle.generateKey({ name:'ECDH', namedCurve:'P-256' }, true, ['deriveBits']);
+    return ecdhPair;
+  }
+  async function startHandshake(){
+    if(helloSent || !conn) return;
+    if(conn.open === false){ conn.on('open', () => startHandshake()); return; }
+    helloSent = true;
+    try {
+      const pair = await ensureEcdh();
+      const raw = await crypto.subtle.exportKey('raw', pair.publicKey);
+      conn.send({ type:'hello', pub:b64encode(raw) });
+    } catch(e){ helloSent = false; }
+  }
+  async function onHello(pubB64){
+    try {
+      const pair = await ensureEcdh();
+      const pub = await crypto.subtle.importKey('raw', b64decode(pubB64), { name:'ECDH', namedCurve:'P-256' }, false, []);
+      const bits = await crypto.subtle.deriveBits({ name:'ECDH', public:pub }, pair.privateKey, 256);
+      aesKey = await crypto.subtle.importKey('raw', bits, 'AES-GCM', false, ['encrypt', 'decrypt']);
+      const digest = await crypto.subtle.digest('SHA-256', bits);
+      safetyDigits = String(new DataView(digest).getUint32(0, false) % 1000000).padStart(6, '0');
+      cryptoReady = true;
+      paintSafety();
+    } catch(e){ /* malformed hello — stay unencrypted, chat stays locked */ }
+  }
+  function paintSafety(){
+    cryptoDot.className = 'dot ' + (cryptoReady ? 'live' : 'searching');
+    cryptoText.textContent = cryptoReady ? 'end-to-end encrypted' : 'establishing encryption…';
+    safetyCode.innerHTML = cryptoReady ? safetyDigits.slice(0,3) + '&nbsp;' + safetyDigits.slice(3) : '···&nbsp;···';
+    verifyBtn.classList.toggle('hidden', !cryptoReady || verified);
+    verifiedTag.classList.toggle('hidden', !verified);
+    chatInput.disabled = !cryptoReady;
+    chatSendBtn.disabled = !cryptoReady;
+    chatInput.placeholder = cryptoReady ? 'type a message…' : 'establishing encryption…';
+  }
+  function addChatMsg(who, text){
+    chatLog.push({ who, text });
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + who;
+    div.textContent = text;
+    chatLogEl.appendChild(div);
+    chatLogEl.scrollTop = chatLogEl.scrollHeight;
+    if(who === 'peer' && chatCard.classList.contains('hidden') === false && tabChat.classList.contains('active') === false){
+      chatDot.classList.remove('hidden');
+    }
+  }
+  async function sendChat(){
+    const text = chatInput.value.trim();
+    if(!text || !cryptoReady || !conn || !conn.open) return;
+    try {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const data = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, aesKey,
+        new TextEncoder().encode(JSON.stringify({ text, ts:Date.now() })));
+      conn.send({ type:'chat', iv:b64encode(iv.buffer), data:b64encode(data) });
+      addChatMsg('me', text);
+      chatInput.value = '';
+    } catch(e){ /* drop on crypto failure */ }
+  }
+  async function onChat(msg){
+    if(!cryptoReady) return;
+    try {
+      const plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv:new Uint8Array(b64decode(msg.iv)) }, aesKey, b64decode(msg.data));
+      const { text } = JSON.parse(new TextDecoder().decode(plain));
+      if(typeof text === 'string' && text) addChatMsg('peer', text.slice(0, 500));
+    } catch(e){ /* tamper/corrupt — ignore */ }
+  }
+  function resetCrypto(){
+    ecdhPair = null; aesKey = null; cryptoReady = false; helloSent = false;
+    safetyDigits = ''; verified = false; chatLog.length = 0;
+    chatLogEl.innerHTML = '';
+    chatInput.value = '';
+    paintSafety();
+  }
+  function showTab(which){
+    const files = which === 'files';
+    tabFiles.classList.toggle('active', files);
+    tabChat.classList.toggle('active', !files);
+    fileCard.classList.toggle('hidden', !files);
+    chatCard.classList.toggle('hidden', files);
+    if(!files){ chatDot.classList.add('hidden'); chatLogEl.scrollTop = chatLogEl.scrollHeight; }
+  }
+  tabFiles.addEventListener('click', () => showTab('files'));
+  tabChat.addEventListener('click', () => showTab('chat'));
+  chatSendBtn.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); } });
+  verifyBtn.addEventListener('click', () => { verified = true; paintSafety(); });
+  paintSafety();
+
+  // ponytail: per-batch destination choice lives here (folder handle or
+  // explicit downloads); unknown batches fall back to the global destDir.
+  const batchDirs = new Map();
+  function onAskBatch(msg){
+    const files = Array.isArray(msg.files) ? msg.files.slice(0, 200) : [];
+    if(!files.length || !conn || conn.open === false) return;
+    const total = files.reduce((a, f) => a + (f.size || 0), 0);
+    const wrap = document.createElement('div');
+    wrap.className = 'transfer';
+    wrap.innerHTML =
+      `<div class="t-top"><span class="t-name">↓ ${files.length} file${files.length > 1 ? 's' : ''} offered — ${formatBytes(total)}</span></div>` +
+      `<div class="t-files">${files.map(f => `<div class="t-file"><span>${escapeHtml(f.name || 'file')}</span><span>${formatBytes(f.size || 0)}</span></div>`).join('')}</div>` +
+      `<div class="t-actions">
+        <button class="mini-btn accept-folder">save to folder…</button>
+        <button class="mini-btn accept-dl">accept → downloads</button>
+        <button class="mini-btn reject">decline</button>
+      </div>`;
+    transferList.prepend(wrap);
+    const lock = (note) => {
+      wrap.querySelectorAll('button').forEach(b => { b.disabled = true; });
+      const s = document.createElement('span');
+      s.className = 't-saved'; s.textContent = note;
+      wrap.querySelector('.t-actions').appendChild(s);
+    };
+    const okIds = files.map(f => f.id);
+    wrap.querySelector('.accept-dl').addEventListener('click', () => {
+      batchDirs.set(msg.bid, null);
+      conn.send({ type:'ok-batch', bid:msg.bid, ids:okIds });
+      lock('accepted → downloads');
+    });
+    wrap.querySelector('.accept-folder').addEventListener('click', async () => {
+      if(!window.showDirectoryPicker){
+        batchDirs.set(msg.bid, null);
+        conn.send({ type:'ok-batch', bid:msg.bid, ids:okIds });
+        lock('accepted → downloads (no folder picker here)');
+        return;
+      }
+      try {
+        batchDirs.set(msg.bid, await window.showDirectoryPicker({ mode:'readwrite' }));
+      } catch(e){ return; /* picker cancelled — card stays open */ }
+      conn.send({ type:'ok-batch', bid:msg.bid, ids:okIds });
+      lock('accepted → chosen folder');
+    });
+    wrap.querySelector('.reject').addEventListener('click', () => {
+      conn.send({ type:'no-batch', bid:msg.bid });
+      lock('declined');
+    });
+  }
   function onData(msg){
     if(msg && msg.type === 'ok'){ markReady(); return; }
+    if(msg && msg.type === 'hello'){ onHello(msg.pub); startHandshake(); return; }
+    if(msg && msg.type === 'chat'){ onChat(msg); return; }
+    if(msg && msg.type === 'ask-batch'){ onAskBatch(msg); return; }
+    if(msg && msg.type === 'ok-batch'){ approveBatch(msg.bid, msg.ids || []); return; }
+    if(msg && msg.type === 'no-batch'){ declineBatch(msg.bid); return; }
     handleIncomingData(msg);
   }
 
@@ -631,6 +870,7 @@
   // ---------- send queue ----------
   function subline(){ return dropzone.querySelectorAll('div')[1]; }
 
+  let batchSeq = 0;
   function enqueue(items){
     if(items.length === 0) return;
     if(!conn || conn.open === false){
@@ -638,25 +878,53 @@
       subline().textContent = staged.length + ' item(s) waiting — connect to a peer to send';
       return;
     }
+    // ponytail: nothing moves until the receiver accepts — one request per batch.
+    const bid = 'b' + (++batchSeq) + '-' + Math.random().toString(36).slice(2, 7);
     for(const it of items){
-      sendQueue.push(it);
-      totals.size += it.file.size;
-      totals.count += 1;
+      const st = { ...it, bid, fid: bid + ':' + Math.random().toString(36).slice(2, 7), state:'pending', started:false };
+      sendQueue.push(st);
+      st.ui = makeTransferRow(st.file.name, st.file.size, 'up');
+      st.ui.setNote('waiting for peer approval…');
     }
-    renderOverall();
-    pump();
+    conn.send({ type:'ask-batch', bid, files: sendQueue.filter(s => s.bid === bid).map(st => ({
+      id:st.fid, name:st.file.name, size:st.file.size, mime:st.file.type,
+      path:(st.relPath || st.file.name).replace(/^\/+/, '') })) });
+  }
+
+  function approveBatch(bid, ids){
+    let n = 0;
+    for(const st of sendQueue){
+      if(st.bid !== bid || st.state !== 'pending' || !ids.includes(st.fid)) continue;
+      st.state = 'approved';
+      totals.size += st.file.size;
+      totals.count += 1;
+      n++;
+    }
+    if(n){ renderOverall(); pump(); }
+  }
+
+  function declineBatch(bid){
+    for(let i = sendQueue.length - 1; i >= 0; i--){
+      const st = sendQueue[i];
+      if(st.bid !== bid || st.state !== 'pending') continue;
+      st.state = 'declined';
+      st.ui.setNote('declined by peer');
+      sendQueue.splice(i, 1);
+    }
   }
 
   async function pump(){
     if(sending) return;
-    const st = sendQueue.shift();
+    const st = sendQueue.find(s => s.state === 'approved' && !s.started);
     if(!st) return;
-    if(!conn || conn.open === false){ sendQueue.unshift(st); return; }
+    if(!conn || conn.open === false) return;
     sending = true;
+    st.started = true;
     currentSend = st;
-    st.ui = makeTransferRow(st.file.name, st.file.size, 'up');
     try{
       await sendItem(st);
+      const ix = sendQueue.indexOf(st);
+      if(ix >= 0) sendQueue.splice(ix, 1);
     }catch(err){
       console.error('send failed', err);
       st.ui.setError();
@@ -671,7 +939,7 @@
     const file = st.file;
     const relPath = (st.relPath || file.name).replace(/^\/+/, '');
     ovName.textContent = relPath;
-    conn.send({ type:'meta', name:file.name, size:file.size, mime:file.type, path:relPath });
+    conn.send({ type:'meta', bid:st.bid, name:file.name, size:file.size, mime:file.type, path:relPath });
 
     const dc = conn.dataChannel;
     let offset = 0;
@@ -742,8 +1010,14 @@
 
   // ---------- receive (stream to disk when a destination folder is set) ----------
   function handleIncomingData(msg){
+    if(msg && msg.type === 'hello'){ onHello(msg.pub); startHandshake(); return; }
+    if(msg && msg.type === 'chat'){ onChat(msg); return; }
+    if(msg && msg.type === 'ask-batch'){ onAskBatch(msg); return; }
+    if(msg && msg.type === 'ok-batch'){ approveBatch(msg.bid, msg.ids || []); return; }
+    if(msg && msg.type === 'no-batch'){ declineBatch(msg.bid); return; }
     if(msg.type === 'meta'){
-      const useFs = !!destDir;
+      const recvDir = (msg.bid && batchDirs.has(msg.bid)) ? batchDirs.get(msg.bid) : destDir;
+      const useFs = !!recvDir;
       incoming = {
         name: msg.name, size: msg.size, mime: msg.mime || 'application/octet-stream',
         path: msg.path || msg.name,
@@ -759,7 +1033,7 @@
       renderOverall();
       if(useFs){
         const cur = incoming;
-        openDestWriter(destDir, cur.path, cur.name).then(w => {
+        openDestWriter(recvDir, cur.path, cur.name).then(w => {
           cur.writer = w;
           if(cur.pending){ for(const d of cur.pending) w.write(d); cur.pending = null; }
         }).catch(err => {
