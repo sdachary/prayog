@@ -591,9 +591,10 @@
 
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
   <script>
-    const { FFmpeg, fetchFile } = FFmpeg;
+    const { FFmpeg } = window.FFmpegWASM;
+    const fetchFile = async (f) => new Uint8Array(await f.arrayBuffer());
     let ffmpeg = null;
     let videoFile = null;
     let videoDuration = 0;
@@ -604,7 +605,7 @@
     async function initFFmpeg() {
       if (ffmpeg?.isLoaded()) return;
       
-      ffmpeg = new FFmpeg.FFmpeg();
+      ffmpeg = new FFmpeg();
       
       ffmpeg.on('log', ({ message }) => {
         // [FFmpeg], message

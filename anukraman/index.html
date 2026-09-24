@@ -11,7 +11,7 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100dvh}
-  .app{max-width:640px;margin:0 auto;padding:16px 16px 60px}
+  .app{max-width:880px;margin:0 auto;padding:16px 16px 60px}
 
   header{position:sticky;top:0;z-index:20;background:var(--bg);backdrop-filter:blur(10px);padding:14px 0 12px;margin:-16px -16px 16px;padding-left:16px;padding-right:16px;border-bottom:1px solid var(--fill-2)}
   .title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -304,7 +304,7 @@
           html += '<div class="item-content">';
           html += '<div class="item-title">'+it.t+'</div>';
           if(it.s) html += '<div class="item-sub">'+it.s+'</div>';
-          if(it.trap) html += '<div class="why-tag'+(it.tag==='danger?' danger-tag':'')+'">⚠ '+it.why+'</div>';
+          if(it.trap) html += '<div class="why-tag'+(it.tag==='danger' ? ' danger-tag' : '')+'">⚠ '+it.why+'</div>';
           html += '</div></div>';
         }
       }

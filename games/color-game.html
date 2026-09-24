@@ -10,7 +10,7 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg, var(--bg), var(--panel)); min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 1rem; color: var(--text); }
-  .game { background: var(--fill-2); backdrop-filter: blur(12px); border-radius: 2rem; padding: 2rem; max-width: 400px; width: 100%; box-shadow: var(--shadow-2); border: 1px solid var(--hair); text-align: center; }
+  .game { background: var(--fill-2); backdrop-filter: blur(12px); border-radius: 2rem; padding: 2rem; flex: none; width: min(440px, 100%); box-shadow: var(--shadow-2); border: 1px solid var(--hair); text-align: center; }
   .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
   .title { font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, #f59e0b, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .back-link { color: var(--muted); font-size: 0.85rem; text-decoration: none; padding: 0.3rem 0.8rem; border-radius: 100px; background: var(--fill-2); }
@@ -95,6 +95,7 @@
   <div class="best">🏆 Best Streak: <span id="bestStreak">0</span></div>
 </div>
 
+<script>
 let state = { streak: 0, correct: 0, total: 0, current: null, locked: false };
 
 function loadBest() {
@@ -166,7 +167,7 @@ function guess(chosen) {
 nextRound();
 renderBest();
 </script>
-<footer style="text-align:center;color:rgba(255,255,255,0.3);font-family:monospace;font-size:10.5px;margin-top:24px;line-height:1.6">All games run entirely in your browser. Nothing is uploaded or stored remotely.</footer>
+<footer style="position:fixed;bottom:.9rem;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 2rem);text-align:center;color:var(--muted);font-family:monospace;font-size:10.5px;line-height:1.6;z-index:2">All games run entirely in your browser. Nothing is uploaded or stored remotely.</footer>
 <script src="../assets/nav.js" data-tool="color-game"></script>
 </body>
 </html>
