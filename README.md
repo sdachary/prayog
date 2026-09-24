@@ -19,7 +19,6 @@ Standalone browser utilities — each tool is a self-contained HTML file, zero b
 | [Vibhajan](vibhajan/) | Excel/CSV batch splitter — chunk a large spreadsheet into smaller files by row count, download parts individually or as ZIP. |
 | [Pahchan](pahchan/) | ID card → Excel extractor — OCR one sample card to define fields, then bulk-extract Name/ID/Mobile from many photos/PDFs. |
 | [Zarya](zarya/) | External drive repair for Linux & macOS. Step-by-step guide with copy-ready commands. |
-| [Games](games/) | Snake & Ladder and Color Match — two quick browser games. Formerly the saraswati project. |
 | [Anukraman](anukraman/) | iOS ↔ Android migration guide — direction toggle, three-phase checklists with progress, 15-min countdown timer. |
 
 ## Deploy

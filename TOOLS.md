@@ -151,16 +151,6 @@
 
 ---
 
-## games — Browser games
-
-| | |
-|---|---|
-| **What** | Two games: Snake & Ladder (vs CPU) and Color Match (guess the odd color). |
-| **Dependencies** | None |
-| **Limits** | Simple single-player games. No save state. |
-
----
-
 ## anukraman — iOS ↔ Android migration guide
 
 | | |

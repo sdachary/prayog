@@ -40,7 +40,6 @@ prayog/
 ├── anukraman/         iOS ↔ Android migration guide
 ├── rin-ledger/        Home loan amortization calculator
 ├── vahak-uploader/    Mass uploader to Google Drive
-└── games/             Browser games (Snake & Ladder, Color Match)
 ```
 
 ## Shared assets
