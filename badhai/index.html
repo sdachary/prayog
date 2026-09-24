@@ -6,6 +6,7 @@
   <title>Badhai - Video Audio Extraction</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/assets/theme.css">
   <script src="../assets/nav.js" defer data-tool="badhai"></script>
 
   <style>
@@ -17,8 +18,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: #e0e0e0;
+      background: linear-gradient(135deg, var(--bg), var(--panel));
+      color: var(--text);
       padding: 20px;
       min-height: 100vh;
     }
@@ -45,13 +46,13 @@
     }
 
     .header p {
-      color: #a0a0a0;
+      color: var(--muted);
       font-size: 14px;
     }
 
     .card {
-      background: #262635;
-      border: 1px solid #3a3a4a;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
       border-radius: 8px;
       padding: 25px;
       margin-bottom: 25px;
@@ -88,13 +89,13 @@
     }
 
     .dropzone p {
-      color: #a0a0a0;
+      color: var(--muted);
       font-size: 14px;
       margin-bottom: 10px;
     }
 
     .dropzone-hint {
-      color: #707080;
+      color: var(--muted);
       font-size: 12px;
     }
 
@@ -124,19 +125,19 @@
     }
 
     .detail-item {
-      background: rgba(38, 38, 53, 0.5);
+      background: var(--fill-2);
       padding: 10px;
       border-radius: 4px;
     }
 
     .detail-label {
-      color: #707080;
+      color: var(--muted);
       font-size: 12px;
       margin-bottom: 3px;
     }
 
     .detail-value {
-      color: #e0e0e0;
+      color: var(--text);
       font-weight: 600;
     }
 
@@ -147,7 +148,7 @@
     .form-group label {
       display: block;
       margin-bottom: 8px;
-      color: #e0e0e0;
+      color: var(--text);
       font-weight: 600;
       font-size: 14px;
     }
@@ -160,9 +161,9 @@
 
     .format-btn {
       padding: 10px;
-      border: 2px solid #3a3a4a;
-      background: #1a1a2e;
-      color: #e0e0e0;
+      border: 2px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
@@ -189,9 +190,9 @@
 
     .mode-btn {
       padding: 15px;
-      border: 2px solid #3a3a4a;
-      background: #1a1a2e;
-      color: #e0e0e0;
+      border: 2px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -223,7 +224,7 @@
     .time-input-group label {
       display: block;
       margin-bottom: 8px;
-      color: #e0e0e0;
+      color: var(--text);
       font-weight: 600;
       font-size: 13px;
     }
@@ -231,9 +232,9 @@
     .time-input-group input {
       width: 100%;
       padding: 10px;
-      border: 1px solid #3a3a4a;
-      background: #1a1a2e;
-      color: #e0e0e0;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
       border-radius: 4px;
       font-family: 'Courier New', monospace;
       font-size: 13px;
@@ -270,7 +271,7 @@
     }
 
     .preview-label {
-      color: #707080;
+      color: var(--muted);
     }
 
     .preview-value {
@@ -324,7 +325,7 @@
     .progress-bar {
       width: 100%;
       height: 8px;
-      background: #3a3a4a;
+      background: var(--panel-2);
       border-radius: 4px;
       overflow: hidden;
       margin-bottom: 10px;
@@ -340,7 +341,7 @@
 
     .status-message {
       text-align: center;
-      color: #a0a0a0;
+      color: var(--muted);
       font-size: 13px;
       margin-top: 10px;
     }
@@ -365,9 +366,9 @@
     video {
       width: 100%;
       max-height: 300px;
-      background: #1a1a2e;
+      background: var(--panel);
       border-radius: 6px;
-      border: 1px solid #3a3a4a;
+      border: 1px solid var(--line);
     }
 
     .info-box {
@@ -391,9 +392,9 @@
 
     .reset-btn {
       padding: 10px 20px;
-      background: #3a3a4a;
-      border: 1px solid #3a3a4a;
-      color: #e0e0e0;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--text);
       border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
@@ -423,7 +424,7 @@
 
     .format-info {
       font-size: 12px;
-      color: #707080;
+      color: var(--muted);
       margin-top: 3px;
     }
 

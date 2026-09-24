@@ -6,6 +6,7 @@
 <title>Snake Ladder — Prayog</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/assets/theme.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -15,7 +16,7 @@
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: #0b0e1a;
+    background: var(--bg);
     overflow-x: hidden;
   }
   body::before {
@@ -33,23 +34,25 @@
     z-index: 1;
     padding: 2px;
     border-radius: 2rem;
-    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    background: linear-gradient(135deg, var(--fill-2), var(--fill-1));
     max-width: 720px;
     width: 100%;
   }
   .game {
-    background: rgba(12,16,28,0.92);
+    background: var(--panel-2);
     backdrop-filter: blur(20px);
     border-radius: calc(2rem - 2px);
     padding: 1.5rem;
     box-shadow:
-      0 20px 60px rgba(0,0,0,0.6),
-      inset 0 1px 1px rgba(255,255,255,0.06);
+      var(--shadow-2),
+      inset 0 1px 1px var(--hair);
   }
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
     margin-bottom: 0.8rem;
   }
   .title {
@@ -61,13 +64,13 @@
     letter-spacing: -0.02em;
   }
   .back-link {
-    color: #666;
+    color: var(--muted);
     font-size: 0.8rem;
     text-decoration: none;
     padding: 0.3rem 0.8rem;
     border-radius: 100px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--fill-1);
+    border: 1px solid var(--fill-2);
     transition: all 0.2s;
   }
   .back-link:hover { background: rgba(255,255,255,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.3); }
@@ -85,14 +88,14 @@
     padding: 0.25rem 0.7rem;
     border-radius: 100px;
     font-size: 0.8rem;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--fill-1);
+    border: 1px solid var(--fill-2);
     transition: all 0.3s;
   }
   .player-badge .pos { font-weight: 700; font-variant-numeric: tabular-nums; }
   .player-badge.active-you { border-color: #4ade80; background: rgba(74,222,128,0.1); box-shadow: 0 0 12px rgba(74,222,128,0.15); }
   .player-badge.active-cpu { border-color: #f87171; background: rgba(248,113,113,0.1); box-shadow: 0 0 12px rgba(248,113,113,0.15); }
-  .finish-flag { font-size: 0.75rem; color: #555; display: flex; align-items: center; gap: 0.2rem; }
+  .finish-flag { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 0.2rem; }
 
   .board-wrap {
     position: relative;
@@ -106,7 +109,7 @@
     grid-template-columns: repeat(10, 1fr);
     aspect-ratio: 1;
     gap: 1px;
-    background: rgba(255,255,255,0.03);
+    background: var(--fill-1);
   }
   .cell {
     aspect-ratio: 1;
@@ -116,7 +119,7 @@
     font-size: 0.5rem;
     font-weight: 600;
     position: relative;
-    background: rgba(255,255,255,0.03);
+    background: var(--fill-1);
     transition: background 0.2s;
   }
   .cell .num {
@@ -212,12 +215,12 @@
     width: 100%;
     height: 100%;
     border-radius: 10px;
-    background: rgba(255,255,255,0.08);
+    background: var(--fill-2);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.6rem;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid var(--fill-2);
     transition: transform 0.1s;
     user-select: none;
   }
@@ -273,7 +276,7 @@
   .msg.ok { background: rgba(74,222,128,0.1); color: #86efac; }
   .msg.fail { background: rgba(248,113,113,0.1); color: #fca5a5; }
   .msg.info { background: rgba(251,191,36,0.1); color: #fbbf24; }
-  .msg.neutral { background: rgba(255,255,255,0.04); color: #888; }
+  .msg.neutral { background: var(--fill-1); color: var(--muted); }
   .msg.ladder-anim { background: rgba(74,222,128,0.15); color: #86efac; animation: msgGlow 0.5s ease-in-out infinite alternate; }
   .msg.snake-anim { background: rgba(248,113,113,0.15); color: #fca5a5; animation: msgGlow 0.3s ease-in-out infinite alternate; }
   @keyframes msgGlow { from { box-shadow: inset 0 0 0 rgba(255,255,255,0); } to { box-shadow: inset 0 0 12px rgba(255,255,255,0.05); } }
@@ -295,7 +298,7 @@
 
   .setup { text-align: center; padding: 2rem 1rem; }
   .setup h2 { font-size: 1.6rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, #fbbf24, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .setup p { color: #666; margin-bottom: 1.2rem; font-size: 0.9rem; line-height: 1.5; }
+  .setup p { color: var(--muted); margin-bottom: 1.2rem; font-size: 0.9rem; line-height: 1.5; }
   .start-btn {
     padding: 0.7rem 2rem;
     border-radius: 100px;
@@ -310,7 +313,7 @@
   }
   .start-btn:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(236,72,153,0.35); }
   .start-btn:active { transform: scale(0.97); }
-  .streak { font-size: 0.8rem; color: #555; margin-top: 0.8rem; }
+  .streak { font-size: 0.8rem; color: var(--muted); margin-top: 0.8rem; }
 
   .result-screen { text-align: center; padding: 2rem 1rem; }
   .result-screen h2 { font-size: 2rem; margin-bottom: 0.3rem; }
@@ -327,7 +330,7 @@
     transition: transform 0.15s;
   }
   .result-screen .play-again:hover { transform: scale(1.04); }
-  .result-detail { color: #666; font-size: 0.85rem; margin-top: 0.3rem; }
+  .result-detail { color: var(--muted); font-size: 0.85rem; margin-top: 0.3rem; }
 
   #confettiCanvas {
     position: fixed; inset: 0;
@@ -345,6 +348,12 @@
     .dice-wrap { width: 2.8rem; height: 2.8rem; }
     .dice { font-size: 1.4rem; }
   }
+
+  [data-theme="light"] .msg.ok { color: #15803d; }
+  [data-theme="light"] .msg.fail { color: #dc2626; }
+  [data-theme="light"] .msg.info { color: #b45309; }
+  [data-theme="light"] .msg.ladder-anim { color: #15803d; }
+  [data-theme="light"] .msg.snake-anim { color: #dc2626; }
 </style>
 </head>
 <body>
@@ -353,7 +362,10 @@
 <div class="game" id="app">
   <div class="header">
     <div class="title">🐍 Snake Ladder</div>
-    <a href="./" class="back-link">← Back</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="./" class="back-link">← Back</a>
+      <span id="theme-slot"></span>
+    </div>
   </div>
 
   <div class="screen setup active" id="setupScreen">

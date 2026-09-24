@@ -1,10 +1,13 @@
 /* theme-friendly.css — Light/warm theme for Shuddhi (PC cleanup guide).
    Deliberately diverges from theme.css's dark hacker-terminal aesthetic:
    Shuddhi targets non-technical users cleaning a compromised PC, where
-   a dark theme would signal the wrong tone. See wiki/ARCHITECTURE.md. */
+   a dark theme would signal the wrong tone. See wiki/ARCHITECTURE.md.
+   The theme is driven by the site-wide data-theme attribute (nav.js toggle),
+   so Shuddhi gets the same Light/Dark button while keeping its warm palette. */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 
-:root {
+:root,
+:root[data-theme="light"] {
   --bg: #f8f6f3;
   --panel: #ffffff;
   --panel-hover: #faf8f5;
@@ -35,24 +38,22 @@
   --duration-base: 200ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12120f;
-    --panel: #1a1816;
-    --panel-hover: #22201d;
-    --line: #2a2825;
-    --line-accent: #3a3834;
-    --text: #e8e4de;
-    --text-secondary: #9c9590;
-    --muted: #6b6560;
-    --accent: #14b8a6;
-    --accent-dim: rgba(20,184,166,0.1);
-    --accent-light: rgba(20,184,166,0.5);
-    --success: #22c55e;
-    --success-dim: rgba(34,197,94,0.1);
-    --warning: #f59e0b;
-    --warning-dim: rgba(245,158,11,0.1);
-  }
+:root[data-theme="dark"] {
+  --bg: #12120f;
+  --panel: #1a1816;
+  --panel-hover: #22201d;
+  --line: #2a2825;
+  --line-accent: #3a3834;
+  --text: #e8e4de;
+  --text-secondary: #9c9590;
+  --muted: #6b6560;
+  --accent: #14b8a6;
+  --accent-dim: rgba(20,184,166,0.1);
+  --accent-light: rgba(20,184,166,0.5);
+  --success: #22c55e;
+  --success-dim: rgba(34,197,94,0.1);
+  --warning: #f59e0b;
+  --warning-dim: rgba(245,158,11,0.1);
 }
 
 @media (prefers-reduced-motion: reduce) {
