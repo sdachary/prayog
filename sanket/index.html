@@ -91,9 +91,10 @@
     var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='qrcode.png';a.click();
   };
   document.getElementById('dlSvg').onclick=function(){
-    var val=document.getElementById('qrInput').value.trim();if(!val)return;
-    var qr=new QRCode(-1,QRCode.CorrectLevel.H);qr.addData(val);qr.make();
-    var cells=qr.modules;var s=4;var size=cells.length*s;
+    var val=document.getElementById('qrInput').value.trim();if(!val||!_qr)return;
+    // reuse the module matrix from the already-rendered QR (the library's
+    // QRCode(-1, ...) constructor expects a DOM element and throws on a number)
+    var cells=_qr._oQRCode.modules;var s=4;var size=cells.length*s;
     var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+size+' '+size+'">';
     svg+='<rect width="'+size+'" height="'+size+'" fill="#e0e0e0" rx="4"/>';
     for(var r=0;r<cells.length;r++)for(var c=0;c<cells.length;c++)if(cells[r][c])svg+='<rect x="'+c*s+'" y="'+r*s+'" width="'+s+'" height="'+s+'" fill="#0b0e1a"/>';

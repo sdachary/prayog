@@ -88,11 +88,19 @@
   }
   .copy-btn:hover{ border-color:var(--teal); background:rgba(47,163,154,0.08); }
 
+  /* pairing steps — one card, two numbered actions (was: two equal cards) */
+  .step{ margin-top:14px; }
+  .step + .step{ border-top:1px solid var(--line); margin-top:18px; padding-top:18px; }
+  .step-label{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--amber); margin-bottom:8px;
+  }
+
   .tune-row{
     display:flex; gap:8px; margin-top:6px;
   }
   input.code-input{
-    flex:1; background:var(--bg); border:1px solid var(--line); color:var(--text);
+    flex:1; min-width:0; background:var(--bg); border:1px solid var(--line); color:var(--text);
     font-family:var(--mono); font-size:20px; letter-spacing:0.15em; text-align:center;
     padding:12px 10px; border-radius:8px; outline:none;
   }
@@ -102,7 +110,7 @@
     font-family:var(--mono); font-weight:600; font-size:13px; letter-spacing:0.04em;
     padding:0 20px; cursor:pointer;
   }
-  button.connect-btn:disabled{ background:#2b3944; color:var(--muted); cursor:not-allowed; }
+  button.connect-btn:disabled{ background:var(--line); color:var(--text); opacity:.75; cursor:not-allowed; }
   button.connect-btn:hover:not(:disabled){ filter:brightness(1.08); }
 
   .waveform{
@@ -219,22 +227,20 @@
   .verify-btn{ padding:4px 10px; font-size:11px; }
   .verified-tag{ color:var(--teal); font-size:12px; }
   .chat-log{ display:flex; flex-direction:column; gap:8px; margin:12px 0;
-    height:300px; overflow-y:auto; padding:4px 2px; }
+    min-height:120px; max-height:320px; overflow-y:auto; padding:4px 2px; }
+  .chat-empty{ font-family:var(--mono); font-size:12px; color:var(--muted); margin:auto; }
   .chat-msg{ max-width:82%; padding:8px 12px; border-radius:12px; font-size:13.5px; line-height:1.45;
     overflow-wrap:anywhere; }
   .chat-msg.me{ align-self:flex-end; background:rgba(47,163,154,0.14); border:1px solid rgba(47,163,154,0.35); }
   .chat-msg.peer{ align-self:flex-start; background:var(--fill,rgba(0,0,0,0.04)); border:1px solid var(--line); }
   .chat-row{ display:flex; gap:8px; }
   .chat-input{ flex:1; margin-top:0 !important; }
-  /* ponytail: linked dashboard — channel card slims to a status bar, no page scroll on laptop */
-  body.linked #sessionCard .freq,
-  body.linked #sessionCard .hint,
-  body.linked #sessionCard #copyBtn,
-  body.linked #sessionCard .waveform{ display:none; }
+  /* ponytail: linked dashboard — pairing card slims to a status bar, no page scroll on laptop */
+  body.linked #sessionCard #steps{ display:none; }
   body.linked #sessionCard{ padding-top:14px; padding-bottom:14px; }
   @media (min-width:900px){
     body.linked .wrap{ padding-top:20px; }
-    body.linked .chat-log{ height:340px; }
+    body.linked .chat-log{ max-height:340px; }
   }
 </style>
 </head>
@@ -242,33 +248,35 @@
 <div class="wrap">
   <header>
     <div class="brand">SANDESH</div>
-    <div class="sub">local network file transfer</div>
+    <div class="sub">device-to-device file transfer</div>
   </header>
 
   <div class="card searching" id="sessionCard">
     <div class="label-row">
-      <div class="eyebrow">Your channel</div>
+      <div class="eyebrow">Connection</div>
       <div class="status-dot"><span class="dot searching" id="statusDot"></span><span id="statusText">opening…</span></div>
     </div>
-    <div class="freq">
-      <span class="hz">#</span><span id="myCode">------</span>
+    <div id="steps">
+      <div class="step">
+        <div class="step-label">1 — share this code</div>
+        <div class="freq">
+          <span class="hz">#</span><span id="myCode">------</span>
+        </div>
+        <div class="hint">Open this page on the other device — any network, it works over the internet — and have it enter this code.</div>
+        <button class="copy-btn" id="copyBtn">copy code</button>
+        <div class="waveform searching" id="waveform">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="step" id="connectCard">
+        <div class="step-label">2 — or enter their code</div>
+        <div class="tune-row">
+          <input type="text" class="code-input" id="peerCodeInput" placeholder="00000000" maxlength="8" inputmode="numeric" aria-label="The 8-digit code shown on the other device">
+          <button class="connect-btn" id="connectBtn">connect</button>
+        </div>
+        <div class="hint" id="connectHint">Enter the code shown on the other device.</div>
+      </div>
     </div>
-    <div class="hint">Open this same page on the other device (any network — it works over the internet) and enter this code to connect.</div>
-    <button class="copy-btn" id="copyBtn">copy code</button>
-    <div class="waveform searching" id="waveform">
-      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-    </div>
-  </div>
-
-  <div class="card" id="connectCard">
-    <div class="label-row">
-      <div class="eyebrow">Tune to a channel</div>
-    </div>
-    <div class="tune-row">
-      <input type="text" class="code-input" id="peerCodeInput" placeholder="00000000" maxlength="8" inputmode="numeric">
-      <button class="connect-btn" id="connectBtn">connect</button>
-    </div>
-    <div class="hint" id="connectHint">Enter the code shown on the other device.</div>
   </div>
 
   <div class="card hidden" id="incomingCard">
@@ -283,9 +291,14 @@
     </div>
   </div>
 
+  <div class="tab-row hidden" id="sessionTabs">
+    <button class="tab-btn active" id="tabFiles" role="tab" aria-selected="true" aria-controls="fileCard">files</button>
+    <button class="tab-btn" id="tabChat" role="tab" aria-selected="false" aria-controls="chatCard">chat <span class="tab-dot hidden" id="chatDot"></span></button>
+  </div>
+
   <div class="card" id="fileCard">
     <div class="label-row">
-      <div class="eyebrow">Send</div>
+      <div class="eyebrow">Transfer</div>
     </div>
     <div class="dropzone" id="dropzone">
       <div class="big">drag files or a whole folder here</div>
@@ -316,12 +329,7 @@
     <div class="transfer-list" id="transferList"></div>
   </div>
 
-  <div class="tab-row hidden" id="sessionTabs">
-    <button class="tab-btn active" id="tabFiles">files</button>
-    <button class="tab-btn" id="tabChat">chat <span class="tab-dot hidden" id="chatDot"></span></button>
-  </div>
-
-  <div class="card hidden" id="chatCard">
+  <div class="card hidden" id="chatCard" role="tabpanel" aria-labelledby="tabChat">
     <div class="label-row">
       <div class="eyebrow">Chat</div>
       <div class="status-dot"><span class="dot" id="cryptoDot"></span><span id="cryptoText">establishing encryption…</span></div>
@@ -333,19 +341,16 @@
       <span class="verified-tag hidden" id="verifiedTag">verified ✓</span>
     </div>
     <div class="hint">Compare the 6 digits on both screens once — if they match, nobody in between can read this chat. Messages vanish when you disconnect.</div>
-    <div class="chat-log" id="chatLog"></div>
+    <div class="chat-log" id="chatLog"><div class="chat-empty">no messages yet</div></div>
     <div class="chat-row">
-      <input type="text" class="code-input chat-input" id="chatInput" placeholder="establishing encryption…" maxlength="500" disabled>
+      <input type="text" class="code-input chat-input" id="chatInput" placeholder="establishing encryption…" maxlength="500" disabled aria-label="Chat message">
       <button class="connect-btn" id="chatSendBtn" disabled>send</button>
     </div>
   </div>
 
   <div class="card">
-    <div class="label-row">
-      <div class="eyebrow">No internet? Cable + terminal transfer</div>
-    </div>
     <details class="cable">
-      <summary>Neither laptop has Wi-Fi or internet — just a cable? That's enough. Everything here runs in a terminal, nothing to install.</summary>
+      <summary>No internet? A direct cable is enough — everything below runs in a terminal, nothing to install.</summary>
       <ol>
         <li>Connect the cable and give each laptop an IP (find the interface name with <code>ip addr</code>):
           <br><code>sudo ip addr add 169.254.10.1/24 dev &lt;iface&gt;</code> — yours
@@ -452,12 +457,15 @@
       dropzone.classList.add('enabled');
       const subline = dropzone.querySelectorAll('div')[1];
       if(subline) subline.textContent = 'ready to send';
-      connectCard.classList.add('hidden');
       sessionTabs.classList.remove('hidden');
       showTab('files');
     } else {
       dropzone.classList.remove('enabled');
       sessionTabs.classList.add('hidden');
+      // re-arm the connect step so a new code can be tried without a reload
+      connectCard.classList.remove('hidden');
+      connectBtn.disabled = false;
+      connectBtn.textContent = 'connect';
       resetCrypto();
     }
   }
@@ -633,6 +641,8 @@
   }
   function addChatMsg(who, text){
     chatLog.push({ who, text });
+    const empty = chatLogEl.querySelector('.chat-empty');
+    if(empty) empty.remove();
     const div = document.createElement('div');
     div.className = 'chat-msg ' + who;
     div.textContent = text;
@@ -665,7 +675,7 @@
   function resetCrypto(){
     ecdhPair = null; aesKey = null; cryptoReady = false; helloSent = false;
     safetyDigits = ''; verified = false; chatLog.length = 0;
-    chatLogEl.innerHTML = '';
+    chatLogEl.innerHTML = '<div class="chat-empty">no messages yet</div>';
     chatInput.value = '';
     paintSafety();
   }
@@ -673,6 +683,8 @@
     const files = which === 'files';
     tabFiles.classList.toggle('active', files);
     tabChat.classList.toggle('active', !files);
+    tabFiles.setAttribute('aria-selected', files);
+    tabChat.setAttribute('aria-selected', !files);
     fileCard.classList.toggle('hidden', !files);
     chatCard.classList.toggle('hidden', files);
     if(!files){ chatDot.classList.add('hidden'); chatLogEl.scrollTop = chatLogEl.scrollHeight; }

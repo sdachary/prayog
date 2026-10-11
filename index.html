@@ -29,7 +29,7 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
       <div class="hero-sub">Standalone · Local · Zero backend</div>
     </div>
     <aside class="hero-meta" aria-label="At a glance">
-      <div class="meta-row"><span>Tools</span><b id="stat-total">17</b></div>
+      <div class="meta-row"><span>Tools</span><b id="stat-total">11</b></div>
       <div class="meta-row"><span>Servers</span><b class="accent">0</b></div>
       <div class="meta-row"><span>Runs in</span><b>your browser</b></div>
       <div class="meta-status"><span class="pulse" aria-hidden="true"></span> Local by default</div>
@@ -40,19 +40,19 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
     <label class="toolbar-label" for="tool-filter">Find a tool</label>
     <div class="search">
       <input id="tool-filter" type="search" autocomplete="off"
-             placeholder="transfer, diff, qr, cleanup…"
+             placeholder="transfer, diff, qr, compress…"
              aria-describedby="tool-count">
     </div>
     <div class="toolbar-end">
       <span id="theme-slot"></span>
-      <div class="count" id="tool-count" aria-live="polite"><b>17</b> / 17</div>
+      <div class="count" id="tool-count" aria-live="polite"><b>11</b> / 11</div>
     </div>
   </div>
 
   <div class="tools" id="tools">
     <a class="tool" href="sandesh/" style="--i:0" data-k="sandesh local network file transfer webrtc pair send">
       <div class="tool-head"><span class="tool-name">SANDESH</span><span class="tool-idx">01</span></div>
-      <div class="tool-desc">Local network file transfer via WebRTC. Pair two devices with a 6-digit code and send files directly browser-to-browser.</div>
+      <div class="tool-desc">Device-to-device file transfer via WebRTC. Pair two devices with an 8-digit code and send files directly browser-to-browser.</div>
       <span class="tool-go">Open →</span>
     </a>
     <a class="tool" href="drishti/" style="--i:1" data-k="drishti read-only file scanner folder broken files">
@@ -60,81 +60,56 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
       <div class="tool-desc">Read-only file scanner. Point it at a folder and it reports which files fail to open — nothing is modified.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="safai/" style="--i:2" data-k="safai ubuntu apps remove purge disk ram cleanup linux">
-      <div class="tool-head"><span class="tool-name">SAFAI</span><span class="tool-idx">03</span></div>
-      <div class="tool-desc">Find and remove unwanted apps on Ubuntu. List installed packages by size, check live RAM, safely purge, clean leftovers.</div>
-      <span class="tool-go">Open →</span>
-    </a>
-    <a class="tool" href="shuddhi/" style="--i:3" data-k="shuddhi windows pc cleanup malware scanner guide">
-      <div class="tool-head"><span class="tool-name">SHUDDHI</span><span class="tool-idx">04</span></div>
-      <div class="tool-desc">Clean a compromised Windows PC. Step-by-step guide with a built-in scanner script — no tech knowledge needed.</div>
-      <span class="tool-go">Open →</span>
-    </a>
-    <a class="tool" href="badhai/" style="--i:4" data-k="badhai video audio convert mp3 wav aac ogg ffmpeg extract">
-      <div class="tool-head"><span class="tool-name">BADHAI</span><span class="tool-idx">05</span></div>
+    <a class="tool" href="badhai/" style="--i:2" data-k="badhai video audio convert mp3 wav aac ogg ffmpeg extract">
+      <div class="tool-head"><span class="tool-name">BADHAI</span><span class="tool-idx">03</span></div>
       <div class="tool-desc">Extract audio from video files in your browser. Drop a video, pick MP3/WAV/AAC/OGG, download. Nothing leaves your machine.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="rachna/" style="--i:5" data-k="rachna json yaml csv format validate convert pretty">
-      <div class="tool-head"><span class="tool-name">RACHNA</span><span class="tool-idx">06</span></div>
+    <a class="tool" href="rachna/" style="--i:3" data-k="rachna json yaml csv format validate convert pretty">
+      <div class="tool-head"><span class="tool-name">RACHNA</span><span class="tool-idx">04</span></div>
       <div class="tool-desc">JSON / YAML / CSV formatter, validator &amp; converter. Paste or drop a file, auto-detect, pretty-print, convert.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="sanket/" style="--i:6" data-k="sanket qr code generator camera scanner png svg">
-      <div class="tool-head"><span class="tool-name">SANKET</span><span class="tool-idx">07</span></div>
+    <a class="tool" href="sanket/" style="--i:4" data-k="sanket qr code generator camera scanner png svg">
+      <div class="tool-head"><span class="tool-name">SANKET</span><span class="tool-idx">05</span></div>
       <div class="tool-desc">QR code generator and camera scanner. Generate with text/URLs, download PNG/SVG, scan with your camera.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="sankshep/" style="--i:7" data-k="sankshep image compress resize quality dimensions">
-      <div class="tool-head"><span class="tool-name">SANKSHEP</span><span class="tool-idx">08</span></div>
+    <a class="tool" href="sankshep/" style="--i:5" data-k="sankshep image compress resize quality dimensions">
+      <div class="tool-head"><span class="tool-name">SANKSHEP</span><span class="tool-idx">06</span></div>
       <div class="tool-desc">Image compressor and resizer. Drop an image, adjust quality and dimensions, preview size, download.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="sangrah/" style="--i:8" data-k="sangrah ytdlp install youtube download ubuntu pipx">
-      <div class="tool-head"><span class="tool-name">SANGRAH</span><span class="tool-idx">09</span></div>
-      <div class="tool-desc">Install yt-dlp the clean way on Ubuntu — pipx isolation, mp4-by-default, deno, plus an animated progress-bar download script.</div>
-      <span class="tool-go">Open →</span>
-    </a>
-    <a class="tool" href="tulna/" style="--i:9" data-k="tulna text diff compare word-level highlighting">
-      <div class="tool-head"><span class="tool-name">TULNA</span><span class="tool-idx">10</span></div>
+    <a class="tool" href="tulna/" style="--i:6" data-k="tulna text diff compare word-level highlighting">
+      <div class="tool-head"><span class="tool-name">TULNA</span><span class="tool-idx">07</span></div>
       <div class="tool-desc">Text diff tool. Compare two texts with side-by-side word-level diff highlighting. Paste, diff, copy.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="zarya/" style="--i:10" data-k="zarya external drive repair linux macos filesystem disk health">
-      <div class="tool-head"><span class="tool-name">ZARYA</span><span class="tool-idx">11</span></div>
-      <div class="tool-desc">External drive repair for Linux &amp; macOS. Step-by-step guide to find corrupted files, repair filesystems, and check drive health.</div>
-      <span class="tool-go">Open →</span>
-    </a>
-    <a class="tool" href="rin-ledger/" style="--i:11" data-k="rin ledger home loan amortization calculator prepayment rent buy emi finance">
-      <div class="tool-head"><span class="tool-name">RIN LEDGER</span><span class="tool-idx">12</span></div>
+    <a class="tool" href="rin-ledger/" style="--i:7" data-k="rin ledger home loan amortization calculator prepayment rent buy emi finance">
+      <div class="tool-head"><span class="tool-name">RIN LEDGER</span><span class="tool-idx">08</span></div>
       <div class="tool-desc">Home loan amortization calculator. Track payoff schedules, simulate prepayments, and compare rent vs buy — all in-browser.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="vahak-uploader/" style="--i:12" data-k="vahak google drive mass uploader folder mirror upload">
-      <div class="tool-head"><span class="tool-name">VAHAK</span><span class="tool-idx">13</span></div>
+    <a class="tool" href="vahak-uploader/" style="--i:8" data-k="vahak google drive mass uploader folder mirror upload">
+      <div class="tool-head"><span class="tool-name">VAHAK</span><span class="tool-idx">09</span></div>
       <div class="tool-desc">Mass uploader to Google Drive. Pick a local folder, mirror its tree into Drive file by file, move to "processed" on success.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="vibhajan/" style="--i:13" data-k="vibhajan excel xlsx csv batch splitter rows zip spreadsheet">
-      <div class="tool-head"><span class="tool-name">VIBHAJAN</span><span class="tool-idx">14</span></div>
+    <a class="tool" href="vibhajan/" style="--i:9" data-k="vibhajan excel xlsx csv batch splitter rows zip spreadsheet">
+      <div class="tool-head"><span class="tool-name">VIBHAJAN</span><span class="tool-idx">10</span></div>
       <div class="tool-desc">Excel batch splitter. Split a large XLSX/CSV into smaller files by row count, pick columns, fill down merged cells, download as ZIP.</div>
       <span class="tool-go">Open →</span>
     </a>
-    <a class="tool" href="pahchan/" style="--i:14" data-k="pahchan id card ocr excel extractor photos pdf bulk">
-      <div class="tool-head"><span class="tool-name">PAHCHAN</span><span class="tool-idx">15</span></div>
+    <a class="tool" href="pahchan/" style="--i:10" data-k="pahchan id card ocr excel extractor photos pdf bulk">
+      <div class="tool-head"><span class="tool-name">PAHCHAN</span><span class="tool-idx">11</span></div>
       <div class="tool-desc">ID card to Excel extractor. Show one sample card, define fields, then bulk-OCR photos/PDFs into an editable table and export to Excel.</div>
-      <span class="tool-go">Open →</span>
-    </a>
-    <a class="tool" href="anukraman/" style="--i:15" data-k="anukraman ios android migration phone switch checklist">
-      <div class="tool-head"><span class="tool-name">ANUKRAMAN</span><span class="tool-idx">16</span></div>
-      <div class="tool-desc">iOS ↔ Android migration guide. Step-by-step checklist for switching phones — cloud prep, cable transfer, and post-swap setup for both directions.</div>
       <span class="tool-go">Open →</span>
     </a>
   </div>
 
   <div class="empty" id="empty" hidden>
     <div class="empty-title">No tool matches <span id="empty-q">""</span></div>
-    <div class="empty-desc">Try a verb or format — “diff”, “qr”, “xlsx”, “cleanup”. All 16 tools run locally.</div>
+    <div class="empty-desc">Try a verb or format — “diff”, “qr”, “xlsx”, “ocr”. All 11 tools run locally.</div>
     <button class="btn btn-secondary" type="button" id="empty-clear">Clear filter</button>
   </div>
 

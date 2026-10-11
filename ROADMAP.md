@@ -2,16 +2,17 @@
 
 ## Current (Phase 0-4 complete)
 
-17 tools:
+11 tools:
 
 | Type | Tools |
 |------|-------|
 | **File** | Vibhajan (split), Pahchan (ID→Excel OCR), Sandesh (transfer), Drishti (scan), Rachna (convert), Sankshep (compress), Badhai (extract) |
-| **Dev** | Tulna (diff), Sanket (QR), Games (Snake & Ladder, Color Match) |
-| **Guide** | Shuddhi (Windows cleanup), Zarya (drive repair), Safai (Ubuntu cleanup), Sangrah (yt-dlp install), Anukraman (iOS↔Android migration) |
+| **Dev** | Tulna (diff), Sanket (QR) |
 | **Finance** | Rin Ledger (amortization), Vahak (Drive uploader) |
 
-Infrastructure: shared `assets/theme.css` + `assets/nav.js`, `favicon.svg`, `site.webmanifest`, privacy footers, git hygiene (`.wrangler/` untracked, `.editorconfig`, MIT LICENSE).
+Every tool does real work in the browser. Static guides were cut in the 2026-10 sweep (safai, shuddhi, sangrah, zarya, anukraman) — the line is now "working tools only".
+
+Infrastructure: shared `assets/theme.css` + `assets/nav.js`, `favicon.svg`, `site.webmanifest`, privacy footers, git hygiene (`.wrangler/` untracked, `.editorconfig`, Apache-2.0 LICENSE).
 
 ## Under consideration
 

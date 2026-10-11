@@ -26,7 +26,6 @@ prayog/
 ├── ROADMAP.md         Progress and future plans
 ├── sandesh/           WebRTC file transfer
 ├── drishti/           Read-only file scanner
-├── shuddhi/           Windows PC cleanup guide + script
 ├── badhai/            Video-to-audio via FFmpeg.wasm
 ├── rachna/            JSON/YAML/CSV formatter & converter
 ├── sanket/            QR code generator + scanner
@@ -34,10 +33,6 @@ prayog/
 ├── tulna/             Text diff
 ├── vibhajan/          Excel/CSV batch splitter
 ├── pahchan/           ID card → Excel OCR extractor
-├── zarya/             External drive repair guide (Linux/macOS)
-├── safai/             Ubuntu app cleanup guide
-├── sangrah/           yt-dlp install guide + setup script
-├── anukraman/         iOS ↔ Android migration guide
 ├── rin-ledger/        Home loan amortization calculator
 ├── vahak-uploader/    Mass uploader to Google Drive
 ```
@@ -57,11 +52,6 @@ Defines the design tokens as CSS custom properties on `:root`:
 
 Landing page, Sandesh, Drishti, Badhai, and consolidated tools (Rachna, Sanket, Sankshep, Tulna) link this directly.
 
-### `assets/theme-friendly.css` (light/warm theme — Shuddhi only)
-Shuddhi is deliberately visually distinct: warm, light, Outfit font. It targets non-technical users cleaning a compromised PC, where a dark hacker-terminal aesthetic would signal the wrong tone. Links `theme-friendly.css` instead of `theme.css`.
-
-Provides the same variable shape (`--bg`, `--panel`, `--text`, `--muted`, `--accent`, etc.) with different values and its own `@media (prefers-color-scheme: dark)` override.
-
 ### `assets/nav.js`
 Injects a breadcrumb trail at the top of each tool page. Usage:
 ```html
@@ -73,8 +63,7 @@ The `data-tool` attribute sets the current page name in the breadcrumb.
 
 1. Create `new-tool-name/index.html` — self-contained HTML file
 2. Link shared CSS in `<head>`:
-   - Default: `<link rel="stylesheet" href="/assets/theme.css">` (dark theme)
-   - Exception: explicitly link `theme-friendly.css` if the tool targets non-technical users
+   - `<link rel="stylesheet" href="/assets/theme.css">`
 3. Use shared classes: `.btn`/`.btn-primary`/`.btn-secondary` for buttons, `.dropzone` for drag-and-drop targets, `.error` for error banners, `.visually-hidden` for screen-reader-only labels, CSS variable tokens (`var(--bg)`, `var(--text)`, `var(--muted)`, etc.) instead of hardcoded colors
 4. Add keyboard a11y: `tabindex="0" role="button"` + `onkeydown` handler on interactive non-button elements; `focus-visible` outlines on custom controls
 5. Add `<script src="../assets/nav.js" defer data-tool="new-tool-name"></script>` in `<head>`

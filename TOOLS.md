@@ -46,7 +46,7 @@
 |---|---|
 | **What** | Send files between two browsers only after the receiver accepts each batch (per-batch folder or downloads destination). Chat tab with end-to-end encrypted ephemeral messages (ECDH + AES-GCM, safety-number verification). Pair devices with an 8-digit code. |
 | **Dependencies** | PeerJS 1.5.4 (signaling only — no file/chat data passes through it); WebCrypto (native) |
-| **Limits** | Both devices must be on the same local network (or have STUN/TURN). Large files limited by browser memory. Chat messages vanish on disconnect. |
+| **Limits** | Works over the internet when STUN/TURN can find a path (a TURN relay on oradev covers symmetric NAT); very restrictive networks may still fail. Large files limited by browser memory. Chat messages vanish on disconnect. |
 
 ---
 
@@ -57,26 +57,6 @@
 | **What** | Point it at a folder, it recursively lists every file and reports which ones fail to open. Read-only — nothing is modified. |
 | **Dependencies** | None (File System Access API and FileReader) |
 | **Limits** | Browser-dependent folder access. Some browsers limit the number of files you can select at once. |
-
----
-
-## safai — Ubuntu app cleanup
-
-| | |
-|---|---|
-| **What** | Step-by-step terminal guide to find and remove unwanted apps on Ubuntu — list installed packages by disk size, check live RAM/CPU with htop, see disk usage visually with baobab, then `remove`/`purge` apps and clean leftover dependencies and the apt cache. Includes a copy-ready one-liner to surface the 30 largest packages immediately. |
-| **Dependencies** | None (static HTML guide) |
-| **Limits** | Commands execute on the user's own machine. `purge` is not reversible for config/settings — the guide calls out using `remove` instead when that matters. |
-
----
-
-## shuddhi — Windows PC cleanup
-
-| | |
-|---|---|
-| **What** | Step-by-step cleanup guide for a compromised Windows PC, plus an automated scanner PowerShell script. |
-| **Dependencies** | None (static guide + script download) |
-| **Limits** | The script is a PowerShell `.ps1` — user must have execution rights on their Windows machine. |
 
 ---
 
@@ -121,40 +101,12 @@
 
 ---
 
-## sangrah — yt-dlp setup (clean install)
-
-| | |
-|---|---|
-| **What** | Step-by-step terminal guide to install yt-dlp on Ubuntu the clean way via pipx — isolated environments, mp4-by-default config, deno JS runtime, and an animated `rich` progress bar. Ships with a downloadable one-shot `setup_sangrah.sh` that builds the venv, installs `yt-dlp` + `rich` + deno, writes the mp4 config, and drops `yt-dlp` + a `ytdl-nice` progress wrapper into `~/bin`. |
-| **Dependencies** | Script needs Python 3 venv, `pip`, and `curl` (Ubuntu/Debian). `yt-dlp` and `rich` are pip-installed into the isolated venv; deno is fetched from deno.land. |
-| **Limits** | Guide + script run on the user's own machine. PEP 668 (externally-managed-environment) is sidestepped via pipx or the included venv — both isolate yt-dlp from system Python. |
-
----
-
 ## tulna — Text diff
 
 | | |
 |---|---|
-| **What** | Paste two texts side-by-side, click diff. Highlights additions and deletions at the word level using LCS. |
+| **What** | Paste two texts side-by-side, click diff. Highlights added and removed lines using LCS. |
 | **Dependencies** | None |
 | **Limits** | Large texts may be slow with the O(n²) LCS algorithm. |
 
 ---
-
-## zarya — External drive repair
-
-| | |
-|---|---|
-| **What** | Step-by-step terminal command guide for repairing corrupted external drives on Linux and macOS. Includes OS-specific tabs, copy-ready commands, and an advanced tab with progress scripts, recovery tools, and S.M.A.R.T. health checks. |
-| **Dependencies** | None (static HTML guide) |
-| **Limits** | A reference guide — commands execute on the user's own machine. User must be comfortable with a terminal. |
-
----
-
-## anukraman — iOS ↔ Android migration guide
-
-| | |
-|---|---|
-| **What** | Bidirectional migration checklist for switching between iOS and Android. Direction toggle (iOS→Android / Android→iOS), three phases (Cloud Prep, The Swap, After Setup), interactive checkboxes with progress tracking, 15-min countdown timer, trap/warning tags for critical steps. |
-| **Dependencies** | None (pure HTML/CSS/JS, uses prayog theme.css) |
-| **Limits** | Guide only — no automation. Steps may vary by device model and carrier. India-specific eSIM/TRAI steps included. |
