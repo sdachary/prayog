@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Not found — Prayog</title>
+<meta name="description" content="This page does not exist.">
+<script>
+(function(){try{var t=localStorage.getItem('prayog-theme');
+if(t!=='light'&&t!=='dark')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/assets/theme.css">
+<style>
+  .wrap{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 16px; }
+  .code{ font-family:var(--mono); font-weight:700; font-size:64px; letter-spacing:0.04em; color:var(--text); }
+  .msg{ font-family:var(--mono); font-size:13px; color:var(--muted); margin-top:8px; }
+  .back{ margin-top:24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="code">404</div>
+  <p class="msg">That page isn't here.</p>
+  <a class="btn btn-primary back" href="/">Back to all tools</a>
+</div>
+</body>
+</html>
