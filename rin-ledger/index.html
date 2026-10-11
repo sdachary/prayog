@@ -14,7 +14,10 @@
   h1{ font-family:var(--mono); font-weight:600; font-size:2rem; margin:0; letter-spacing:.2px; }
   .subtitle{ color:var(--muted); font-size:0.875rem; margin-top:6px; max-width:600px; line-height:1.5; }
 
-  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:20px; }
+  /* .wrap is flex-column with align-items:center, so cards size to max-content
+     instead of stretching — a wide table pushed the card past the viewport.
+     width:100% pins them, letting .tableWrap scroll internally. */
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:20px; width:100%; }
   .cardLabel{ font-family:var(--mono); font-size:1rem; font-weight:600; margin-bottom:14px; }
   .cardLabel .hint{ font-family:var(--sans); font-weight:400; font-size:0.78rem; color:var(--muted); }
   .cardHeaderRow{ display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
@@ -55,7 +58,7 @@
   .legendItem{ display:flex; align-items:center; gap:6px; font-size:0.78rem; color:var(--text); }
   .legendSwatch{ width:10px; height:10px; border-radius:2px; }
 
-  .tableWrap{ max-height:420px; overflow-y:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
+  .tableWrap{ max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
   table{ width:100%; border-collapse:collapse; font-family:var(--mono), monospace; font-size:0.78rem; }
   thead th{
     position:sticky; top:0; background:var(--panel-2); color:var(--amber); text-align:right; padding:10px 12px;
@@ -513,6 +516,13 @@ function render(){
 
   // amortization table
   const tbody = document.getElementById('amortBody');
+  // Typing in an Extra cell re-renders the whole table. innerHTML='' detaches
+  // the nodes but a held reference survives, so keep the cell being edited and
+  // put it back — rebuilding it loses the caret (setSelectionRange throws on
+  // type="number"), which prepends every keystroke.
+  const keepEl = document.activeElement && document.activeElement.closest
+    && document.activeElement.closest('#amortBody') ? document.activeElement : null;
+  const keepMonth = keepEl ? keepEl.dataset.month : null;
   tbody.innerHTML = '';
   const frag = document.createDocumentFragment();
   actual.rows.forEach(r => {
@@ -528,6 +538,15 @@ function render(){
     frag.appendChild(tr);
   });
   tbody.appendChild(frag);
+  if(keepEl){
+    const fresh = tbody.querySelector('input[data-month="'+keepMonth+'"]');
+    // replaceWith alone doesn't restore focus (removing an element blurs it
+    // for good); focus() puts the caret at the end, which is where typing
+    // was. type="number" hides selectionStart, so we can't set it manually.
+    // Sync the value first: on clear/bulk the model changed under us, and
+    // resurrecting the old node verbatim would strand its stale value.
+    if(fresh){ keepEl.value = fresh.value; fresh.replaceWith(keepEl); keepEl.focus(); }
+  }
 }
 
 // ================= Wiring =================

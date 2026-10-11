@@ -62,7 +62,7 @@
   <textarea id="output" placeholder="Result will appear here…" spellcheck="false" readonly style="height:200px;margin-top:0.5rem"></textarea>
   <footer>Nothing is uploaded or stored remotely — all processing happens in your browser.</footer>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" integrity="sha384-+pxiN6T7yvpryuJmE1gM9PX7yQit15auDb+ZwwvJOd/4be2Cie5/IuVXgQb/S9du" crossorigin="anonymous"></script>
 <script>
 (function(){
   var input=document.getElementById('input'),output=document.getElementById('output');
@@ -82,7 +82,7 @@
     var ext=f.name.split('.').pop().toLowerCase();
     if(ext==='json')inFmt.value='json';else if(ext==='yaml'||ext==='yml')inFmt.value='yaml';else if(ext==='csv')inFmt.value='csv';
     var r=new FileReader();r.onload=function(){input.value=r.result};
-    if(ext==='csv')r.readAsText(f);else r.readAsText(f);
+    r.readAsText(f);
   }
 
   function parseData(str,fmt){
@@ -97,16 +97,36 @@
     if(fmt==='csv')return toCSV(data);
   }
 
+  // RFC 4180 parser. The old split(',') corrupted any quoted field containing
+  // a comma (and dropped embedded newlines) — silent data corruption.
   function parseCSV(s){
-    var lines=s.trim().split('\n').filter(function(l){return l.trim()});
-    if(!lines.length)return[];
-    var headers=lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'')});
+    var rows=[],row=[],field='',inQ=false,i=0;
+    while(i<s.length){
+      var c=s[i];
+      if(inQ){
+        if(c==='"'){
+          if(s[i+1]==='"'){field+='"';i+=2;continue;}
+          inQ=false;i++;continue;
+        }
+        field+=c;i++;continue;
+      }
+      if(c==='"'){inQ=true;i++;continue;}
+      if(c===','){row.push(field);field='';i++;continue;}
+      if(c==='\r'){i++;continue;}
+      if(c==='\n'){row.push(field);rows.push(row);row=[];field='';i++;continue;}
+      field+=c;i++;
+    }
+    row.push(field);rows.push(row);
+    // trailing newline produces a final empty row — drop it
+    if(rows.length>1&&rows[rows.length-1].length===1&&rows[rows.length-1][0]==='')rows.pop();
+    if(!rows.length)return[];
+    var headers=rows[0].map(function(h){return h.trim()});
     var out=[];
-    for(var i=1;i<lines.length;i++){
-      var vals=lines[i].split(',').map(function(v){return v.trim().replace(/^"|"$/g,'')});
-      var row={};
-      for(var j=0;j<headers.length;j++)row[headers[j]]=vals[j]||'';
-      out.push(row);
+    for(var r=1;r<rows.length;r++){
+      if(rows[r].length===1&&rows[r][0]==='')continue;
+      var rec={};
+      for(var j=0;j<headers.length;j++)rec[headers[j]]=rows[r][j]!==undefined?rows[r][j]:'';
+      out.push(rec);
     }
     return out;
   }

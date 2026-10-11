@@ -15,7 +15,10 @@
   h1{ font-family:var(--mono); font-weight:600; font-size:1.88rem; margin:0; }
   .subtitle{ color:var(--muted); font-size:0.875rem; margin-top:6px; max-width:620px; line-height:1.5; }
 
-  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:18px; }
+  /* .wrap is flex-column with align-items:center, so cards size to max-content
+     instead of stretching. width:100% pins them to the viewport; .logWrap then
+     scrolls its table horizontally instead of pushing the card wide. */
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:18px; width:100%; }
   .cardLabel{ font-family:var(--mono); font-size:1rem; font-weight:600; margin-bottom:14px; }
   .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:220px; }
@@ -42,7 +45,7 @@
   .progressOuter{ height:8px; background:var(--panel); border-radius:5px; overflow:hidden; margin-top:14px; }
   .progressInner{ height:100%; background:linear-gradient(90deg, #1a6b58, var(--teal)); width:0%; transition:width .3s; }
 
-  .logWrap{ max-height:440px; overflow-y:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
+  .logWrap{ max-height:440px; overflow:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
   table{ width:100%; border-collapse:collapse; font-family:var(--mono),monospace; font-size:0.75rem; }
   thead th{ position:sticky; top:0; background:#1B2530; color:var(--teal); text-align:left; padding:9px 12px; font-size:0.69rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line); }
   tbody td{ padding:7px 12px; border-bottom:1px solid #1c2731; }
@@ -163,6 +166,11 @@ function setConnected(on){
 function initTokenClient(){
   const clientId = clientIdInput.value.trim();
   if(!clientId){ alert('Paste your OAuth Client ID first.'); return null; }
+  // GIS is async; if it hasn't landed yet this would throw a bare
+  // "google is not defined" ReferenceError. Say something actionable instead.
+  if(typeof google === 'undefined' || !google.accounts){
+    throw new Error('Google sign-in has not loaded yet. Check your connection and try again.');
+  }
   return google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: 'https://www.googleapis.com/auth/drive',
