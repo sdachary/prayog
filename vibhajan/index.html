@@ -9,6 +9,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/assets/theme.css">
 <script src="../assets/nav.js" defer data-tool="vibhajan"></script>
+<script src="/assets/cdn-guard.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous"></script>
 <style>
@@ -19,7 +20,7 @@
   .card{background:var(--fill);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid var(--fill-2);margin-top:1rem}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
   @media(max-width:480px){.grid{grid-template-columns:1fr}}
-  label{display:block;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+  label{display:block;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
   input[type=number], input[type=text], select{
     width:100%; padding:9px 12px; border:1px solid var(--hair); border-radius:var(--radius-sm);
     background:var(--fill-2); color:var(--text); font-family:var(--mono); font-size:0.84rem; transition:.15s; outline:none;
@@ -40,7 +41,7 @@
   .status{margin-bottom:16px; display:none}
   .status p{font-size:0.8rem; font-weight:600; color:var(--teal); margin:0 0 8px}
   .bar-track{width:100%; background:var(--hair); border-radius:var(--radius-full); height:6px; overflow:hidden}
-  .bar-fill{background:linear-gradient(90deg, var(--teal), var(--amber)); height:100%; width:0%; transition:width .2s}
+  .bar-fill{background:linear-gradient(90deg, var(--teal), var(--amber)); height:100%; width:100%; transform:scaleX(0); transform-origin:left; transition:transform .2s}
   .error{display:none; background:rgba(217,83,79,0.1); border:1px solid rgba(217,83,79,0.3); color:var(--red); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.8rem; margin-bottom:16px}
   .results{display:none}
   .results-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; flex-wrap:wrap}
@@ -60,17 +61,17 @@
   .col-config-actions button:hover{text-decoration:underline}
   .col-config-hint{font-size:0.75rem; color:var(--muted); margin:0 0 10px; line-height:1.4}
   .col-table{border:1px solid var(--fill-2); border-radius:var(--radius-sm); max-height:280px; overflow-y:auto}
-  .col-table-head{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; padding:8px 12px; font-size:0.68rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; background:var(--fill); border-bottom:1px solid var(--fill-2); position:sticky; top:0}
+  .col-table-head{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; padding:8px 12px; font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; background:var(--fill); border-bottom:1px solid var(--fill-2); position:sticky; top:0}
   .col-row{display:grid; grid-template-columns:36px 1fr 100px; gap:8px; align-items:center; padding:8px 12px; font-size:0.8rem; border-bottom:1px solid var(--fill)}
   .col-row:last-child{border-bottom:none}
   .col-row input[type=checkbox]{width:16px; height:16px; margin:0; cursor:pointer; accent-color:var(--teal)}
   .col-row .col-name{display:flex; flex-direction:column; overflow:hidden}
-  .col-row .col-letter{font-size:0.62rem; font-weight:700; color:var(--teal); letter-spacing:.03em}
+  .col-row .col-letter{font-size:0.75rem; font-weight:700; color:var(--teal); letter-spacing:.03em}
   .col-row .col-header{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .col-row .fill-badge{font-size:0.62rem; font-weight:700; color:var(--amber); background:rgba(232,163,61,0.1); border:1px solid rgba(232,163,61,0.3); padding:1px 6px; border-radius:var(--radius-full); white-space:nowrap}
+  .col-row .fill-badge{font-size:0.75rem; font-weight:700; color:var(--amber); background:rgba(232,163,61,0.1); border:1px solid rgba(232,163,61,0.3); padding:1px 6px; border-radius:var(--radius-full); white-space:nowrap}
   .col-row .fill-cell{display:flex; align-items:center; gap:6px; justify-content:flex-end}
   .col-row .fill-cell input[type=checkbox]{accent-color:var(--amber)}
-  .footer-note{margin-top:16px; font-size:0.72rem; color:var(--muted); text-align:center; font-family:var(--mono)}
+  .footer-note{margin-top:16px; font-size:0.75rem; color:var(--muted); text-align:center; font-family:var(--mono)}
 </style>
 </head>
 <body>
@@ -131,14 +132,14 @@
       <div class="filename" id="filenameLabel"></div>
     </div>
 
-    <div class="error" id="errorBox"></div>
+    <div class="error" id="errorBox" role="alert"></div>
 
-    <div class="status" id="statusContainer">
+    <div class="status" id="statusContainer" aria-live="polite">
       <p id="statusText">Processing...</p>
       <div class="bar-track"><div class="bar-fill" id="progressBar"></div></div>
     </div>
 
-    <div class="results" id="resultsContainer">
+    <div class="results" id="resultsContainer" aria-live="polite">
       <div class="results-head">
         <h2 id="resultsTitle">Generated files</h2>
         <div style="display:flex; gap:8px;">
@@ -365,7 +366,7 @@
     try {
       statusContainer.style.display = 'block';
       statusText.textContent = 'Reading file...';
-      progressBar.style.width = '20%';
+      progressBar.style.transform = 'scaleX(0.2)';
       await tick();
 
       const data = await file.arrayBuffer();
@@ -376,7 +377,7 @@
       }
 
       statusText.textContent = 'Scanning sheets...';
-      progressBar.style.width = '60%';
+      progressBar.style.transform = 'scaleX(0.6)';
       await tick();
 
       const sheetRowCounts = {};
@@ -457,7 +458,7 @@
 
     statusContainer.style.display = 'block';
     statusText.textContent = combineAll ? 'Parsing and combining all sheets...' : 'Parsing sheet rows...';
-    progressBar.style.width = '30%';
+    progressBar.style.transform = 'scaleX(0.3)';
     await tick();
 
     let headers = null;
@@ -540,7 +541,7 @@
 
     for (let i = 0; i < fileCount; i++) {
       statusText.textContent = `Building file ${i + 1} of ${fileCount}...`;
-      progressBar.style.width = `${30 + Math.round(((i + 1) / fileCount) * 65)}%`;
+      progressBar.style.transform = `scaleX(${(30 + Math.round(((i + 1) / fileCount) * 65)) / 100})`;
       if (i % 3 === 0) await tick();
 
       const start = i * chunkSize;
@@ -568,7 +569,7 @@
     }
 
     renderFileList();
-    progressBar.style.width = '100%';
+    progressBar.style.transform = 'scaleX(1)';
     statusText.textContent = 'Done!';
     await tick();
     statusContainer.style.display = 'none';

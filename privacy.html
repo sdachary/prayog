@@ -12,16 +12,27 @@
     the "data never leaves device" statement and hides third-party table.
   - Keep byte-identical across apps except CONFIG so diffs stay reviewable.
 -->
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="t-title"></title>
+  <script>
+  (function(){try{var t=localStorage.getItem('prayog-theme');
+  if(t!=='light'&&t!=='dark')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+  </script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/assets/theme.css">
+  <script src="/assets/nav.js" defer data-tool="privacy"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root { --bg:#0A0A0A; --fg:#FAFAFA; --muted:#1A1A1A; --muted-fg:#8b8475; --accent:#FF3D00; --accent-dim:rgba(255,61,0,0.12); --border:#262626; }
+    /* Prayog shell: alias the site's theme tokens (legacy legal-template
+       names kept so the CONFIG-driven copy below stays byte-identical). */
+    :root { --fg: var(--text); --muted-fg: var(--muted); --accent: var(--amber); --accent-dim: rgba(232,163,61,0.12); --border: var(--line); }
     html { font-size: 16px; -webkit-font-smoothing: antialiased; }
-    body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--fg); line-height: 1.7; min-height: 100vh; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--fg); line-height: 1.7; min-height: 100vh; }
     .container { max-width: 760px; margin: 0 auto; padding: 56px 24px; }
     .brand { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
     .brand::before { content: "◈"; color: var(--accent); }
@@ -30,15 +41,15 @@
     .section { margin-bottom: 32px; }
     .section h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px; }
     .section h3 { font-size: 15px; font-weight: 600; margin: 14px 0 6px; }
-    .section p, .section li { font-size: 14.5px; color: #c9c4b8; }
+    .section p, .section li { font-size: 14.5px; color: var(--text); }
     .section p { margin-bottom: 10px; }
     .section ul { padding-left: 20px; margin-bottom: 10px; }
     .section li { margin-bottom: 4px; }
     .section.hidden { display: none; }
     table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; }
     th, td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); font-size: 13.5px; vertical-align: top; }
-    th { background: var(--muted); color: var(--fg); font-weight: 600; }
-    td { color: #c9c4b8; }
+    th { background: var(--panel); color: var(--fg); font-weight: 600; }
+    td { color: var(--text); }
     a { color: var(--accent); text-decoration: none; }
     .notice { border: 1px solid var(--border); border-left: 3px solid var(--accent); background: var(--accent-dim); padding: 14px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 24px; }
     footer { border-top: 1px solid var(--border); margin-top: 48px; padding-top: 20px; font-size: 13px; color: var(--muted-fg); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }

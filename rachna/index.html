@@ -8,6 +8,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/assets/theme.css">
 <script src="../assets/nav.js" defer data-tool="rachna"></script>
+<script src="../assets/vendor/js-yaml.min.js"></script>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg);color:var(--text)}
@@ -36,13 +37,13 @@
 <div class="wrap">
   <h1>Rachna <span>formatter & converter</span></h1>
   <div class="toolbar">
-    <label>input</label>
+    <label for="inFmt">input</label>
     <select id="inFmt">
       <option value="json">JSON</option>
       <option value="yaml">YAML</option>
       <option value="csv">CSV</option>
     </select>
-    <label style="margin-left:0.5rem">output</label>
+    <label for="outFmt" style="margin-left:0.5rem">output</label>
     <select id="outFmt">
       <option value="json">JSON</option>
       <option value="yaml" selected>YAML</option>
@@ -50,8 +51,9 @@
     </select>
   </div>
   <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop a JSON, YAML, or CSV file, or press Enter to browse for one">Drop a JSON / YAML / CSV file, or paste below</div>
+  <label class="sr-only" for="input">Input data</label>
   <textarea id="input" placeholder="Paste your data here…" spellcheck="false"></textarea>
-  <div class="error" id="error"></div>
+  <div class="error" id="error" role="alert"></div>
   <div class="actions">
     <button class="btn btn-primary" id="convertBtn">convert</button>
     <button class="btn btn-secondary" id="copyBtn">copy result</button>
@@ -59,10 +61,10 @@
     <button class="btn btn-secondary" id="prettyBtn">pretty-print</button>
     <span class="copy-msg" id="copyMsg">copied</span>
   </div>
-  <textarea id="output" placeholder="Result will appear here…" spellcheck="false" readonly style="height:200px;margin-top:0.5rem"></textarea>
+  <label class="sr-only" for="output">Result</label>
+  <textarea id="output" placeholder="Result will appear here…" spellcheck="false" readonly style="height:200px;margin-top:0.5rem" aria-live="polite"></textarea>
   <footer>Nothing is uploaded or stored remotely — all processing happens in your browser.</footer>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" integrity="sha384-+pxiN6T7yvpryuJmE1gM9PX7yQit15auDb+ZwwvJOd/4be2Cie5/IuVXgQb/S9du" crossorigin="anonymous"></script>
 <script>
 (function(){
   var input=document.getElementById('input'),output=document.getElementById('output');

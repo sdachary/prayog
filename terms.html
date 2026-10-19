@@ -6,16 +6,27 @@
   account creation, refunds, linkToPrivacy.
   Keep byte-identical across apps except CONFIG.
 -->
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="t-title"></title>
+  <script>
+  (function(){try{var t=localStorage.getItem('prayog-theme');
+  if(t!=='light'&&t!=='dark')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+  </script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/assets/theme.css">
+  <script src="/assets/nav.js" defer data-tool="terms"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root { --bg:#0A0A0A; --fg:#FAFAFA; --muted:#1A1A1A; --muted-fg:#8b8475; --accent:#FF3D00; --accent-dim:rgba(255,61,0,0.12); --border:#262626; }
+    /* Prayog shell: alias the site's theme tokens (legacy legal-template
+       names kept so the CONFIG-driven copy below stays byte-identical). */
+    :root { --fg: var(--text); --muted-fg: var(--muted); --accent: var(--amber); --accent-dim: rgba(232,163,61,0.12); --border: var(--line); }
     html { font-size: 16px; -webkit-font-smoothing: antialiased; }
-    body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--fg); line-height: 1.7; min-height: 100vh; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--fg); line-height: 1.7; min-height: 100vh; }
     .container { max-width: 760px; margin: 0 auto; padding: 56px 24px; }
     .brand { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
     .brand::before { content: "◈"; color: var(--accent); }
@@ -23,7 +34,7 @@
     .last-updated { font-size: 13px; color: var(--muted-fg); margin-bottom: 24px; }
     .section { margin-bottom: 32px; }
     .section h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px; }
-    .section p, .section li { font-size: 14.5px; color: #c9c4b8; }
+    .section p, .section li { font-size: 14.5px; color: var(--text); }
     .section p { margin-bottom: 10px; }
     .section ul { padding-left: 20px; margin-bottom: 10px; }
     .section li { margin-bottom: 4px; }

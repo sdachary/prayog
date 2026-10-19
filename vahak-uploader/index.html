@@ -8,6 +8,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/assets/theme.css">
 <script src="../assets/nav.js" defer data-tool="vahak-uploader"></script>
+<script src="/assets/cdn-guard.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   /* Vahak specific styles */
@@ -22,7 +23,7 @@
   .cardLabel{ font-family:var(--mono); font-size:1rem; font-weight:600; margin-bottom:14px; }
   .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:220px; }
-  .field label{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .field label{ font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
   input[type=text], input[type=number]{
     background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
     color:var(--text); font-family:var(--mono),monospace; font-size:0.84rem; outline:none; width:100%;
@@ -40,14 +41,14 @@
 
   .statsGrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
   .stat{ background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px 16px; }
-  .statLabel{ font-size:0.69rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+  .statLabel{ font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
   .statValue{ font-family:var(--mono),monospace; font-size:1.13rem; font-weight:600; }
   .progressOuter{ height:8px; background:var(--panel); border-radius:5px; overflow:hidden; margin-top:14px; }
-  .progressInner{ height:100%; background:linear-gradient(90deg, #1a6b58, var(--teal)); width:0%; transition:width .3s; }
+  .progressInner{ height:100%; background:linear-gradient(90deg, #1a6b58, var(--teal)); width:100%; transform:scaleX(0); transform-origin:left; transition:transform .3s; }
 
   .logWrap{ max-height:440px; overflow:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
   table{ width:100%; border-collapse:collapse; font-family:var(--mono),monospace; font-size:0.75rem; }
-  thead th{ position:sticky; top:0; background:#1B2530; color:var(--teal); text-align:left; padding:9px 12px; font-size:0.69rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line); }
+  thead th{ position:sticky; top:0; background:#1B2530; color:var(--teal); text-align:left; padding:9px 12px; font-size:0.75rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line); }
   tbody td{ padding:7px 12px; border-bottom:1px solid #1c2731; }
   tbody tr:nth-child(even){ background:var(--panel-2); }
   .status-queued{ color:var(--muted); }
@@ -71,16 +72,18 @@
     </div>
   </header>
 
+  <div class="error" id="vahakMsg" role="alert" style="width:100%;"></div>
+
   <!-- Connection -->
   <section class="card">
     <div class="cardLabel">Connect to Google Drive</div>
     <div class="row">
       <div class="field">
-        <label>OAuth Client ID</label>
+        <label for="clientId">OAuth Client ID</label>
         <input type="text" id="clientId" placeholder="xxxxxxxx.apps.googleusercontent.com">
       </div>
       <button class="btn btn-primary" id="connectBtn">Connect</button>
-      <span class="pill"><span class="dot" id="connDot"></span><span id="connText">Not connected</span></span>
+      <span class="pill"><span class="dot" id="connDot"></span><span id="connText" role="status">Not connected</span></span>
     </div>
     <div class="noteBox">Your Client ID is saved in this browser only (localStorage), never sent anywhere except Google. Access tokens live in memory only and are refreshed automatically while a job is running.</div>
   </section>
@@ -98,7 +101,7 @@
     </div>
     <div class="row">
       <div class="field">
-        <label>Destination Drive folder ID</label>
+        <label for="destFolderId">Destination Drive folder ID</label>
         <input type="text" id="destFolderId" placeholder="paste folder ID, or use root">
       </div>
       <button class="btn btn-secondary" id="useRootBtn">Use My Drive root</button>
@@ -107,6 +110,14 @@
     </div>
     <select id="rootFolderSelect" style="margin-top:10px; width:100%; display:none;"></select>
     <div class="noteBox">To find a folder ID: open it in Google Drive in your browser, and copy the string after <code>/folders/</code> in the address bar.</div>
+    <div class="row" id="newFolderRow" style="display:none; margin-top:10px;">
+      <div class="field" style="flex:1;">
+        <label for="newFolderName">New folder name</label>
+        <input type="text" id="newFolderName" placeholder="e.g. uploads-2026">
+      </div>
+      <button class="btn btn-primary" id="createFolderConfirmBtn">Create</button>
+      <button class="btn btn-secondary" id="createFolderCancelBtn">Cancel</button>
+    </div>
   </section>
 
   <!-- Controls -->
@@ -124,7 +135,7 @@
   <section class="card">
     <div class="cardLabel">Progress</div>
     <div class="statsGrid">
-      <div class="stat"><div class="statLabel">Files</div><div class="statValue" id="statFiles">0 / 0</div></div>
+      <div class="stat"><div class="statLabel">Files</div><div class="statValue" id="statFiles" role="status">0 / 0</div></div>
       <div class="stat"><div class="statLabel">Data</div><div class="statValue" id="statBytes">0 / 0 GB</div></div>
       <div class="stat"><div class="statLabel">Speed</div><div class="statValue" id="statSpeed">—</div></div>
       <div class="stat"><div class="statLabel">ETA</div><div class="statValue" id="statEta">—</div></div>
@@ -158,6 +169,17 @@ let tokenClient = null;
 let accessToken = null;
 let tokenExpiryTime = 0;
 
+// ponytail: every message lands inline (role="alert" div) — no native dialogs.
+let msgTimer = null;
+function showMsg(text){
+  const el = document.getElementById('vahakMsg');
+  clearTimeout(msgTimer);
+  if(!text){ el.style.display = 'none'; return; }
+  el.textContent = text;
+  el.style.display = 'block';
+  msgTimer = setTimeout(() => { el.style.display = 'none'; }, 8000);
+}
+
 function setConnected(on){
   document.getElementById('connDot').classList.toggle('on', on);
   document.getElementById('connText').textContent = on ? 'Connected' : 'Not connected';
@@ -165,7 +187,7 @@ function setConnected(on){
 
 function initTokenClient(){
   const clientId = clientIdInput.value.trim();
-  if(!clientId){ alert('Paste your OAuth Client ID first.'); return null; }
+  if(!clientId){ showMsg('Paste your OAuth Client ID first.'); return null; }
   // GIS is async; if it hasn't landed yet this would throw a bare
   // "google is not defined" ReferenceError. Say something actionable instead.
   if(typeof google === 'undefined' || !google.accounts){
@@ -203,8 +225,8 @@ async function getValidToken(){
 }
 
 document.getElementById('connectBtn').addEventListener('click', async () => {
-  try{ await requestToken('consent'); }
-  catch(err){ alert('Connection failed: ' + err.message); }
+  try{ await requestToken('consent'); showMsg(''); }
+  catch(err){ showMsg('Connection failed: ' + err.message); }
 });
 
 // ================= Folder pickers =================
@@ -248,15 +270,23 @@ document.getElementById('listFoldersBtn').addEventListener('click', async () => 
       sel.appendChild(opt);
     });
     sel.style.display = 'block';
-  }catch(err){ alert('Could not list folders: ' + err.message); }
+  }catch(err){ showMsg('Could not list folders: ' + err.message); }
 });
 document.getElementById('rootFolderSelect').addEventListener('change', (e) => {
   if(e.target.value) destFolderIdInput.value = e.target.value;
 });
 
-document.getElementById('createFolderBtn').addEventListener('click', async () => {
-  const name = prompt('New folder name:');
-  if(!name) return;
+document.getElementById('createFolderBtn').addEventListener('click', () => {
+  const row = document.getElementById('newFolderRow');
+  row.style.display = 'flex';
+  document.getElementById('newFolderName').focus();
+});
+document.getElementById('createFolderCancelBtn').addEventListener('click', () => {
+  document.getElementById('newFolderRow').style.display = 'none';
+});
+document.getElementById('createFolderConfirmBtn').addEventListener('click', async () => {
+  const name = document.getElementById('newFolderName').value.trim();
+  if(!name){ showMsg('Type a folder name first.'); return; }
   try{
     const token = await getValidToken();
     const parent = destFolderIdInput.value.trim() || 'root';
@@ -266,9 +296,14 @@ document.getElementById('createFolderBtn').addEventListener('click', async () =>
       body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parent] })
     });
     const data = await res.json();
-    if(data.id){ destFolderIdInput.value = data.id; alert('Created folder "' + name + '". Set as destination.'); }
-    else alert('Failed: ' + JSON.stringify(data));
-  }catch(err){ alert('Could not create folder: ' + err.message); }
+    if(data.id){
+      destFolderIdInput.value = data.id;
+      document.getElementById('newFolderRow').style.display = 'none';
+      document.getElementById('newFolderName').value = '';
+      showMsg('Created folder "' + name + '". Set as destination.');
+    }
+    else showMsg('Failed: ' + (data.error && data.error.message ? data.error.message : JSON.stringify(data)));
+  }catch(err){ showMsg('Could not create folder: ' + err.message); }
 });
 
 const driveFolderCache = new Map(); // "parentId|name" -> id
@@ -440,7 +475,7 @@ function updateOverallUI(){
   document.getElementById('statFiles').textContent = overallDoneFiles + ' / ' + overallTotalFiles;
   document.getElementById('statBytes').textContent = fmtBytes(overallDoneBytes) + ' / ' + fmtBytes(overallTotalBytes);
   const pct = overallTotalBytes ? (overallDoneBytes/overallTotalBytes*100) : 0;
-  document.getElementById('overallBar').style.width = pct.toFixed(1) + '%';
+  document.getElementById('overallBar').style.transform = 'scaleX(' + pct.toFixed(1) / 100 + ')';
   document.getElementById('statElapsed').textContent = fmtElapsed(Date.now() - jobStartTime);
 
   const now = Date.now();
@@ -489,10 +524,11 @@ async function waitWhilePaused(){
 
 async function runJob(){
   const destRoot = destFolderIdInput.value.trim();
-  if(!destRoot){ alert('Set a destination Drive folder ID first.'); return; }
-  if(!sourceDirHandle){ alert('Choose a source folder first.'); return; }
-  if(!processedDirHandle){ alert('Choose a processed folder first.'); return; }
-  try{ await getValidToken(); }catch(err){ alert('Not connected to Google Drive.'); return; }
+  if(!destRoot){ showMsg('Set a destination Drive folder ID first.'); return; }
+  if(!sourceDirHandle){ showMsg('Choose a source folder first.'); return; }
+  if(!processedDirHandle){ showMsg('Choose a processed folder first.'); return; }
+  try{ await getValidToken(); }catch(err){ showMsg('Not connected to Google Drive.'); return; }
+  showMsg('');
 
   document.getElementById('startBtn').disabled = true;
   document.getElementById('pauseBtn').disabled = false;
@@ -563,8 +599,23 @@ document.getElementById('pauseBtn').addEventListener('click', (e) => {
   isPaused = !isPaused;
   e.target.textContent = isPaused ? 'Resume' : 'Pause';
 });
-document.getElementById('cancelBtn').addEventListener('click', () => {
+// two-step cancel: first click arms the button, second (within 4s) cancels.
+let cancelArmed = false, cancelArmTimer = null;
+document.getElementById('cancelBtn').addEventListener('click', (e) => {
+  if(!cancelArmed){
+    cancelArmed = true;
+    e.target.textContent = 'Sure? Cancel run';
+    cancelArmTimer = setTimeout(() => {
+      cancelArmed = false;
+      e.target.textContent = 'Cancel';
+    }, 4000);
+    return;
+  }
+  clearTimeout(cancelArmTimer);
+  cancelArmed = false;
+  e.target.textContent = 'Cancel';
   cancelRequested = true;
+  showMsg('Cancelling — files already uploaded and moved to "processed" stay there. Re-running resumes from where you stopped.');
 });
 </script>
 </body>

@@ -42,7 +42,7 @@
 
   .summaryRow{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
   .summaryCard{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:16px 18px; }
-  .summaryLabel{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
+  .summaryLabel{ font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
   .summaryValue{ font-family:var(--mono), monospace; font-size:1.19rem; font-weight:600; }
   .good{ color:var(--teal); } .bad{ color:var(--red); } .neutral{ color:var(--text); }
 
@@ -51,7 +51,7 @@
 
   .chartWrap{ width:100%; overflow:hidden; }
   svg.chart{ width:100%; height:auto; display:block; }
-  .axisText{ font-family:var(--mono), monospace; font-size:0.66rem; fill:var(--muted); }
+  .axisText{ font-family:var(--mono), monospace; font-size:0.75rem; fill:var(--muted); }
   .gridLine{ stroke:var(--line); stroke-dasharray:2 5; }
   .hoverLine{ stroke:var(--muted); stroke-width:1; }
   .legendRow{ display:flex; gap:18px; margin-top:6px; flex-wrap:wrap; }
@@ -62,7 +62,7 @@
   table{ width:100%; border-collapse:collapse; font-family:var(--mono), monospace; font-size:0.78rem; }
   thead th{
     position:sticky; top:0; background:var(--panel-2); color:var(--amber); text-align:right; padding:10px 12px;
-    font-weight:600; font-size:0.72rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line);
+    font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line);
   }
   tbody td{ text-align:right; padding:8px 12px; border-bottom:1px solid var(--line); }
   tbody tr:nth-child(even){ background:var(--panel-2); }
@@ -71,7 +71,7 @@
 
   .tooltipBox{
     background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-md); padding:8px 12px;
-    font-family:var(--mono), monospace; font-size:0.72rem;
+    font-family:var(--mono), monospace; font-size:0.75rem;
   }
 
   @media (max-width:640px){
@@ -94,24 +94,24 @@
   <section class="card">
     <div class="cardLabel">Loan terms</div>
     <div class="inputGrid">
-      <div class="field"><label>Loan amount (₹)</label><input type="number" id="principal" value="5000000"></div>
-      <div class="field"><label>Interest rate (annual %)</label><input type="number" id="rate" step="0.05" value="9.0"></div>
-      <div class="field"><label>Tenure (years)</label><input type="number" id="years" value="10" min="1"></div>
-      <div class="field"><label>Monthly EMI</label><div class="readOnly" id="emiOut">—</div></div>
+      <div class="field"><label for="principal">Loan amount (₹)</label><input type="number" id="principal" value="5000000"></div>
+      <div class="field"><label for="rate">Interest rate (annual %)</label><input type="number" id="rate" step="0.05" value="9.0"></div>
+      <div class="field"><label for="years">Tenure (years)</label><input type="number" id="years" value="10" min="1"></div>
+      <div class="field"><label>Monthly EMI</label><div class="readOnly" id="emiOut" role="status">—</div></div>
     </div>
 
     <div class="divider"></div>
 
     <div class="inputGrid">
       <div class="field">
-        <label>Interest method</label>
-        <div class="toggleGroup" id="interestTypeToggle">
+        <label id="interestMethodLabel">Interest method</label>
+        <div class="toggleGroup" id="interestTypeToggle" role="group" aria-labelledby="interestMethodLabel">
           <button class="toggleBtn active" data-val="reducing">Reducing balance</button>
           <button class="toggleBtn" data-val="flat">Flat / simple</button>
         </div>
       </div>
       <div class="field">
-        <label>Processing fee</label>
+        <label for="feeValue">Processing fee</label>
         <div style="display:flex; gap:8px;">
           <input type="number" id="feeValue" step="0.1" value="1.0" style="flex:1;">
           <div class="toggleGroup" id="feeTypeToggle">
@@ -131,18 +131,19 @@
   <section class="card">
     <div class="cardLabel">Add a prepayment</div>
     <div class="inputGrid">
-      <div class="field"><label>Starting month</label><input type="number" id="bulkMonth" value="1" min="1"></div>
-      <div class="field"><label>Amount (₹)</label><input type="number" id="bulkAmount" value="100000"></div>
-      <div class="field"><label>Repeat every N months (0 = once)</label><input type="number" id="bulkEvery" value="0" min="0"></div>
+      <div class="field"><label for="bulkMonth">Starting month</label><input type="number" id="bulkMonth" value="1" min="1"></div>
+      <div class="field"><label for="bulkAmount">Amount (₹)</label><input type="number" id="bulkAmount" value="100000"></div>
+      <div class="field"><label for="bulkEvery">Repeat every N months (0 = once)</label><input type="number" id="bulkEvery" value="0" min="0"></div>
       <div style="display:flex; gap:10px; align-items:flex-end;">
         <button class="btn btn-primary" id="applyBulkBtn">Apply</button>
         <button class="btn btn-secondary" id="clearExtrasBtn">Clear all</button>
+        <button class="btn btn-secondary" id="undoClearBtn" hidden>Undo clear</button>
       </div>
     </div>
   </section>
 
   <!-- Summary -->
-  <section class="summaryRow" id="summaryRow"></section>
+  <section class="summaryRow" id="summaryRow" aria-live="polite"></section>
 
   <!-- Balance chart -->
   <section class="card">
@@ -170,8 +171,8 @@
     </div>
     <div id="rentBody" style="display:none;">
       <div class="inputGrid">
-        <div class="field"><label>Monthly rent today (₹)</label><input type="number" id="rentAmount" value="20000"></div>
-        <div class="field"><label>Annual rent increase (%)</label><input type="number" id="rentIncrease" step="0.5" value="5"></div>
+        <div class="field"><label for="rentAmount">Monthly rent today (₹)</label><input type="number" id="rentAmount" value="20000"></div>
+        <div class="field"><label for="rentIncrease">Annual rent increase (%)</label><input type="number" id="rentIncrease" step="0.5" value="5"></div>
         <div class="field"><label>Compared over</label><div class="readOnly" id="rentYearsOut">—</div></div>
       </div>
       <div class="chartWrap" style="margin-top:8px;">
@@ -601,8 +602,16 @@ document.getElementById('applyBulkBtn').addEventListener('click', () => {
   render();
 });
 document.getElementById('clearExtrasBtn').addEventListener('click', () => {
+  const last = { ...state.extraMap };
   state.extraMap = {};
   render();
+  if(Object.keys(last).length){
+    const undo = document.getElementById('undoClearBtn');
+    undo.hidden = false;
+    clearTimeout(undo._t);
+    undo._t = setTimeout(() => { undo.hidden = true; }, 8000);
+    undo.onclick = () => { state.extraMap = last; undo.hidden = true; render(); };
+  }
 });
 
 // delegated input for per-row extra payment

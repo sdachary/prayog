@@ -9,6 +9,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/assets/theme.css">
 <script src="../assets/nav.js" defer data-tool="pahchan"></script>
+<script src="/assets/cdn-guard.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/tesseract.js@v5.0.4/dist/tesseract.min.js" integrity="sha384-Ptw8HCYAWF6vIop6WuGxfSCiDCIzUWqjrHYfx8Vd0S4CMBaicAdBh2y+Ufle664A" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
@@ -21,9 +22,9 @@
   .card{background:var(--fill);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid var(--fill-2);margin-top:1rem;position:relative}
   .card.disabled{opacity:.45;pointer-events:none}
   .privacy-badge{display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--teal);background:rgba(47,163,154,0.1);border:1px solid rgba(47,163,154,0.3);padding:4px 12px;border-radius:var(--radius-full);margin-bottom:16px}
-  .step-label{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal);color:#0b0f14;font-size:0.72rem;font-weight:700;margin-right:8px}
+  .step-label{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--teal);color:#0b0f14;font-size:0.75rem;font-weight:700;margin-right:8px}
   .notice{background:rgba(232,163,61,0.08);border:1px solid rgba(232,163,61,0.3);color:var(--amber);padding:12px 14px;border-radius:var(--radius-sm);font-size:0.75rem;margin-bottom:16px;line-height:1.5}
-  label{display:block;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+  label{display:block;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
   .hint-text{font-size:0.75rem;color:var(--muted);margin:-2px 0 12px;line-height:1.4}
   input[type=text], input[type=number], select{
     width:100%; padding:9px 12px; border:1px solid var(--hair); border-radius:var(--radius-sm);
@@ -41,7 +42,7 @@
   .thumbs{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
   .thumb{position:relative; width:64px; height:64px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--line)}
   .thumb img{width:100%; height:100%; object-fit:cover}
-  .thumb .rm{position:absolute; top:2px; right:2px; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:11px; line-height:18px; cursor:pointer; padding:0}
+  .thumb .rm{position:absolute; top:2px; right:2px; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:12px; line-height:18px; cursor:pointer; padding:0}
   .btn{border:none; border-radius:var(--radius-sm); font-weight:600; font-size:0.8rem; cursor:pointer; padding:10px 18px; transition:.15s; display:inline-flex; align-items:center; gap:6px; font-family:var(--sans)}
   .btn:disabled{opacity:.5; cursor:not-allowed}
   .btn-primary{background:var(--teal); color:#0b0f14}
@@ -50,28 +51,28 @@
   .btn-success:hover:not(:disabled){background:#37b5ab}
   .btn-secondary{background:var(--fill-2); color:var(--text); border:1px solid var(--hair)}
   .btn-secondary:hover:not(:disabled){background:var(--hair)}
-  .btn-sm{padding:6px 10px; font-size:0.72rem}
+  .btn-sm{padding:6px 10px; font-size:0.75rem}
   .status{margin:16px 0; display:none}
   .status p{font-size:0.8rem; font-weight:600; color:var(--teal); margin:0 0 8px}
   .bar-track{width:100%; background:var(--hair); border-radius:var(--radius-full); height:6px; overflow:hidden}
-  .bar-fill{background:linear-gradient(90deg, var(--teal), var(--amber)); height:100%; width:0%; transition:width .2s}
+  .bar-fill{background:linear-gradient(90deg, var(--teal), var(--amber)); height:100%; width:100%; transform:scaleX(0); transform-origin:left; transition:transform .2s}
   .error{display:none; background:rgba(217,83,79,0.1); border:1px solid rgba(217,83,79,0.3); color:var(--red); padding:12px 14px; border-radius:var(--radius-sm); font-size:0.8rem; margin-bottom:16px}
   table{width:100%; border-collapse:collapse; font-size:0.8rem}
-  thead th{text-align:left; font-size:0.65rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); border-bottom:1px solid var(--hair); padding:8px 6px}
+  thead th{text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); border-bottom:1px solid var(--hair); padding:8px 6px}
   tbody td{padding:6px; border-bottom:1px solid var(--fill); vertical-align:middle}
   tbody tr:last-child td{border-bottom:none}
   td input[type=text]{padding:6px 8px; font-size:0.78rem}
   td input[type=checkbox]{width:16px; height:16px; accent-color:var(--teal); cursor:pointer}
   .row-thumb{width:40px; height:40px; border-radius:var(--radius-sm); object-fit:cover; display:block}
-  .badge{font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:var(--radius-full); display:inline-block}
+  .badge{font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:var(--radius-full); display:inline-block}
   .badge-ok{background:rgba(47,163,154,0.1); color:var(--teal)}
   .badge-warn{background:rgba(232,163,61,0.1); color:var(--amber)}
   .chk-cell{text-align:center}
   .rm-row{background:none; border:none; color:var(--red); cursor:pointer; font-size:0.75rem; font-weight:600}
   .toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px}
-  .footer-note{font-size:0.72rem; color:var(--muted); text-align:center; margin-top:16px; font-family:var(--mono)}
-  details summary{cursor:pointer; font-size:0.72rem; color:var(--muted); margin-top:4px}
-  .raw-text{font-size:0.72rem; color:var(--muted); background:rgba(0,0,0,0.2); padding:8px; border-radius:var(--radius-sm); margin-top:6px; white-space:pre-wrap; font-family:var(--mono)}
+  .footer-note{font-size:0.75rem; color:var(--muted); text-align:center; margin-top:16px; font-family:var(--mono)}
+  details summary{cursor:pointer; font-size:0.75rem; color:var(--muted); margin-top:4px}
+  .raw-text{font-size:0.75rem; color:var(--muted); background:rgba(0,0,0,0.2); padding:8px; border-radius:var(--radius-sm); margin-top:6px; white-space:pre-wrap; font-family:var(--mono)}
   .sample-preview{display:flex; gap:16px; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap}
   .sample-preview img{width:140px; border-radius:var(--radius-sm); border:1px solid var(--line)}
   .done-check{color:var(--teal); font-weight:700; font-size:0.75rem; margin-left:8px}
@@ -94,7 +95,7 @@
     <h2><span class="step-label">1</span>Upload one sample ID and define fields</h2>
     <p class="hint-text">Upload a single ID card (photo or PDF) to teach the tool what fields look like. You'll name each column yourself.</p>
 
-    <div class="dropzone" id="sampleDropzone">
+    <div class="dropzone" id="sampleDropzone" tabindex="0" role="button" aria-label="Upload one sample ID — press Enter to browse for a file">
       <input type="file" id="sampleInput" accept="image/*,.pdf" style="display:none;" />
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -103,8 +104,8 @@
       <div class="hint">Image (JPG/PNG) or PDF</div>
     </div>
 
-    <div class="error" id="sampleError"></div>
-    <div class="status" id="sampleStatus">
+    <div class="error" id="sampleError" role="alert"></div>
+    <div class="status" id="sampleStatus" aria-live="polite">
       <p id="sampleStatusText">Reading sample...</p>
       <div class="bar-track"><div class="bar-fill" id="sampleProgressBar"></div></div>
     </div>
@@ -140,7 +141,7 @@
   <!-- STEP 2: Bulk upload -->
   <div class="card disabled" id="step2Card">
     <h2><span class="step-label">2</span>Upload all ID files</h2>
-    <div class="dropzone" id="dropzone">
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload all ID files — press Enter to browse for files">
       <input type="file" id="imageInput" accept="image/*,.pdf" multiple style="display:none;" />
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -155,8 +156,8 @@
       <button class="btn btn-secondary" id="clearImagesBtn">Clear files</button>
     </div>
 
-    <div class="error" id="errorBox"></div>
-    <div class="status" id="statusContainer">
+    <div class="error" id="errorBox" role="alert"></div>
+    <div class="status" id="statusContainer" aria-live="polite">
       <p id="statusText">Processing...</p>
       <div class="bar-track"><div class="bar-fill" id="progressBar"></div></div>
     </div>
@@ -286,6 +287,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
   let fields = []; // {title, label, include}
 
   sampleDropzone.addEventListener('click', () => sampleInput.click());
+  sampleDropzone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sampleInput.click(); } });
   ['dragenter', 'dragover'].forEach(evt => sampleDropzone.addEventListener(evt, e => { e.preventDefault(); sampleDropzone.classList.add('drag'); }));
   ['dragleave', 'drop'].forEach(evt => sampleDropzone.addEventListener(evt, e => { e.preventDefault(); sampleDropzone.classList.remove('drag'); }));
   sampleDropzone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) analyzeSample(f); });
@@ -296,11 +298,11 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
     sampleAnalyzedBlock.style.display = 'none';
     sampleStatus.style.display = 'block';
     sampleStatusText.textContent = 'Reading sample...';
-    sampleProgressBar.style.width = '20%';
+    sampleProgressBar.style.transform = 'scaleX(0.2)';
     await tick();
     try {
       const { text, thumbUrl } = await ocrFile(file);
-      sampleProgressBar.style.width = '100%';
+      sampleProgressBar.style.transform = 'scaleX(1)';
       await tick();
       samplePreviewImg.src = thumbUrl;
       sampleRawText.textContent = text.trim() || '(no text detected — try a clearer photo)';
@@ -413,6 +415,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
   ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
   dropzone.addEventListener('drop', e => addFiles(Array.from(e.dataTransfer.files || [])));
   dropzone.addEventListener('click', () => imageInput.click());
+  dropzone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); imageInput.click(); } });
   imageInput.addEventListener('change', e => addFiles(Array.from(e.target.files || [])));
 
   function addFiles(files) {
@@ -434,7 +437,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
       div.className = 'thumb';
       const isPdf = !item.url;
       div.innerHTML = isPdf
-        ? `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--fill);font-size:11px;font-weight:700;color:var(--muted);">PDF</div><button class="rm" data-idx="${idx}">✕</button>`
+        ? `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--fill);font-size:12px;font-weight:700;color:var(--muted);">PDF</div><button class="rm" data-idx="${idx}">✕</button>`
         : `<img src="${item.url}" /><button class="rm" data-idx="${idx}">✕</button>`;
       thumbs.appendChild(div);
     });
@@ -482,7 +485,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
     for (let i = 0; i < bulkFiles.length; i++) {
       const item = bulkFiles[i];
       statusText.textContent = `Reading file ${i + 1} of ${bulkFiles.length}: ${item.file.name}`;
-      progressBar.style.width = `${Math.round((i / bulkFiles.length) * 95)}%`;
+      progressBar.style.transform = `scaleX(${Math.round((i / bulkFiles.length) * 95) / 100})`;
       await tick();
 
       let text = '', thumbUrl = item.url;
@@ -504,7 +507,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
       extractedRows.push({ values, fileName: item.file.name, thumbUrl, rawText: text.trim() });
     }
 
-    progressBar.style.width = '100%';
+    progressBar.style.transform = 'scaleX(1)';
     statusText.textContent = 'Done!';
     await tick();
     statusContainer.style.display = 'none';

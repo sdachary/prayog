@@ -21,8 +21,12 @@
   .pane textarea:focus{outline:none;border-color:var(--amber)}
   .diff{display:none;margin-top:1rem;background:var(--fill);border:1px solid var(--hair);border-radius:var(--radius-md);padding:0.75rem;font-family:monospace;font-size:0.82rem;line-height:1.5;white-space:pre-wrap;overflow-x:auto;max-height:400px;overflow-y:auto}
   .diff.show{display:block}
-  .diff del{background:rgba(239,68,68,0.25);color:#dc2626;text-decoration:line-through}
-  .diff ins{background:rgba(34,197,94,0.25);color:#15803d;text-decoration:none}
+  .diff del{background:rgba(239,68,68,0.25);color:#fca5a5;text-decoration:line-through}
+  .diff ins{background:rgba(34,197,94,0.25);color:#86efac;text-decoration:none}
+  [data-theme="light"] .diff del{color:#b91c1c}
+  [data-theme="light"] .diff ins{color:#166534}
+  .copy-msg{font-size:0.75rem;font-family:monospace;color:var(--teal);opacity:0;transition:opacity .2s}
+  .copy-msg.show{opacity:1}
   .meta{display:flex;gap:1rem;margin-top:0.5rem;font-size:0.75rem;color:var(--muted);font-family:monospace}
   .meta span{color:var(--amber)}
   .actions{display:flex;gap:0.5rem;align-items:center}
@@ -34,11 +38,11 @@
   <h1>Tulna <span>text diff</span></h1>
   <div class="panes">
     <div class="pane">
-      <label>left (original)</label>
+      <label for="left">left (original)</label>
       <textarea id="left" placeholder="Paste original text here…"></textarea>
     </div>
     <div class="pane">
-      <label>right (changed)</label>
+      <label for="right">right (changed)</label>
       <textarea id="right" placeholder="Paste changed text here…"></textarea>
     </div>
   </div>
@@ -46,9 +50,11 @@
     <button class="btn btn-primary" id="diffBtn">diff</button>
     <button class="btn" id="swapBtn">swap</button>
     <button class="btn" id="clearBtn">clear</button>
+    <button class="btn btn-secondary" id="copyBtn">copy diff</button>
+    <span class="copy-msg" id="copyMsg">copied</span>
   </div>
-  <div class="meta" id="meta"></div>
-  <div class="diff" id="diff"></div>
+  <div class="meta" id="meta" aria-live="polite"></div>
+  <div class="diff" id="diff" aria-live="polite"></div>
   <footer>Nothing is uploaded or stored remotely — all processing happens in your browser.</footer>
 </div>
 <script>
@@ -80,6 +86,13 @@
   };
   document.getElementById('swapBtn').onclick=function(){var t=L.value;L.value=R.value;R.value=t};
   document.getElementById('clearBtn').onclick=function(){L.value='';R.value='';D.classList.remove('show');M.innerHTML=''};
+  document.getElementById('copyBtn').onclick=function(){
+    if(!D.classList.contains('show'))return;
+    var msg=document.getElementById('copyMsg');
+    function ok(){msg.classList.add('show');setTimeout(function(){msg.classList.remove('show')},1500)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(D.innerText).then(ok)}
+    else{var ta=document.createElement('textarea');ta.value=D.innerText;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();ok()}
+  };
   document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='Enter')document.getElementById('diffBtn').click()});
 })();
 </script>

@@ -13,7 +13,7 @@
   header{ width:100%; max-width:720px; display:flex; align-items:baseline; justify-content:space-between; margin-bottom:28px; }
   .brand{ font-family:var(--mono); font-weight:600; font-size:15px; letter-spacing:0.06em; }
   .brand span{ color:var(--amber); }
-  .tagline{ font-size:11px; color:var(--muted); font-family:var(--mono); letter-spacing:0.03em; }
+  .tagline{ font-size:12px; color:var(--muted); font-family:var(--mono); letter-spacing:0.03em; }
 
   .card{
     width:100%; max-width:720px;
@@ -27,7 +27,7 @@
   .card.warn::before{ background:var(--amber); }
   .card.bad::before{ background:var(--red); }
 
-  .eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:14px; }
+  .eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:14px; }
   .notice{
     background:rgba(47,163,154,0.08); border:1px solid rgba(47,163,154,0.35);
     border-radius:10px; padding:12px 14px; font-size:12.5px; line-height:1.6; color:var(--text);
@@ -48,7 +48,7 @@
   }
   .mode-opt.selected{ border-color:var(--teal); background:rgba(47,163,154,0.08); }
   .mode-opt .m-title{ font-family:var(--mono); font-size:13px; font-weight:600; margin-bottom:3px; }
-  .mode-opt .m-desc{ font-size:11.5px; color:var(--muted); line-height:1.4; }
+  .mode-opt .m-desc{ font-size:12px; color:var(--muted); line-height:1.4; }
 
   .big-btn{
     width:100%; background:var(--teal); color:#04211d; border:none; border-radius:10px;
@@ -66,12 +66,12 @@
   .stat-row{ display:flex; gap:14px; margin:16px 0 10px; }
   .stat{ flex:1; text-align:center; }
   .stat .n{ font-family:var(--mono); font-weight:700; font-size:24px; }
-  .stat .l{ font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-top:2px; }
+  .stat .l{ font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-top:2px; }
   .stat.n-teal .n{ color:var(--teal); }
   .stat.n-red .n{ color:var(--red); }
 
   .current-path{
-    font-family:var(--mono); font-size:11.5px; color:var(--muted);
+    font-family:var(--mono); font-size:12px; color:var(--muted);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:9px 12px; margin-top:10px;
   }
@@ -81,8 +81,8 @@
     background:var(--bg); border:1px solid rgba(217,83,79,0.3); border-radius:8px; padding:10px 12px;
   }
   .r-path{ font-family:var(--mono); font-size:12px; color:var(--text); word-break:break-all; }
-  .r-meta{ font-family:var(--mono); font-size:10.5px; color:var(--muted); margin-top:4px; }
-  .r-err{ font-family:var(--mono); font-size:10.5px; color:var(--red); margin-top:2px; }
+  .r-meta{ font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:4px; }
+  .r-err{ font-family:var(--mono); font-size:12px; color:var(--red); margin-top:2px; }
 
   .empty-note{ font-size:12.5px; color:var(--muted); text-align:center; padding:20px 0; }
   .action-row{ display:flex; gap:10px; margin-top:16px; }
@@ -94,7 +94,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">DRISHTI</div>
+    <h1 class="brand">DRISHTI</h1>
     <div class="sub">read-only unreadable file scanner</div>
   </header>
 
@@ -108,12 +108,12 @@
 
   <div class="card" id="setupCard">
     <div class="eyebrow">Scan mode</div>
-    <div class="mode-row">
-      <div class="mode-opt selected" data-mode="quick" id="modeQuick">
+    <div class="mode-row" role="group" aria-label="Scan mode">
+      <div class="mode-opt selected" data-mode="quick" id="modeQuick" role="button" tabindex="0" aria-pressed="true">
         <div class="m-title">Quick check</div>
         <div class="m-desc">Tries opening each file and reading a small sample. Fast — good first pass.</div>
       </div>
-      <div class="mode-opt" data-mode="thorough" id="modeThorough">
+      <div class="mode-opt" data-mode="thorough" id="modeThorough" role="button" tabindex="0" aria-pressed="false">
         <div class="m-title">Thorough scan</div>
         <div class="m-desc">Reads every file fully, start to end. Slower, catches errors mid-file.</div>
       </div>
@@ -141,7 +141,7 @@
       <div class="stat n-red"><div class="n" id="finalFailed">0</div><div class="l">unreadable</div></div>
       <div class="stat n-teal"><div class="n" id="finalTime">0s</div><div class="l">total time</div></div>
     </div>
-    <div class="results" id="resultsList"></div>
+    <div class="results" id="resultsList" aria-live="polite"></div>
     <div class="empty-note hidden" id="emptyNote">No unreadable files found. Everything opened cleanly.</div>
     <div class="action-row">
       <button class="ghost-btn" id="downloadBtn">download report (.txt)</button>
@@ -191,10 +191,15 @@
 
   modeQuick.addEventListener('click', () => setMode('quick'));
   modeThorough.addEventListener('click', () => setMode('thorough'));
+  [modeQuick, modeThorough].forEach(o => o.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMode(o.dataset.mode); }
+  }));
   function setMode(m){
     mode = m;
     modeQuick.classList.toggle('selected', m === 'quick');
     modeThorough.classList.toggle('selected', m === 'thorough');
+    modeQuick.setAttribute('aria-pressed', m === 'quick');
+    modeThorough.setAttribute('aria-pressed', m === 'thorough');
   }
 
   function fmtBytes(b){

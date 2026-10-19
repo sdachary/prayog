@@ -5,6 +5,8 @@
   Apps with analytics set REQUIRED=false to show accept/reject.
   Drop into the app's bundle or static root; call initCookieBanner() on load.
   Persists choice in localStorage 'acharylab-cookie-consent' (v1|reject|granted).
+  Prayog instance: styled with theme.css tokens (falls back to hex in vars-less pages)
+  and reserves body space so it never overlaps the content it sits above.
 */
 (function () {
   var CONFIG = {
@@ -18,19 +20,20 @@
   var HTML =
     '<div id="acharylab-cookie-banner" role="region" aria-label="Cookie notice" ' +
     'style="position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;max-width:520px;' +
-    'background:#111;color:#fafafa;border:1px solid #262626;border-left:3px solid #FF3D00;' +
-    'border-radius:10px;padding:16px 18px;font:13.5px/1.6 system-ui,-apple-system,Segoe UI,sans-serif;' +
+    'background:var(--panel,#121922);color:var(--text,#fafafa);border:1px solid var(--line,#262626);' +
+    'border-left:3px solid var(--amber,#e8a33d);' +
+    'border-radius:10px;padding:16px 18px;font:13.5px/1.6 var(--sans,system-ui);' +
     'box-shadow:0 12px 40px rgba(0,0,0,0.5)">' +
     '<div style="margin-bottom:10px">' + CONFIG.TEXT + '</div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-    '<button id="acharylab-cookie-accept" style="background:#FF3D00;color:#fff;border:0;border-radius:6px;' +
+    '<button id="acharylab-cookie-accept" style="background:var(--amber,#e8a33d);color:#0b0f14;border:0;border-radius:6px;' +
     'padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer">' + CONFIG.ACCEPT + '</button>' +
     (CONFIG.REQUIRED ? '' :
-      '<button id="acharylab-cookie-reject" style="background:transparent;color:#c9c4b8;border:1px solid #333;' +
+      '<button id="acharylab-cookie-reject" style="background:transparent;color:var(--muted,#c9c4b8);border:1px solid var(--line,#333);' +
       'border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">' + CONFIG.REJECT + '</button>') +
     (CONFIG.POLICIES ?
-      '<a href="' + (CONFIG.PRIVACY || '/privacy') + '" style="color:#c9c4b8;align-self:center;margin-left:auto;text-decoration:underline">Privacy</a>' +
-      '<a href="' + (CONFIG.TERMS || '/terms') + '" style="color:#c9c4b8;align-self:center;text-decoration:underline">Terms</a>' : '') +
+      '<a href="' + (CONFIG.PRIVACY || '/privacy') + '" style="color:var(--muted,#c9c4b8);align-self:center;margin-left:auto;text-decoration:underline">Privacy</a>' +
+      '<a href="' + (CONFIG.TERMS || '/terms') + '" style="color:var(--muted,#c9c4b8);align-self:center;text-decoration:underline">Terms</a>' : '') +
     '</div></div>';
 
   window.initCookieBanner = function (opts) {
@@ -41,15 +44,18 @@
       el.innerHTML = HTML;
       var banner = el.firstChild; // appendChild MOVES it out of el — never remove el
       document.body.appendChild(banner);
+      // reserve space so the fixed strip can't cover content (critique: overlap)
+      document.body.style.paddingBottom = (banner.offsetHeight + 40) + 'px';
+      var cleanup = function () { banner.remove(); document.body.style.paddingBottom = ''; };
       var accept = banner.querySelector('#acharylab-cookie-accept');
       var reject = banner.querySelector('#acharylab-cookie-reject');
       if (accept) accept.addEventListener('click', function () {
         localStorage.setItem('acharylab-cookie-consent', CONFIG.REQUIRED ? 'v1' : 'granted');
-        banner.remove();
+        cleanup();
       });
       if (reject) reject.addEventListener('click', function () {
         localStorage.setItem('acharylab-cookie-consent', 'reject');
-        banner.remove();
+        cleanup();
       });
     } catch (e) { /* storage unavailable; show nothing */ }
   };

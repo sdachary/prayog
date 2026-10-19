@@ -61,12 +61,13 @@
         <button class="btn btn-primary" id="scanBtn">start camera</button>
         <button class="btn btn-secondary" id="stopScanBtn" disabled>stop</button>
       </div>
-      <div class="scan-result" id="scanResult"></div>
+      <div class="scan-result" id="scanResult" role="status"></div>
     </div>
   </div>
   <footer>Nothing is uploaded or stored remotely — all processing happens in your browser. Camera feed never leaves your device.</footer>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
+<script src="../assets/vendor/qrcode.min.js"></script>
+<script src="/assets/cdn-guard.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" integrity="sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx" crossorigin="anonymous"></script>
 <script>
 (function(){
@@ -95,8 +96,11 @@
   });
 
   var _qr;
-  document.getElementById('genBtn').onclick=function(){
-    var val=document.getElementById('qrInput').value.trim();
+  var genBtn=document.getElementById('genBtn'),qrInput=document.getElementById('qrInput');
+  genBtn.disabled=!qrInput.value.trim();
+  qrInput.addEventListener('input',function(){genBtn.disabled=!qrInput.value.trim()});
+  genBtn.onclick=function(){
+    var val=qrInput.value.trim();
     if(!val)return;
     document.getElementById('qrDisplay').innerHTML='';
     _qr=new QRCode(document.getElementById('qrDisplay'),{text:val,width:180,height:180,colorDark:'#0b0e1a',colorLight:'#e0e0e0',correctLevel:QRCode.CorrectLevel.H});
@@ -122,6 +126,7 @@
   var ctx=scanCanvas.getContext('2d'),_stream,_scanInt;
 
   document.getElementById('scanBtn').onclick=function(){
+    if(typeof jsQR==='undefined'){scanResult.textContent='Scanner library did not load — check your connection and reload.';scanResult.classList.add('show');return}
     document.getElementById('scanner').style.display='block';
     scanResult.classList.remove('show');
     navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(s){
