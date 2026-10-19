@@ -7,6 +7,8 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/assets/theme.css">
+<script src="../assets/vendor/thinking-orbs-engine.js" defer></script>
+<script src="../assets/orb.js" defer></script>
 <script src="/assets/nav.js" defer data-tool="SANDESH"></script>
 <style>
   .wrap{
@@ -44,6 +46,7 @@
   }
   .card.active::before{ background:var(--teal); }
   .card.searching::before{ background:var(--amber); }
+  .card.bad::before{ background:var(--red); }
 
   .label-row{
     display:flex; align-items:center; justify-content:space-between;
@@ -57,16 +60,15 @@
     display:inline-flex; align-items:center; gap:6px;
     font-family:var(--mono); font-size:12px; color:var(--muted);
   }
+  /* the live/connected marker — a static teal dot, no animation */
   .dot{
     width:7px; height:7px; border-radius:50%;
     background:var(--muted);
   }
-  .dot.searching{ background:var(--amber); animation:pulse 1.4s ease-in-out infinite; }
-  .dot.live{ background:var(--teal); box-shadow:0 0 0 0 rgba(47,163,154,0.5); animation:none; }
-  @keyframes pulse{
-    0%,100%{opacity:1; transform:scale(1);}
-    50%{opacity:.35; transform:scale(.8);}
-  }
+  .dot.live{ background:var(--teal); box-shadow:0 0 0 0 rgba(47,163,154,0.5); }
+  .dot.bad{ background:var(--red); }
+  /* the connecting orb sits in the same slot; keep its baseline aligned */
+  thinking-orb{ margin:-3px 0; }
 
   .freq{
     font-family:var(--mono); font-weight:700; font-size:44px; letter-spacing:0.05em;
@@ -254,7 +256,7 @@
   <div class="card searching" id="sessionCard">
     <div class="label-row">
       <div class="eyebrow">Connection</div>
-      <div class="status-dot"><span class="dot searching" id="statusDot"></span><span id="statusText">opening…</span></div>
+      <div class="status-dot"><thinking-orb state="searching" size="20" id="statusOrb" aria-hidden="true"></thinking-orb><span class="dot hidden" id="statusDot"></span><span id="statusText" role="status">opening…</span></div>
     </div>
     <div id="steps">
       <div class="step">
@@ -282,7 +284,7 @@
   <div class="card hidden" id="incomingCard">
     <div class="label-row">
       <div class="eyebrow">Incoming connection</div>
-      <div class="status-dot"><span class="dot searching"></span><span>from peer #<span id="pendingPeer">unknown</span></span></div>
+      <div class="status-dot"><thinking-orb state="connecting" size="20" aria-hidden="true"></thinking-orb><span>from peer #<span id="pendingPeer">unknown</span></span></div>
     </div>
     <div class="hint">Someone at this channel wants to send you files. Accepting opens an encrypted link to them.</div>
     <div class="pend-row">
@@ -332,7 +334,7 @@
   <div class="card hidden" id="chatCard" role="tabpanel" aria-labelledby="tabChat">
     <div class="label-row">
       <div class="eyebrow">Chat</div>
-      <div class="status-dot"><span class="dot" id="cryptoDot"></span><span id="cryptoText">establishing encryption…</span></div>
+      <div class="status-dot"><thinking-orb state="connecting" size="20" id="cryptoOrb" aria-hidden="true" hidden></thinking-orb><span class="dot" id="cryptoDot"></span><span id="cryptoText" role="status">establishing encryption…</span></div>
     </div>
     <div class="safety-strip" id="safetyStrip">
       <span class="lock">🔒 end-to-end encrypted</span>
@@ -395,6 +397,7 @@
   const el = (id) => document.getElementById(id);
   const myCodeEl = el('myCode');
   const statusDot = el('statusDot');
+  const statusOrb = el('statusOrb');
   const statusText = el('statusText');
   const sessionCard = el('sessionCard');
   const waveform = el('waveform');
@@ -445,8 +448,19 @@
     return String(Math.floor(10000000 + Math.random() * 90000000));
   }
 
-  function setStatus(state, text){
+  /* status: 'searching' (in flight) | 'live' (connected) | 'bad' (failed).
+     The orb carries the in-flight state, the dot carries the outcome.
+     'bad' and not 'error' — theme.css's global `.error` is the error-banner
+     class (display:none), so an `.error` modifier would blank the card.
+     orbState overrides the orb's animation for states that read better as
+     a different motion — 'searching' for looking for a peer, 'connecting'
+     for a link that is being wired up. */
+  function setStatus(state, text, orbState){
     statusText.textContent = text;
+    var inFlight = (state === 'searching');
+    statusOrb.setAttribute('state', orbState || 'searching');
+    statusOrb.hidden = !inFlight;
+    statusDot.hidden = inFlight;
     statusDot.className = 'dot ' + state;
     waveform.className = 'waveform ' + state;
     sessionCard.className = 'card ' + state;
@@ -485,7 +499,7 @@
 
     peer.on('connection', (c) => {
       if(conn || pendingConn){ console.log('busy, rejecting', c.peer); c.close(); return; }
-      setStatus('searching', 'incoming connection… accept to receive');
+      setStatus('searching', 'incoming connection… accept to receive', 'connecting');
       pendingConn = c;
       pendingConn.on('data', bufferPending);
       pendingConn.on('close', () => {
@@ -506,7 +520,7 @@
         connectBtn.disabled = false;
         connectBtn.textContent = 'connect';
       } else {
-        setStatus('searching', 'connection error — reload to retry');
+        setStatus('bad', 'connection error — reload to retry');
       }
     });
   }
@@ -587,7 +601,7 @@
   let safetyDigits = '', verified = false;
   const chatLog = [];
   const chatLogEl = el('chatLog'), chatInput = el('chatInput'), chatSendBtn = el('chatSendBtn');
-  const cryptoDot = el('cryptoDot'), cryptoText = el('cryptoText');
+  const cryptoDot = el('cryptoDot'), cryptoText = el('cryptoText'), cryptoOrb = el('cryptoOrb');
   const safetyCode = el('safetyCode'), verifyBtn = el('verifyBtn'), verifiedTag = el('verifiedTag');
   const sessionTabs = el('sessionTabs'), tabFiles = el('tabFiles'), tabChat = el('tabChat');
   const chatCard = el('chatCard'), fileCard = document.querySelector('#fileCard'), chatDot = el('chatDot');
@@ -632,6 +646,8 @@
   }
   function paintSafety(){
     cryptoDot.className = 'dot ' + (cryptoReady ? 'live' : 'searching');
+    cryptoDot.hidden = cryptoReady;
+    cryptoOrb.hidden = !cryptoReady;
     cryptoText.textContent = cryptoReady ? 'end-to-end encrypted' : 'establishing encryption…';
     safetyCode.innerHTML = cryptoReady ? safetyDigits.slice(0,3) + '&nbsp;' + safetyDigits.slice(3) : '···&nbsp;···';
     verifyBtn.classList.toggle('hidden', !cryptoReady || verified);
@@ -759,11 +775,11 @@
     conn = c;
     conn.on('open', () => {
       if(autoReady) markReady();
-      else setStatus('searching', 'waiting for the other device to accept…');
+      else setStatus('searching', 'waiting for the other device to accept…', 'connecting');
     });
     conn.on('data', onData);
     conn.on('close', () => {
-      setStatus('searching', 'peer disconnected');
+      setStatus('bad', 'peer disconnected');
       setConnected(false);
       resetConnState();
     });

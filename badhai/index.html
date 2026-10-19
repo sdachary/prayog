@@ -7,6 +7,8 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/assets/theme.css">
+<script src="../assets/vendor/thinking-orbs-engine.js" defer></script>
+<script src="../assets/orb.js" defer></script>
   <script src="../assets/nav.js" defer data-tool="badhai"></script>
 
   <style>
@@ -349,6 +351,16 @@
       margin-top: 10px;
     }
 
+    /* status text + the working orb, centred as one unit */
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .status-row .status-message { margin-top: 0; }
+
     .status-message.success {
       color: var(--teal);
     }
@@ -409,20 +421,6 @@
     .reset-btn:hover {
       border-color: var(--teal);
       color: var(--teal);
-    }
-
-    .loading-spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(47,163,154, 0.3);
-      border-radius: 50%;
-      border-top-color: var(--teal);
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
     }
 
     .format-info {
@@ -584,7 +582,10 @@
         <div class="progress-bar">
           <div class="progress-fill" id="progressFill"></div>
         </div>
-        <div class="status-message" id="statusMessage" role="status">Preparing to extract...</div>
+        <div class="status-row">
+          <thinking-orb state="working" size="20" id="workOrb" aria-hidden="true" hidden></thinking-orb>
+          <div class="status-message" id="statusMessage" role="status">Preparing to extract...</div>
+        </div>
       </div>
 
       <button class="reset-btn" id="resetBtn" style="display: none;">
@@ -630,10 +631,15 @@
       });
 
       try {
+        progressSection.classList.add('show');
+        setBusy(true);
+        document.getElementById('progressPercent').textContent = '';
         document.getElementById('statusMessage').textContent = 'Loading FFmpeg...';
         await ffmpeg.load();
+        setBusy(false);
         // FFmpeg loaded
       } catch (error) {
+        setBusy(false);
         console.error('Failed to load FFmpeg:', error);
         showError('Failed to load FFmpeg. Please try again.');
       }
@@ -647,6 +653,9 @@
     const timeInputs = document.getElementById('timeInputs');
     const timePreview = document.getElementById('timePreview');
     const progressSection = document.getElementById('progressSection');
+    const workOrb = document.getElementById('workOrb');
+    /* the orb marks "work in flight" — the status text carries the detail */
+    function setBusy(busy){ workOrb.hidden = !busy; }
 
     // Format buttons
     document.querySelectorAll('.format-btn').forEach(btn => {
@@ -769,6 +778,8 @@
 
       progressSection.classList.add('show');
       document.getElementById('statusMessage').classList.remove('error');
+      document.getElementById('progressPercent').textContent = '0%';
+      setBusy(true);
       extractBtn.disabled = true;
 
       try {
@@ -840,6 +851,7 @@
         document.getElementById('statusMessage').classList.add('error');
         document.getElementById('statusMessage').textContent = `✗ Error: ${error.message}`;
       } finally {
+        setBusy(false);
         extractBtn.disabled = false;
       }
     }
@@ -872,6 +884,7 @@
 
     function showError(message) {
       const statusMessage = document.getElementById('statusMessage');
+      setBusy(false);
       statusMessage.classList.add('error');
       statusMessage.textContent = `✗ ${message}`;
       progressSection.classList.add('show');

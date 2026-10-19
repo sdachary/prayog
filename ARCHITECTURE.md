@@ -15,7 +15,12 @@ Standalone browser utilities. Zero backend, zero build step, zero dependencies b
 prayog/
 ├── assets/
 │   ├── theme.css      Shared CSS variables and base card layout
-│   └── nav.js         Breadcrumb navigation injected into every tool page
+│   ├── nav.js         Breadcrumb navigation injected into every tool page
+│   ├── orb.js         <thinking-orb> custom element (loading-state animation)
+│   ├── vendor/        Self-hosted third-party code (see vendor/README.md)
+│   ├── landing.css    Landing page styles
+│   ├── cdn-guard.js   Banner shown when a CDN <script> fails to load
+│   └── cookie-banner.js
 ├── index.html         Landing page (grid of tool cards)
 ├── favicon.svg        Site favicon (shared)
 ├── site.webmanifest   PWA manifest (shared)
@@ -59,6 +64,51 @@ Injects a breadcrumb trail at the top of each tool page. Usage:
 ```
 The `data-tool` attribute sets the current page name in the breadcrumb.
 
+### `assets/orb.js` + `assets/vendor/thinking-orbs-engine.js`
+A `<thinking-orb>` custom element that renders the dotted loading orbs from
+[thinking-orbs](https://github.com/Jakubantalik/thinking-orbs) (MIT). It turns
+"something is happening" into a *state* the user can read at a glance — a
+globe being scanned, a constellation being wired up — instead of a generic
+spinner.
+
+The engine is upstream's framework-free `./engine` entry: pure geometry, zero
+React, zero DOM. No npm, no build step, no runtime CDN.
+
+Usage — load the engine first, then the wrapper, both with `defer`:
+```html
+<script src="../assets/vendor/thinking-orbs-engine.js" defer></script>
+<script src="../assets/orb.js" defer></script>
+...
+<thinking-orb state="connecting" size="20" aria-hidden="true"></thinking-orb>
+```
+
+| Attribute | Values | Default |
+|---|---|---|
+| `state` | `working` `searching` `solving` `listening` `connecting` `weaving` `composing` `breathing` `shaping` | `working` |
+| `size` | `20` (inline) or `64` (card) — two separately tuned upstream presets, not a scale factor | `64` |
+| `speed` | multiplier on the preset's baked speed | `1` |
+| `paused` | freeze on the current frame | off |
+| `theme` | `auto` `dark` `light` — `auto` reads `data-theme` / `.dark` / `.light` on any ancestor, then `prefers-color-scheme`, and updates live | `auto` |
+| `label` | overrides the per-state `aria-label` | per-state |
+
+Rules for using it:
+
+- **The orb is decoration; the text is the message.** Mark it `aria-hidden="true"`
+  and put the state in an adjacent `role="status"` element. Two live regions
+  saying the same thing is noise, and screen readers announce the text anyway.
+- **Classic script, not `type="module"`.** ES modules are CORS-blocked under
+  `file://`; the tools are meant to open straight from disk. Reference the two
+  files with a *relative* path (`../assets/...`) for the same reason — the rest
+  of the repo's absolute `/assets/…` paths already make the pages server-only.
+- **`prefers-reduced-motion` is handled in the wrapper, not CSS.** The global
+  rule in `theme.css` only kills CSS animations; canvas `requestAnimationFrame`
+  would keep running. The wrapper renders a static frame instead.
+- **Prefer the tuned sizes.** `20` is designed for inline text, `64` for a card.
+  At inline scale `searching` and `working` read clearly; `connecting` is a
+  sparse 8-dot constellation, so reserve it for a moment that earns it.
+
+Provenance, licence, and how to regenerate: `assets/vendor/README.md`.
+
 ## Adding a new tool
 
 1. Create `new-tool-name/index.html` — self-contained HTML file
@@ -70,6 +120,9 @@ The `data-tool` attribute sets the current page name in the breadcrumb.
 6. Add favicon + manifest links in `<head>`
 7. Add a card to `index.html`'s `.grid`
 8. Add a row to `README.md`'s tool table
+9. If the tool has a long-running step, add a `<thinking-orb>` next to the
+   status text — see `assets/orb.js` above for the attributes and the
+   `aria-hidden` + `role="status"` pairing
 
 ## Browser support
 

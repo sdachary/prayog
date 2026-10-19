@@ -7,6 +7,8 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/assets/theme.css">
+<script src="../assets/vendor/thinking-orbs-engine.js" defer></script>
+<script src="../assets/orb.js" defer></script>
 <script src="/assets/nav.js" defer data-tool="DRISHTI"></script>
 <style>
   .wrap{ min-height:100%; display:flex; flex-direction:column; align-items:center; padding:32px 16px 64px; }
@@ -28,6 +30,9 @@
   .card.bad::before{ background:var(--red); }
 
   .eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:14px; }
+  /* the scanning orb rides alongside the eyebrow label */
+  .scan-head{ display:flex; align-items:center; gap:9px; }
+  .scan-head thinking-orb{ margin:-4px 0; }
   .notice{
     background:rgba(47,163,154,0.08); border:1px solid rgba(47,163,154,0.35);
     border-radius:10px; padding:12px 14px; font-size:12.5px; line-height:1.6; color:var(--text);
@@ -122,7 +127,10 @@
   </div>
 
   <div class="card hidden" id="progressCard">
-    <div class="eyebrow">Scanning</div>
+    <div class="eyebrow scan-head">
+      <thinking-orb state="searching" size="20" aria-hidden="true"></thinking-orb>
+      Scanning
+    </div>
     <div class="stat-row">
       <div class="stat"><div class="n" id="scannedCount">0</div><div class="l">scanned</div></div>
       <div class="stat n-red"><div class="n" id="failedCount">0</div><div class="l">unreadable</div></div>
