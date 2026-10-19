@@ -17,9 +17,12 @@
     if(document.body) show();
     else document.addEventListener('DOMContentLoaded', show);
   }
+  // analytics/tracking scripts are injected by the host (Cloudflare Pages
+  // beacon etc.) — their failure is never a missing feature. Skip them.
+  var IGNORE = /cloudflareinsights|google-analytics|googletagmanager|doubleclick|facebook\.net|hotjar|segment\.io|mixpanel/i;
   window.addEventListener('error', function(e){
     var t=e.target;
-    if(t && t.tagName==='SCRIPT' && t.src && /^https?:/.test(t.src)){
+    if(t && t.tagName==='SCRIPT' && t.src && /^https?:/.test(t.src) && !IGNORE.test(t.src)){
       window.__cdnFailed=(window.__cdnFailed||[]).concat(t.src);
       banner(t.src);
     }
