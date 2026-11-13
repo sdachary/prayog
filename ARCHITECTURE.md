@@ -30,6 +30,7 @@ prayog/
 ├── TOOLS.md           Detailed tool reference
 ├── ROADMAP.md         Progress and future plans
 ├── sandesh/           WebRTC file transfer
+├── pravah/            Phone ⇄ laptop media streaming (index.html, sw.js, serve.py)
 ├── drishti/           Read-only file scanner
 ├── badhai/            Video-to-audio via FFmpeg.wasm
 ├── rachna/            JSON/YAML/CSV formatter & converter
@@ -108,6 +109,16 @@ Rules for using it:
   sparse 8-dot constellation, so reserve it for a moment that earns it.
 
 Provenance, licence, and how to regenerate: `assets/vendor/README.md`.
+
+### Tools that need a service worker (`pravah/`)
+
+Pravah is the one tool with more than an `index.html`. `pravah/sw.js` is scoped to `pravah/` and turns `pravah/stream/<id>/<name>` requests into HTTP Range responses, pulling bytes from the page over a `MessageChannel`. Things worth knowing if you touch it:
+
+- **Secure context only.** Service workers need HTTPS or `localhost`; the page shows a banner otherwise.
+- **`<a download>` skips the service worker in Chromium.** The save button therefore loads the URL in a hidden iframe (the `Content-Disposition: attachment` header turns it into a download).
+- **Only `video/*` / `audio/*` types are ever served** (everything else becomes `application/octet-stream`, plus `nosniff` and `CSP: sandbox`), so a peer can't make the origin serve HTML.
+- **Pull-based on purpose** — see `serve()` in `sw.js`; don't switch to push, it buffers whole files in memory.
+- `serve.py` is an optional local script the *user* runs; the site itself still has no backend.
 
 ## Adding a new tool
 

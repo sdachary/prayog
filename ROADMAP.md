@@ -2,11 +2,11 @@
 
 ## Current (Phase 0-4 complete)
 
-11 tools:
+12 tools:
 
 | Type | Tools |
 |------|-------|
-| **File** | Vibhajan (split), Pahchan (ID→Excel OCR), Sandesh (transfer), Drishti (scan), Rachna (convert), Sankshep (compress), Badhai (extract) |
+| **File** | Vibhajan (split), Pahchan (ID→Excel OCR), Sandesh (transfer), Pravah (stream), Drishti (scan), Rachna (convert), Sankshep (compress), Badhai (extract) |
 | **Dev** | Tulna (diff), Sanket (QR) |
 | **Finance** | Rin Ledger (amortization), Vahak (Drive uploader) |
 
@@ -23,6 +23,8 @@ Infrastructure: shared `assets/theme.css` + `assets/nav.js`, `favicon.svg`, `sit
 - **Sparsh** — A color palette extractor from images. Upload an image, get dominant colors as hex codes.
 
 ### Improvements
+
+- **Pravah**: remember the last pairing so a phone can reconnect without re-entering the code; show album art / duration in the list; subtitle (`.srt`/`.vtt`) sharing; optional transcoding for MKV/AVI via FFmpeg.wasm on the sharing side. Verify playback on iOS Safari (developed and tested on Chromium).
 
 - **Sankshep**: Add batch processing (compress multiple images at once).
 - **Badhai**: Add waveform visualization preview before extraction.

@@ -4,6 +4,7 @@ Standalone browser utilities — each tool is a self-contained HTML file, zero b
 
 | Tool | What |
 |------|------|
+| [Pravah](pravah/) | Stream video and music between your phone and laptop over the same Wi-Fi — pick files on one device, play them on the other, with seeking. Works both ways. Includes an optional offline `serve.py`. |
 | [Rin Ledger](rin-ledger/) | Home loan amortization calculator — track payoff, prepayments, and rent-vs-buy math. |
 | [Vahak](vahak-uploader/) | Mass uploader to Google Drive — mirror a local folder tree, file by file. |
 | [Sandesh](sandesh/) | Device-to-device file transfer via WebRTC. Pair devices with an 8-digit code and send files directly browser-to-browser. |

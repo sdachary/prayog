@@ -1,5 +1,17 @@
 # Prayog — Tool Reference
 
+## pravah — Phone ⇄ laptop media streaming
+
+| | |
+|---|---|
+| **What** | Pick videos/music on one device; the other device lists them and plays them in a normal `<video>`/`<audio>` player with full seeking and next/previous. Symmetric: each side can share and watch at the same time. Nothing is uploaded — bytes are read from the sharing device on demand. Pair with an 8-digit code or by scanning the QR. Both screens show a 6-digit link code (hash of the two DTLS fingerprints) to confirm nobody sits in between; the sharing side must accept each connection. A "save" button downloads a file straight to disk. |
+| **How** | PeerJS data channel (raw binary, 16 KB frames, back-pressured). A service worker (`pravah/sw.js`) answers the player's HTTP Range requests by asking the page for the next 1 MB piece, which the page fetches from the peer. Pull-based, so pausing never buffers the whole file. STUN only — no TURN relay, so media stays on the local network. |
+| **Dependencies** | PeerJS 1.5.4 (signalling only — same pinned CDN build + SRI as Sandesh); `qrcode.min.js` (vendored) |
+| **Offline option** | `pravah/serve.py` — one-file Python 3 server (no dependencies): `python3 serve.py ~/Videos`, open the printed address on the phone. Proper Range support (unlike `python3 -m http.server`), inline player, optional upload from the phone (`--no-upload` to disable), dotfiles hidden, Host-header check against DNS rebinding. |
+| **Limits** | Needs HTTPS (or localhost) for the service worker, and internet once to pair. Both devices must be on the same Wi-Fi with no client isolation. The sharing tab must stay open (phones: don't lock the screen — a wake lock is requested). What plays depends on the *watching* browser's codecs (MP4/H.264, WebM, MP3, AAC, … yes; MKV/AVI/FLAC often not — use "save"). |
+
+---
+
 ## vibhajan — Excel batch splitter
 
 | | |
