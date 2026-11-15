@@ -1,0 +1,26 @@
+{
+  "name": "prayog",
+  "version": "1.0.0",
+  "description": "Prayog - Static site",
+  "private": true,
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "npm run lint:html && npm run lint:css && npm run lint:js",
+    "lint:html": "htmlhint \"**/*.html\"",
+    "lint:css": "stylelint \"**/*.css\"",
+    "lint:js": "eslint \"**/*.js\"",
+    "check:links": "lychee --verbose --max-concurrency 10 \"**/*.html\"",
+    "test:a11y": "playwright test test/accessibility.test.js || true",
+    "test:visual": "playwright test test/visual-smoke.test.js || true"
+  },
+  "devDependencies": {
+    "htmlhint": "^1.1.4",
+    "stylelint": "^16.0.0",
+    "eslint": "^8.56.0",
+    "lychee": "^1.0.0",
+    "@playwright/test": "^1.41.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

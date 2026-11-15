@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - 'README*'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - 'README*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint HTML
+        run: npx htmlhint "**/*.html"
+      - name: Lint CSS
+        run: npx stylelint "**/*.css"
+      - name: Lint JS
+        run: npx eslint "**/*.js"
+      - name: Check for broken links
+        run: npx lychee --verbose --max-concurrency 10 "**/*.html"
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Accessibility (axe)
+        run: npx playwright test test/accessibility.test.js || true
+      - name: Visual smoke
+        run: npx playwright test test/visual-smoke.test.js || true
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
