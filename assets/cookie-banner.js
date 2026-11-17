@@ -12,9 +12,9 @@
   var CONFIG = {
     REQUIRED: true,          // true = essential cookies only (notice, no choice)
     NO_COOKIES: false,       // true = app is browser-only, store consent notice only
-    TEXT: "This site uses essential cookies to keep it working. We do not use tracking or advertising cookies.",
-    ACCEPT: "Okay",
-    REJECT: "Decline",
+    TEXT: 'This site uses essential cookies to keep it working. We do not use tracking or advertising cookies.',
+    ACCEPT: 'Okay',
+    REJECT: 'Decline',
     POLICIES: true           // link to /privacy and /terms
   };
   var HTML =
@@ -37,7 +37,7 @@
     '</div></div>';
 
   window.initCookieBanner = function (opts) {
-    if (opts) { for (var k in opts) if (opts.hasOwnProperty(k)) CONFIG[k] = opts[k]; }
+    if (opts) { for (var k in opts) if (Object.prototype.hasOwnProperty.call(opts, k)) CONFIG[k] = opts[k]; }
     try {
       if (localStorage.getItem('acharylab-cookie-consent')) return; // already decided
       var el = document.createElement('div');

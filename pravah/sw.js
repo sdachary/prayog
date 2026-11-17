@@ -77,7 +77,7 @@ async function serve(e, url) {
     'Content-Security-Policy': 'sandbox'
   });
   if (url.searchParams.get('dl')) {
-    headers.set('Content-Disposition', "attachment; filename*=UTF-8''" + encodeURIComponent(name));
+    headers.set('Content-Disposition', 'attachment; filename*=UTF-8\'\'' + encodeURIComponent(name));
   }
 
   if (size === 0) {

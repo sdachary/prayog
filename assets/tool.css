@@ -7,8 +7,8 @@
 /* --- CSS Custom Properties (extends theme.css) --- */
 :root {
   /* Typography overrides for tool pages */
-  --font-sans: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-serif: 'Newsreader', Georgia, serif;
+  --font-sans: 'Satoshi', -apple-system, blinkmacsystemfont, 'Segoe UI', sans-serif;
+  --font-serif: 'Newsreader', georgia, serif;
   --font-mono: 'Geist Mono', 'SF Mono', 'JetBrains Mono', monospace;
 
   /* Warm Monochrome (Dark theme default) — syncs with theme.css */
@@ -58,10 +58,10 @@
   --tool-duration-slow: 400ms;
 
   /* Shadows */
-  --tool-shadow-xs: 0 1px 2px rgba(0,0,0,0.3);
-  --tool-shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
-  --tool-shadow-md: 0 8px 24px rgba(0,0,0,0.2);
-  --tool-shadow-lg: 0 16px 48px rgba(0,0,0,0.15);
+  --tool-shadow-xs: 0 1px 2px rgb(0 0 0 / 30%);
+  --tool-shadow-sm: 0 2px 8px rgb(0 0 0 / 25%);
+  --tool-shadow-md: 0 8px 24px rgb(0 0 0 / 20%);
+  --tool-shadow-lg: 0 16px 48px rgb(0 0 0 / 15%);
 
   /* Glass */
   --tool-glass-bg: var(--glass-bg);
@@ -82,8 +82,8 @@
 .tool-page {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at 15% 10%, rgba(47,163,154,0.06), transparent 40%),
-    radial-gradient(ellipse at 85% 90%, rgba(232,163,61,0.04), transparent 45%),
+    radial-gradient(ellipse at 15% 10%, rgb(47 163 154 / 6%), transparent 40%),
+    radial-gradient(ellipse at 85% 90%, rgb(232 163 61 / 4%), transparent 45%),
     var(--tool-bg);
   color: var(--tool-text);
   font-family: var(--font-sans);
@@ -109,7 +109,7 @@
   padding: var(--tool-space-6) var(--tool-space-4) var(--tool-space-8);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .tool-wrap { padding: var(--tool-space-6) var(--tool-space-6) var(--tool-space-9); }
 }
 
@@ -123,6 +123,7 @@
 
 /* Narrow variant for simpler tools */
 .tool-main--narrow { max-width: var(--tool-max-narrow); }
+
 /* Wide variant for complex tools */
 .tool-main--wide { max-width: var(--tool-max-wide); }
 
@@ -186,7 +187,7 @@
 
 .tool-card:focus-within {
   border-color: var(--tool-teal);
-  box-shadow: 0 0 0 3px rgba(47, 163, 154, 0.15);
+  box-shadow: 0 0 0 3px rgb(47 163 154 / 15%);
 }
 
 /* Status accent bar */
@@ -277,6 +278,7 @@
   min-height: 44px;
   padding: var(--tool-space-3) var(--tool-space-6);
 }
+
 .tool-btn--primary:hover:not(:disabled) {
   background: var(--tool-text-muted);
   border-color: var(--tool-text-muted);
@@ -290,6 +292,7 @@
   min-height: 40px;
   padding: var(--tool-space-2) var(--tool-space-5);
 }
+
 .tool-btn--secondary:hover:not(:disabled) {
   background: var(--tool-surface);
   border-color: var(--tool-border-strong);
@@ -314,8 +317,9 @@
   min-height: 40px;
   padding: var(--tool-space-2) var(--tool-space-5);
 }
+
 .tool-btn--danger:hover:not(:disabled) {
-  background: rgba(217, 83, 79, 0.1);
+  background: rgb(217 83 79 / 10%);
 }
 
 /* Ghost — minimal */
@@ -327,6 +331,7 @@
   padding: var(--tool-space-2) var(--tool-space-3);
   font-size: 12px;
 }
+
 .tool-btn--ghost:hover:not(:disabled) {
   color: var(--tool-text);
   background: var(--tool-surface);
@@ -376,10 +381,11 @@
   transition: border-color var(--tool-duration-fast), box-shadow var(--tool-duration-fast);
 }
 .tool-input::placeholder { color: var(--tool-text-subtle); opacity: 0.7; }
+
 .tool-input:focus {
   outline: none;
   border-color: var(--tool-teal);
-  box-shadow: 0 0 0 3px rgba(47, 163, 154, 0.15);
+  box-shadow: 0 0 0 3px rgb(47 163 154 / 15%);
 }
 
 /* Large code input */
@@ -425,22 +431,26 @@
   font-size: 13px;
   color: var(--tool-text-muted);
 }
+
 .tool-dropzone:hover,
 .tool-dropzone.drag {
   border-color: var(--tool-teal);
   color: var(--tool-text);
-  background: rgba(47, 163, 154, 0.06);
+  background: rgb(47 163 154 / 6%);
 }
+
 .tool-dropzone:focus-visible {
   outline: 2px solid var(--tool-teal);
   outline-offset: 2px;
 }
+
 .tool-dropzone--enabled {
   border-color: var(--tool-teal);
   color: var(--tool-text);
 }
+
 .tool-dropzone--enabled:hover {
-  background: rgba(47, 163, 154, 0.1);
+  background: rgb(47 163 154 / 10%);
 }
 
 .tool-dropzone-title {
@@ -450,6 +460,7 @@
   color: var(--tool-text);
   margin-bottom: var(--tool-space-1);
 }
+
 .tool-dropzone-hint {
   font-size: 12px;
   color: var(--tool-text-subtle);
@@ -464,6 +475,7 @@
   border-radius: var(--tool-radius-full);
   overflow: hidden;
 }
+
 .tool-progress-fill {
   height: 100%;
   background: var(--tool-teal);
@@ -484,11 +496,13 @@
   flex-wrap: wrap;
   margin: var(--tool-space-4) 0;
 }
+
 .tool-stat {
   flex: 1;
   min-width: 100px;
   text-align: center;
 }
+
 .tool-stat-value {
   font-family: var(--font-mono);
   font-weight: 700;
@@ -496,6 +510,7 @@
   line-height: 1.2;
   color: var(--tool-text);
 }
+
 .tool-stat-label {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -519,6 +534,7 @@
   flex-wrap: wrap;
   margin-bottom: var(--tool-space-3);
 }
+
 .tool-status-dot {
   display: inline-flex;
   align-items: center;
@@ -527,6 +543,7 @@
   font-size: 12px;
   color: var(--tool-text-muted);
 }
+
 .tool-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--tool-text-muted);
@@ -560,21 +577,24 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   line-height: 1.6;
   margin-bottom: var(--tool-space-4);
 }
+
 .tool-notice--info {
-  background: rgba(47, 163, 154, 0.1);
-  border: 1px solid rgba(47, 163, 154, 0.3);
+  background: rgb(47 163 154 / 10%);
+  border: 1px solid rgb(47 163 154 / 30%);
   color: var(--tool-text);
 }
 .tool-notice--info strong { color: var(--tool-teal); }
+
 .tool-notice--warn {
-  background: rgba(232, 163, 61, 0.1);
-  border: 1px solid rgba(232, 163, 61, 0.3);
+  background: rgb(232 163 61 / 10%);
+  border: 1px solid rgb(232 163 61 / 30%);
   color: var(--tool-text);
 }
 .tool-notice--warn strong { color: var(--tool-amber); }
+
 .tool-notice--error {
-  background: rgba(217, 83, 79, 0.1);
-  border: 1px solid rgba(217, 83, 79, 0.3);
+  background: rgb(217 83 79 / 10%);
+  border: 1px solid rgb(217 83 79 / 30%);
   color: var(--tool-text);
 }
 .tool-notice--error strong { color: var(--tool-red); }
@@ -593,6 +613,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   padding: var(--tool-space-3) var(--tool-space-4);
   margin: var(--tool-space-4) 0;
 }
+
 .tool-safety-code {
   color: var(--tool-text);
   font-weight: 600;
@@ -609,6 +630,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   border-bottom: 1px solid var(--tool-border);
   padding-bottom: var(--tool-space-1);
 }
+
 .tool-tab {
   flex: 1;
   background: transparent;
@@ -625,6 +647,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   white-space: nowrap;
 }
 .tool-tab:hover { color: var(--tool-text); background: var(--tool-surface); }
+
 .tool-tab--active {
   border-color: var(--tool-border);
   border-bottom-color: var(--tool-bg);
@@ -638,6 +661,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
    TRANSFER / LIST ITEMS
    ============================================================ */
 .tool-list { display: flex; flex-direction: column; gap: var(--tool-space-3); }
+
 .tool-list-item {
   background: var(--tool-bg);
   border: 1px solid var(--tool-border);
@@ -655,6 +679,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   margin-bottom: var(--tool-space-2);
   flex-wrap: wrap;
 }
+
 .tool-list-name {
   font-family: var(--font-mono);
   font-size: 13px;
@@ -664,6 +689,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   white-space: nowrap;
   max-width: 280px;
 }
+
 .tool-list-meta {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -673,6 +699,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
 
 /* File list within transfer */
 .tool-file-list { display: flex; flex-direction: column; gap: var(--tool-space-2); margin: var(--tool-space-3) 0; }
+
 .tool-file-item {
   display: flex;
   justify-content: space-between;
@@ -692,6 +719,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   padding: var(--tool-space-7) var(--tool-space-4);
   color: var(--tool-text-muted);
 }
+
 .tool-empty-title {
   font-family: var(--font-mono);
   font-weight: 600;
@@ -705,6 +733,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
 /* ============================================================   MODE / OPTION SELECTORS
    ============================================================ */
 .tool-mode-row { display: flex; gap: var(--tool-space-3); margin-bottom: var(--tool-space-4); }
+
 .tool-mode {
   flex: 1;
   border: 1px solid var(--tool-border);
@@ -714,8 +743,9 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   transition: border-color var(--tool-duration-fast), background var(--tool-duration-fast);
   text-align: center;
 }
-.tool-mode:hover { border-color: var(--tool-teal); background: rgba(47, 163, 154, 0.04); }
-.tool-mode--active { border-color: var(--tool-teal); background: rgba(47, 163, 154, 0.08); }
+.tool-mode:hover { border-color: var(--tool-teal); background: rgb(47 163 154 / 4%); }
+.tool-mode--active { border-color: var(--tool-teal); background: rgb(47 163 154 / 8%); }
+
 .tool-mode-title {
   font-family: var(--font-mono);
   font-weight: 600;
@@ -731,6 +761,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: var(--tool-space-3);
 }
+
 .tool-format-btn {
   display: flex;
   flex-direction: column;
@@ -747,6 +778,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   transition: all var(--tool-duration-fast);
 }
 .tool-format-btn:hover { border-color: var(--tool-teal); color: var(--tool-teal); }
+
 .tool-format-btn--active {
   background: var(--tool-teal);
   border-color: var(--tool-teal);
@@ -777,6 +809,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
    VIDEO / AUDIO PREVIEW
    ============================================================ */
 .tool-media-preview { margin-top: var(--tool-space-4); }
+
 .tool-media-preview video,
 .tool-media-preview audio {
   width: 100%;
@@ -792,7 +825,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
    ============================================================ */
 .tool-dialog-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgb(0 0 0 / 60%);
   backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
   padding: var(--tool-space-4);
@@ -801,6 +834,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   transition: opacity var(--tool-duration-base), visibility var(--tool-duration-base);
 }
 .tool-dialog-overlay--open { opacity: 1; visibility: visible; }
+
 .tool-dialog {
   background: var(--tool-surface);
   border: 1px solid var(--tool-border);
@@ -824,6 +858,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   display: flex; flex-direction: column; gap: var(--tool-space-2);
   z-index: 1100; pointer-events: none;
 }
+
 .tool-toast {
   pointer-events: auto;
   display: flex; align-items: center; gap: var(--tool-space-3);
@@ -835,6 +870,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   box-shadow: var(--tool-shadow-lg);
   animation: toast-in 0.3s var(--tool-ease-out);
 }
+
 @keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
 .tool-toast--success { border-left: 3px solid var(--tool-teal); }
 .tool-toast--error { border-left: 3px solid var(--tool-red); }
@@ -846,7 +882,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
 /* ============================================================
    RESPONSIVE
    ============================================================ */
-@media (max-width: 639px) {
+@media (width <= 639px) {
   .tool-wrap { padding: var(--tool-space-4) var(--tool-space-3) var(--tool-space-6); }
   .tool-card { padding: var(--tool-space-4); }
   .tool-stat-row { gap: var(--tool-space-3); }
@@ -858,7 +894,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   .tool-toast { min-width: 0; }
 }
 
-@media (max-width: 479px) {
+@media (width <= 479px) {
   .tool-btn--primary,
   .tool-btn--accent { padding: var(--tool-space-3) var(--tool-space-4); font-size: 12px; }
   .tool-format-grid { grid-template-columns: repeat(2, 1fr); }

@@ -12,7 +12,7 @@
     btn.addEventListener('click', function(){
       var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
       root.setAttribute('data-theme', next);
-      try { localStorage.setItem('prayog-theme', next); } catch (e) {}
+      try { localStorage.setItem('prayog-theme', next); } catch (e) { /* ignore */ }
       paint();
     });
     paint();
@@ -22,7 +22,7 @@
   /* ---- theme boot (landing also inlines this in <head> to avoid a flash) ---- */
   var root = document.documentElement;
   var stored = null;
-  try { stored = localStorage.getItem('prayog-theme'); } catch (e) {}
+  try { stored = localStorage.getItem('prayog-theme'); } catch (e) { /* ignore */ }
   root.setAttribute('data-theme',
     (stored === 'light' || stored === 'dark')
       ? stored

@@ -1,8 +1,17 @@
 {
   "extends": ["stylelint-config-standard"],
   "rules": {
-    "color-hex-case": "lower",
     "color-hex-length": "short",
-    "selector-class-pattern": null
+    "selector-class-pattern": null,
+    "alpha-value-notation": null,
+    "color-function-notation": null,
+    "declaration-block-single-line-max-declarations": null,
+    "no-descending-specificity": null,
+    "at-rule-empty-line-before": null,
+    "comment-empty-line-before": null,
+    "rule-empty-line-before": null,
+    "declaration-empty-line-before": null,
+    "media-feature-range-notation": null,
+    "value-keyword-case": null
   }
 }

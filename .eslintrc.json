@@ -10,6 +10,16 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
+  "globals": {
+    "gsap": "readonly",
+    "ScrollTrigger": "readonly",
+    "showToast": "readonly"
+  },
+  "ignorePatterns": [
+    "assets/vendor/**",
+    "*.min.js",
+    "test/**"
+  ],
   "rules": {
     "indent": ["error", 2],
     "linebreak-style": ["error", "unix"],
