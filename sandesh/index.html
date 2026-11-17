@@ -4,126 +4,49 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sandesh — Prayog</title>
+<meta name="description" content="Device-to-device file transfer via WebRTC. Pair with an 8-digit code and send files directly browser-to-browser.">
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
 <link rel="stylesheet" href="/assets/theme.css">
-<script src="../assets/vendor/thinking-orbs-engine.js" defer></script>
-<script src="../assets/orb.js" defer></script>
+<link rel="stylesheet" href="/assets/tool.css">
+
+<!-- Scripts -->
+<script src="/assets/vendor/thinking-orbs-engine.js" defer></script>
+<script src="/assets/orb.js" defer></script>
 <script src="/assets/nav.js" defer data-tool="SANDESH"></script>
+<script src="/assets/tool.js" defer></script>
+
+<!-- Page-specific styles (minimal overrides) -->
 <style>
-  .wrap{
-    min-height:100%;
-    display:flex; flex-direction:column; align-items:center;
-    padding:32px 16px 64px;
+  /* Code display */
+  .code-display {
+    font-family: var(--font-mono);
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--tool-text);
+    display: flex;
+    align-items: baseline;
+    gap: var(--tool-space-3);
+    margin: var(--tool-space-3) 0 var(--tool-space-2);
   }
-  header{
-    width:100%; max-width:640px;
-    display:flex; align-items:baseline; justify-content:space-between;
-    margin-bottom:28px;
-  }
-  .brand{
-    font-family:var(--mono); font-weight:600; font-size:15px; letter-spacing:0.06em;
-    color:var(--text);
-  }
-  .brand span{color:var(--amber);}
-  .tagline{font-size:12px; color:var(--muted); font-family:var(--mono); letter-spacing:0.03em;}
+  .code-display .hz { font-size: 15px; color: var(--tool-amber); font-weight: 500; }
 
-  .card{
-    width:100%; max-width:640px;
-    background:linear-gradient(180deg, var(--panel), var(--panel-2));
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:26px 24px;
-    margin-bottom:16px;
-    position:relative;
-    overflow:hidden;
+  /* Waveform */
+  .waveform {
+    display: flex; align-items: flex-end; gap: 3px; height: 28px; margin-top: var(--tool-space-4);
   }
-  .card::before{
-    content:"";
-    position:absolute; left:0; top:0; bottom:0; width:3px;
-    background:var(--dial-color, var(--line));
-    transition:background .4s ease;
-  }
-  .card.active::before{ background:var(--teal); }
-  .card.searching::before{ background:var(--amber); }
-  .card.bad::before{ background:var(--red); }
-
-  .label-row{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:14px;
-  }
-  .eyebrow{
-    font-family:var(--mono); font-size:12px; letter-spacing:0.12em;
-    text-transform:uppercase; color:var(--muted);
-  }
-  .status-dot{
-    display:inline-flex; align-items:center; gap:6px;
-    font-family:var(--mono); font-size:12px; color:var(--muted);
-  }
-  /* the live/connected marker — a static teal dot, no animation */
-  .dot{
-    width:7px; height:7px; border-radius:50%;
-    background:var(--muted);
-  }
-  .dot.live{ background:var(--teal); box-shadow:0 0 0 0 rgba(47,163,154,0.5); }
-  .dot.bad{ background:var(--red); }
-  /* the connecting orb sits in the same slot; keep its baseline aligned */
-  thinking-orb{ margin:-3px 0; }
-
-  .freq{
-    font-family:var(--mono); font-weight:700; font-size:44px; letter-spacing:0.05em;
-    color:var(--text);
-    display:flex; align-items:baseline; gap:10px;
-    margin:6px 0 4px;
-  }
-  .freq small{ font-size:15px; color:var(--muted); font-weight:400; }
-  .freq .hz{ font-size:15px; color:var(--amber); font-weight:500; }
-
-  .hint{ font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:8px; }
-
-  .copy-btn{
-    margin-top:14px;
-    background:none; border:1px solid var(--line); color:var(--text);
-    font-family:var(--mono); font-size:12px; padding:8px 14px; border-radius:8px;
-    cursor:pointer; letter-spacing:0.03em;
-    transition:border-color .2s, background .2s;
-  }
-  .copy-btn:hover{ border-color:var(--teal); background:rgba(47,163,154,0.08); }
-
-  /* pairing steps — one card, two numbered actions (was: two equal cards) */
-  .step{ margin-top:14px; }
-  .step + .step{ border-top:1px solid var(--line); margin-top:18px; padding-top:18px; }
-  .step-label{
-    font-family:var(--mono); font-size:12px; letter-spacing:0.1em;
-    text-transform:uppercase; color:var(--amber); margin-bottom:8px;
-  }
-
-  .tune-row{
-    display:flex; gap:8px; margin-top:6px;
-  }
-  input.code-input{
-    flex:1; min-width:0; background:var(--bg); border:1px solid var(--line); color:var(--text);
-    font-family:var(--mono); font-size:20px; letter-spacing:0.15em; text-align:center;
-    padding:12px 10px; border-radius:8px; outline:none;
-  }
-  input.code-input:focus{ border-color:var(--teal); }
-  button.connect-btn{
-    background:var(--teal); color:#04211d; border:none; border-radius:8px;
-    font-family:var(--mono); font-weight:600; font-size:13px; letter-spacing:0.04em;
-    padding:0 20px; cursor:pointer;
-  }
-  button.connect-btn:disabled{ background:var(--line); color:var(--text); opacity:.75; cursor:not-allowed; }
-  button.connect-btn:hover:not(:disabled){ filter:brightness(1.08); }
-
-  .waveform{
-    display:flex; align-items:flex-end; gap:3px; height:28px; margin-top:16px;
-  }
-  .waveform span{
-    width:3px; background:var(--line); border-radius:2px;
-    transition:background .3s;
-  }
-  .waveform.searching span{ background:var(--amber); animation:bar 1s ease-in-out infinite; }
-  .waveform.live span{ background:var(--teal); }
+  .waveform span { width: 3px; background: var(--tool-border); border-radius: 2px; transition: background 0.3s; }
+  .waveform.searching span { background: var(--tool-amber); animation: bar 1s ease-in-out infinite; }
+  .waveform.live span { background: var(--tool-teal); }
   .waveform span:nth-child(1){height:40%; animation-delay:.0s;}
   .waveform span:nth-child(2){height:70%; animation-delay:.1s;}
   .waveform span:nth-child(3){height:100%; animation-delay:.2s;}
@@ -132,262 +55,278 @@
   .waveform span:nth-child(6){height:35%; animation-delay:.5s;}
   .waveform span:nth-child(7){height:65%; animation-delay:.6s;}
   .waveform span:nth-child(8){height:45%; animation-delay:.7s;}
-  @keyframes bar{
-    0%,100%{ transform:scaleY(0.5); opacity:.6; }
-    50%{ transform:scaleY(1); opacity:1; }
+  @keyframes bar { 0%,100%{ transform:scaleY(0.5); opacity:.6; } 50%{ transform:scaleY(1); opacity:1; } }
+
+  /* Chat styles */
+  .chat-log {
+    display: flex; flex-direction: column; gap: var(--tool-space-3);
+    min-height: 120px; max-height: 320px; overflow-y: auto; padding: var(--tool-space-2) 0;
+  }
+  .chat-empty { font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); margin: auto; }
+  .chat-msg {
+    max-width: 82%; padding: var(--tool-space-3) var(--tool-space-4);
+    border-radius: var(--tool-radius-lg); font-size: 14px; line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  .chat-msg.me { align-self: flex-end; background: rgba(47,163,154,0.14); border: 1px solid rgba(47,163,154,0.35); }
+  .chat-msg.peer { align-self: flex-start; background: var(--tool-surface); border: 1px solid var(--tool-border); }
+  .chat-row { display: flex; gap: var(--tool-space-2); }
+  .chat-input { flex: 1; margin-top: 0 !important; }
+
+  /* Transfer list */
+  .transfer-list { display: flex; flex-direction: column; gap: var(--tool-space-3); margin-top: var(--tool-space-4); }
+  .transfer {
+    background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-4);
+  }
+  .transfer.overall { background: rgba(47,163,154,0.05); border-color: rgba(47,163,154,0.3); }
+  .t-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: var(--tool-space-2); }
+  .t-name { font-family: var(--font-mono); color: var(--tool-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px; }
+  .t-meta { color: var(--tool-text-muted); font-family: var(--font-mono); font-size: 12px; }
+  .bar-track { height: 6px; background: var(--tool-surface-elevated); border-radius: var(--tool-radius-full); overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--tool-teal); width: 100%; transform: scaleX(0); transform-origin: left; transition: transform 0.15s ease; }
+  .bar-fill.err { background: var(--tool-red); }
+  .t-actions { display: flex; gap: var(--tool-space-2); margin-top: var(--tool-space-3); flex-wrap: wrap; }
+  .t-actions a { font-family: var(--font-mono); font-size: 12px; color: var(--tool-amber); text-decoration: none; border-bottom: 1px solid rgba(232,163,61,0.4); }
+  .t-files { display: flex; flex-direction: column; gap: var(--tool-space-2); margin: var(--tool-space-3) 0; }
+  .t-file { display: flex; justify-content: space-between; gap: var(--tool-space-3); font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); }
+  .t-file span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .t-stats { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); margin-top: var(--tool-space-2); }
+  .t-saved { font-family: var(--font-mono); font-size: 12px; color: var(--tool-teal); }
+
+  /* Batch approval card */
+  .transfer.batch-prompt { border-color: var(--tool-amber); background: rgba(232,163,61,0.05); }
+  .transfer.batch-prompt .t-actions { margin-top: var(--tool-space-3); }
+
+  /* Details help */
+  details.cable summary {
+    cursor: pointer; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.03em;
+    color: var(--tool-amber); line-height: 1.5;
+  }
+  details.cable[open] summary { margin-bottom: var(--tool-space-3); }
+  details.cable ol { margin: 0; padding-left: var(--tool-space-5); }
+  details.cable li { font-size: 13px; color: var(--tool-text-muted); line-height: 1.7; margin-bottom: var(--tool-space-2); }
+  details.cable code {
+    font-family: var(--font-mono); font-size: 12px; color: var(--tool-text);
+    background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-sm);
+    padding: 1px 6px; display: inline-block; margin: 1px 0; word-break: break-all;
   }
 
-  .dropzone{
-    border:1.5px dashed var(--line); border-radius:12px;
-    padding:28px 18px; text-align:center; cursor:pointer;
-    transition:border-color .2s, background .2s;
-    font-family:var(--mono); font-size:13px; color:var(--muted);
-  }
-  .dropzone.enabled{ border-color:var(--teal); color:var(--text); cursor:pointer; }
-  .dropzone.enabled:hover{ background:rgba(47,163,154,0.06); }
-  .dropzone.drag{ background:rgba(47,163,154,0.12); border-color:var(--teal); }
-  .dropzone .big{ font-size:14px; margin-bottom:4px; color:var(--text); }
+  /* Tab dot */
+  .tab-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--tool-amber); margin-left: 6px; vertical-align: 1px; }
 
-  .transfer-list{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
-  .transfer{
-    background:var(--bg); border:1px solid var(--line); border-radius:10px;
-    padding:12px 14px;
-  }
-  .t-top{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:8px; }
-  .t-name{ font-family:var(--mono); color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px; }
-  .t-meta{ color:var(--muted); font-family:var(--mono); font-size:12px; }
-  .bar-track{ height:5px; background:var(--panel-2); border-radius:4px; overflow:hidden; }
-  .bar-fill{ height:100%; background:var(--teal); width:100%; transform:scaleX(0); transform-origin:left; transition:transform .15s ease; }
-  .bar-fill.err{ background:var(--red); }
-  .t-actions{ margin-top:8px; }
-  .t-actions a{
-    font-family:var(--mono); font-size:12px; color:var(--amber); text-decoration:none;
-    border-bottom:1px solid rgba(232,163,61,0.4);
+  /* Responsive */
+  @media (min-width: 900px) {
+    body.linked .tool-wrap { padding-top: var(--tool-space-3); }
+    body.linked .chat-log { max-height: 340px; }
   }
 
-  details.cable summary{
-    cursor:pointer; font-family:var(--mono); font-size:12px; letter-spacing:0.03em;
-    color:var(--amber); line-height:1.5;
-  }
-  details.cable[open] summary{ margin-bottom:10px; }
-  details.cable ol{ margin:0; padding-left:18px; }
-  details.cable li{ font-size:12.5px; color:var(--muted); line-height:1.7; margin-bottom:6px; }
-  details.cable code{
-    font-family:var(--mono); font-size:12px; color:var(--text);
-    background:var(--bg); border:1px solid var(--line); border-radius:4px;
-    padding:1px 6px; display:inline-block; margin:1px 0;
-    word-break:break-all;
-  }
-
-  .pick-row,.dest-row{
-    display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap;
-  }
-  .mini-btn{
-    background:none; border:1px solid var(--line); color:var(--text);
-    font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:8px;
-    cursor:pointer; letter-spacing:0.03em;
-    transition:border-color .2s, background .2s;
-  }
-  .mini-btn:hover{ border-color:var(--teal); background:rgba(47,163,154,0.08); }
-  .dest-row .hint{ margin-top:0; }
-  .t-saved{
-    font-family:var(--mono); font-size:12px; color:var(--teal);
-  }
-  .t-stats{
-    display:flex; justify-content:space-between;
-    font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:6px;
-  }
-  .transfer.overall{ border-left:none; background:rgba(47,163,154,0.05); }
-  .transfer.overall .bar-fill{ transition:transform .3s ease; }
-  #ovName{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:300px; }
-
-  .pend-row{ display:flex; gap:8px; margin-top:12px; }
-  .mini-btn.reject{ border-color:var(--red); color:var(--red); }
-  .mini-btn.reject:hover{ background:rgba(232,61,61,0.08); }
-  #pendingPeer{ font-family:var(--mono); color:var(--text); }
-
-  .t-files{ display:flex; flex-direction:column; gap:4px; margin:8px 0; }
-  .t-file{ display:flex; justify-content:space-between; gap:12px;
-    font-family:var(--mono); font-size:12px; color:var(--muted); }
-  .t-file span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .t-actions{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
-  .t-actions .mini-btn:disabled{ opacity:0.45; cursor:default; }
-  .hidden{ display:none !important; }
-  input[type=file]{ display:none; }
-
-  /* ponytail: chat tab + safety strip reuse file-transfer tokens */
-  .tab-row{ width:100%; max-width:640px; display:flex; gap:8px; margin:4px 0 12px; }
-  .tab-btn{ flex:1; background:none; border:1px solid var(--line); color:var(--muted);
-    font-family:var(--mono); font-size:12px; letter-spacing:0.06em; padding:9px; border-radius:10px; cursor:pointer; }
-  .tab-btn.active{ border-color:var(--teal); color:var(--text); background:rgba(47,163,154,0.08); }
-  .tab-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--amber); margin-left:6px; vertical-align:1px; }
-  .safety-strip{ display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    font-family:var(--mono); font-size:12px; color:var(--muted);
-    border:1px dashed var(--line); border-radius:8px; padding:8px 12px; margin:10px 0 6px; }
-  .safety-strip .lock{ color:var(--teal); }
-  .safety-code{ color:var(--text); font-weight:600; letter-spacing:0.14em; }
-  .verify-btn{ padding:4px 10px; font-size:12px; }
-  .verified-tag{ color:var(--teal); font-size:12px; }
-  .chat-log{ display:flex; flex-direction:column; gap:8px; margin:12px 0;
-    min-height:120px; max-height:320px; overflow-y:auto; padding:4px 2px; }
-  .chat-empty{ font-family:var(--mono); font-size:12px; color:var(--muted); margin:auto; }
-  .chat-msg{ max-width:82%; padding:8px 12px; border-radius:12px; font-size:13.5px; line-height:1.45;
-    overflow-wrap:anywhere; }
-  .chat-msg.me{ align-self:flex-end; background:rgba(47,163,154,0.14); border:1px solid rgba(47,163,154,0.35); }
-  .chat-msg.peer{ align-self:flex-start; background:var(--fill,rgba(0,0,0,0.04)); border:1px solid var(--line); }
-  .chat-row{ display:flex; gap:8px; }
-  .chat-input{ flex:1; margin-top:0 !important; }
-  /* ponytail: linked dashboard — pairing card slims to a status bar, no page scroll on laptop */
-  body.linked #sessionCard #steps{ display:none; }
-  body.linked #sessionCard{ padding-top:14px; padding-bottom:14px; }
-  @media (min-width:900px){
-    body.linked .wrap{ padding-top:20px; }
-    body.linked .chat-log{ max-height:340px; }
-  }
+  /* Hidden utility */
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1 class="brand">SANDESH</h1>
-    <div class="sub">device-to-device file transfer</div>
-  </header>
+<div class="tool-page">
+  <div class="tool-wrap">
+    <header class="tool-header">
+      <h1 class="tool-brand">SANDESH<span class="tool-brand-mark">//</span></h1>
+      <p class="tool-tagline">device-to-device file transfer</p>
+    </header>
 
-  <div class="card searching" id="sessionCard">
-    <div class="label-row">
-      <div class="eyebrow">Connection</div>
-      <div class="status-dot"><thinking-orb state="searching" size="20" id="statusOrb" aria-hidden="true"></thinking-orb><span class="dot hidden" id="statusDot"></span><span id="statusText" role="status">opening…</span></div>
-    </div>
-    <div id="steps">
-      <div class="step">
-        <div class="step-label">1 — share this code</div>
-        <div class="freq">
-          <span class="hz">#</span><span id="myCode">------</span>
+    <main class="tool-main">
+
+      <!-- Session / Pairing Card -->
+      <section class="tool-card tool-card--pending" id="sessionCard" aria-labelledby="session-title">
+        <div class="tool-card-head">
+          <h2 id="session-title" class="tool-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Connection
+          </h2>
         </div>
-        <div class="hint">Open this page on the other device — any network, it works over the internet — and have it enter this code.</div>
-        <button class="copy-btn" id="copyBtn">copy code</button>
-        <div class="waveform searching" id="waveform">
-          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+
+        <div id="steps">
+          <!-- Step 1: Share Code -->
+          <div class="step" id="step1">
+            <div class="tool-eyebrow">1 — share this code</div>
+            <div class="code-display">
+              <span class="hz">#</span><span id="myCode">--------</span>
+            </div>
+            <p class="tool-hint">Open this page on the other device — any network, it works over the internet — and have it enter this code.</p>
+            <button class="tool-btn tool-btn--secondary" id="copyBtn" type="button">copy code</button>
+            <div class="waveform searching" id="waveform" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <!-- Step 2: Enter Their Code -->
+          <div class="step hidden" id="connectCard">
+            <div class="tool-eyebrow">2 — or enter their code</div>
+            <div class="tool-mode-row" style="margin-top: 0;">
+              <input type="text" class="tool-input tool-input--code" id="peerCodeInput" placeholder="00000000" maxlength="8" inputmode="numeric" autocomplete="off" aria-label="The 8-digit code shown on the other device" style="flex: 1; min-width: 0;">
+              <button class="tool-btn tool-btn--accent" id="connectBtn" type="button" style="flex-shrink: 0;">connect</button>
+            </div>
+            <p class="tool-hint" id="connectHint">Enter the code shown on the other device.</p>
+          </div>
         </div>
-      </div>
-      <div class="step" id="connectCard">
-        <div class="step-label">2 — or enter their code</div>
-        <div class="tune-row">
-          <input type="text" class="code-input" id="peerCodeInput" placeholder="00000000" maxlength="8" inputmode="numeric" aria-label="The 8-digit code shown on the other device">
-          <button class="connect-btn" id="connectBtn">connect</button>
+
+        <!-- Safety strip shown after connection -->
+        <div class="tool-safety-strip hidden" id="linkStrip">
+          <span>🔒 encrypted link</span>
+          <span class="tool-safety-code" id="linkCode">··· ···</span>
+          <span id="linkNote">same code on both screens = nobody in between</span>
         </div>
-        <div class="hint" id="connectHint">Enter the code shown on the other device.</div>
+      </section>
+
+      <!-- Incoming Connection -->
+      <section class="tool-card tool-card--pending hidden" id="incomingCard" aria-labelledby="incoming-title">
+        <div class="tool-card-head">
+          <h2 id="incoming-title" class="tool-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Incoming connection
+          </h2>
+        </div>
+        <div class="tool-status-row">
+          <div class="tool-status-dot">
+            <thinking-orb state="connecting" size="20" aria-hidden="true"></thinking-orb>
+            <span>from peer #<span id="pendingPeer">unknown</span></span>
+          </div>
+        </div>
+        <p class="tool-hint">Someone at this channel wants to send you files. Accepting opens an encrypted link to them.</p>
+        <div class="tool-btn-group" style="display: flex; gap: var(--tool-space-2); margin-top: var(--tool-space-3);">
+          <button class="tool-btn tool-btn--primary" id="acceptBtn" type="button">accept</button>
+          <button class="tool-btn tool-btn--danger" id="rejectBtn" type="button">reject</button>
+        </div>
+      </section>
+
+      <!-- Session Tabs (Files / Chat) -->
+      <div class="tool-tabs hidden" id="sessionTabs" role="tablist">
+        <button class="tool-tab tool-tab--active" id="tabFiles" role="tab" aria-selected="true" aria-controls="fileCard" type="button">files</button>
+        <button class="tool-tab" id="tabChat" role="tab" aria-selected="false" aria-controls="chatCard" type="button">chat <span class="tab-dot hidden" id="chatDot"></span></button>
       </div>
-    </div>
-  </div>
 
-  <div class="card hidden" id="incomingCard">
-    <div class="label-row">
-      <div class="eyebrow">Incoming connection</div>
-      <div class="status-dot"><thinking-orb state="connecting" size="20" aria-hidden="true"></thinking-orb><span>from peer #<span id="pendingPeer">unknown</span></span></div>
-    </div>
-    <div class="hint">Someone at this channel wants to send you files. Accepting opens an encrypted link to them.</div>
-    <div class="pend-row">
-      <button class="mini-btn" id="acceptBtn">accept</button>
-      <button class="mini-btn reject" id="rejectBtn">reject</button>
-    </div>
-  </div>
+      <!-- Files Tab -->
+      <section class="tool-card" id="fileCard" role="tabpanel" aria-labelledby="tabFiles">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Transfer
+          </h2>
+        </div>
 
-  <div class="tab-row hidden" id="sessionTabs">
-    <button class="tab-btn active" id="tabFiles" role="tab" aria-selected="true" aria-controls="fileCard">files</button>
-    <button class="tab-btn" id="tabChat" role="tab" aria-selected="false" aria-controls="chatCard">chat <span class="tab-dot hidden" id="chatDot"></span></button>
-  </div>
+        <div class="tool-dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drag files or a whole folder here, or press Enter to browse">
+          <div class="tool-dropzone-title">drag files or a whole folder here</div>
+          <div class="tool-dropzone-hint">connect to a peer first</div>
+        </div>
 
-  <div class="card" id="fileCard">
-    <div class="label-row">
-      <div class="eyebrow">Transfer</div>
-    </div>
-    <div class="dropzone" id="dropzone">
-      <div class="big">drag files or a whole folder here</div>
-      <div>connect to a peer first</div>
-    </div>
-    <div class="pick-row">
-      <button class="mini-btn" id="pickFilesBtn">choose files</button>
-      <button class="mini-btn" id="pickFolderBtn">choose folder…</button>
-    </div>
-    <div class="dest-row">
-      <span class="eyebrow">receive into</span>
-      <button class="mini-btn" id="destBtn">choose folder…</button>
-      <span class="hint" id="destLabel"></span>
-    </div>
-    <input type="file" id="fileInput" multiple>
-    <input type="file" id="folderInput" webkitdirectory multiple>
-    <div class="transfer overall hidden" id="overallCard">
-      <div class="t-top">
-        <span class="t-name" id="ovName">—</span>
-        <span class="t-meta" id="ovMeta"></span>
-      </div>
-      <div class="bar-track"><div class="bar-fill" id="ovBar"></div></div>
-      <div class="t-stats">
-        <span id="ovSpeed">—</span>
-        <span id="ovEta"></span>
-      </div>
-    </div>
-    <div class="transfer-list" id="transferList" aria-live="polite"></div>
-  </div>
+        <div style="display: flex; gap: var(--tool-space-2); margin-top: var(--tool-space-3); flex-wrap: wrap;">
+          <button class="tool-btn tool-btn--secondary" id="pickFilesBtn" type="button">choose files</button>
+          <button class="tool-btn tool-btn--secondary" id="pickFolderBtn" type="button">choose folder…</button>
+        </div>
 
-  <div class="card hidden" id="chatCard" role="tabpanel" aria-labelledby="tabChat">
-    <div class="label-row">
-      <div class="eyebrow">Chat</div>
-      <div class="status-dot"><thinking-orb state="connecting" size="20" id="cryptoOrb" aria-hidden="true" hidden></thinking-orb><span class="dot" id="cryptoDot"></span><span id="cryptoText" role="status">establishing encryption…</span></div>
-    </div>
-    <div class="safety-strip" id="safetyStrip">
-      <span class="lock">🔒 end-to-end encrypted</span>
-      <span class="safety-code" id="safetyCode">···&nbsp;···</span>
-      <button class="mini-btn verify-btn hidden" id="verifyBtn">we compared ✓</button>
-      <span class="verified-tag hidden" id="verifiedTag">verified ✓</span>
-    </div>
-    <div class="hint">Compare the 6 digits on both screens once — if they match, nobody in between can read this chat. Messages vanish when you disconnect.</div>
-    <div class="chat-log" id="chatLog" aria-live="polite"><div class="chat-empty">no messages yet</div></div>
-    <div class="chat-row">
-      <input type="text" class="code-input chat-input" id="chatInput" placeholder="establishing encryption…" maxlength="500" disabled aria-label="Chat message">
-      <button class="connect-btn" id="chatSendBtn" disabled>send</button>
-    </div>
-  </div>
+        <div style="display: flex; align-items: center; gap: var(--tool-space-2); margin-top: var(--tool-space-3); flex-wrap: wrap;">
+          <span class="tool-eyebrow" style="margin: 0;">receive into</span>
+          <button class="tool-btn tool-btn--secondary" id="destBtn" type="button">choose folder…</button>
+          <span class="tool-hint" id="destLabel" style="margin: 0; flex: 1;"></span>
+        </div>
 
-  <div class="card">
-    <details class="cable">
-      <summary>No internet? A direct cable is enough — everything below runs in a terminal, nothing to install.</summary>
-      <ol>
-        <li>Connect the cable and give each laptop an IP (find the interface name with <code>ip addr</code>):
-          <br><code>sudo ip addr add 169.254.10.1/24 dev &lt;iface&gt;</code> — yours
-          <br><code>sudo ip addr add 169.254.10.2/24 dev &lt;iface&gt;</code> — theirs
-        </li>
-        <li>Check the link: <code>ping 169.254.10.2</code></li>
-        <li>Easiest — share a folder from your laptop (python3 comes preinstalled):
-          <br><code>cd ~/Videos && python3 -m http.server 8000</code>
-          <br>The other laptop opens <code>http://169.254.10.1:8000</code> in its browser and downloads files. Press <code>Ctrl+C</code> to stop sharing.
-        </li>
-        <li>Or push straight to the other machine over SSH (<code>-r</code> copies whole folders):
-          <br><code>scp -r ./D-Data amarnath@169.254.10.2:~/Downloads/</code>
-          <br>Caveat: the receiving laptop needs <code>openssh-server</code>. Check with <code>systemctl status ssh</code> — if it's missing you can't install it offline, so use the method above instead.
-        </li>
-      </ol>
-    </details>
-  </div>
+        <input type="file" id="fileInput" multiple class="tool-file-input">
+        <input type="file" id="folderInput" webkitdirectory multiple class="tool-file-input">
 
-  <footer>
-    Files transfer directly between browsers over WebRTC.<br>
-    A public broker is used only to introduce the two devices — no file data passes through it.
-  </footer>
+        <!-- Overall Progress -->
+        <div class="transfer overall hidden" id="overallCard">
+          <div class="t-top">
+            <span class="t-name" id="ovName">—</span>
+            <span class="t-meta" id="ovMeta"></span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="ovBar"></div></div>
+          <div class="t-stats">
+            <span id="ovSpeed">—</span>
+            <span id="ovEta"></span>
+          </div>
+        </div>
+
+        <!-- Transfer List -->
+        <div class="transfer-list" id="transferList" aria-live="polite"></div>
+      </section>
+
+      <!-- Chat Tab -->
+      <section class="tool-card hidden" id="chatCard" role="tabpanel" aria-labelledby="tabChat">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Chat
+          </h2>
+        </div>
+
+        <div class="tool-status-row">
+          <div class="tool-status-dot">
+            <thinking-orb state="connecting" size="20" id="cryptoOrb" aria-hidden="true" hidden></thinking-orb>
+            <span class="tool-dot" id="cryptoDot"></span>
+            <span id="cryptoText" role="status">establishing encryption…</span>
+          </div>
+        </div>
+
+        <div class="tool-safety-strip" id="safetyStrip">
+          <span class="lock">🔒 end-to-end encrypted</span>
+          <span class="tool-safety-code" id="safetyCode">···&nbsp;···</span>
+          <button class="tool-btn tool-btn--secondary tool-btn--sm verify-btn hidden" id="verifyBtn" type="button">we compared ✓</button>
+          <span class="verified-tag hidden" id="verifiedTag">verified ✓</span>
+        </div>
+
+        <p class="tool-hint">Compare the 6 digits on both screens once — if they match, nobody in between can read this chat. Messages vanish when you disconnect.</p>
+
+        <div class="chat-log" id="chatLog" aria-live="polite">
+          <div class="chat-empty">no messages yet</div>
+        </div>
+
+        <div class="chat-row">
+          <input type="text" class="tool-input tool-input--code chat-input" id="chatInput" placeholder="establishing encryption…" maxlength="500" disabled aria-label="Chat message" style="flex: 1; min-width: 0; font-size: 14px; letter-spacing: normal; text-align: left;">
+          <button class="tool-btn tool-btn--accent" id="chatSendBtn" type="button" disabled>send</button>
+        </div>
+      </section>
+
+      <!-- Help / Cable Fallback -->
+      <section class="tool-card">
+        <details class="cable">
+          <summary>No internet? A direct cable is enough — everything below runs in a terminal, nothing to install.</summary>
+          <ol>
+            <li>Connect the cable and give each laptop an IP (find the interface name with <code>ip addr</code>):
+              <br><code>sudo ip addr add 169.254.10.1/24 dev <iface></code> — yours
+              <br><code>sudo ip addr add 169.254.10.2/24 dev <iface></code> — theirs
+            </li>
+            <li>Check the link: <code>ping 169.254.10.2</code></li>
+            <li>Easiest — share a folder from your laptop (python3 comes preinstalled):
+              <br><code>cd ~/Videos && python3 -m http.server 8000</code>
+              <br>The other laptop opens <code>http://169.254.10.1:8000</code> in its browser and downloads files. Press <code>Ctrl+C</code> to stop sharing.
+            </li>
+            <li>Or push straight to the other machine over SSH (<code>-r</code> copies whole folders):
+              <br><code>scp -r ./D-Data amarnath@169.254.10.2:~/Downloads/</code>
+              <br>Caveat: the receiving laptop needs <code>openssh-server</code>. Check with <code>systemctl status ssh</code> — if it's missing you can't install it offline, so use the method above instead.
+            </li>
+          </ol>
+        </details>
+      </section>
+
+    </main>
+
+    <footer class="tool-footer">
+      Files transfer directly between browsers over WebRTC.<br>
+      A public broker is used only to introduce the two devices — no file data passes through it.
+    </footer>
+  </div>
 </div>
 
 <script src="/assets/cdn-guard.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
+
 <script>
 (function(){
+  'use strict';
+
   const PREFIX = "freqdrop-";
   const CHUNK_SIZE = 256 * 1024;
   const BUFFERED_AMOUNT_LOW = 1 * 1024 * 1024;
 
-  // ICE: public STUN for NAT discovery. Add your TURN here once deployed
-  // (e.g. on oradev) so connections behind symmetric NAT/CGNAT still complete.
-  // TURN relays crypto-only bytes, never file content.
   const ICE_SERVERS = [
     { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
     { urls: ['stun:stun.cloudflare.com:3478'] }
@@ -395,6 +334,8 @@
   const TURN_SERVERS = [{ urls: 'turn:68.233.97.153:3478', username: 'turnserver', credential: 'ba4c2e1fdf5c89ee734f8bbe' }];
 
   const el = (id) => document.getElementById(id);
+
+  // Elements
   const myCodeEl = el('myCode');
   const statusDot = el('statusDot');
   const statusOrb = el('statusOrb');
@@ -411,11 +352,11 @@
   const rejectBtn = el('rejectBtn');
   const dropzone = el('dropzone');
   const fileInput = el('fileInput');
+  const folderInput = el('folderInput');
   const transferList = el('transferList');
   const copyBtn = el('copyBtn');
   const pickFilesBtn = el('pickFilesBtn');
   const pickFolderBtn = el('pickFolderBtn');
-  const folderInput = el('folderInput');
   const destBtn = el('destBtn');
   const destLabel = el('destLabel');
   const overallCard = el('overallCard');
@@ -425,59 +366,84 @@
   const ovSpeed = el('ovSpeed');
   const ovEta = el('ovEta');
 
-  let peer = null;
-  let conn = null;
-  let connReady = false;
-  let pendingConn = null;
-  let pendingBuf = [];
-  let pendingBytes = 0;
+  const sessionTabs = el('sessionTabs');
+  const tabFiles = el('tabFiles');
+  const tabChat = el('tabChat');
+  const chatCard = el('chatCard');
+  const chatDot = el('chatDot');
+
+  const chatLog = el('chatLog');
+  const chatInput = el('chatInput');
+  const chatSendBtn = el('chatSendBtn');
+  const cryptoDot = el('cryptoDot');
+  const cryptoText = el('cryptoText');
+  const cryptoOrb = el('cryptoOrb');
+  const safetyCode = el('safetyCode');
+  const verifyBtn = el('verifyBtn');
+  const verifiedTag = el('verifiedTag');
+  const linkStrip = el('linkStrip');
+  const linkCodeEl = el('linkCode');
+  const linkNote = el('linkNote');
+
+  // State
+  let peer = null, conn = null, pendingConn = null, ready = false;
+  let myCode = '', connReady = false, pendingBuf = [], pendingBytes = 0;
   const PENDING_ACCEPT_LIMIT = 4 * 1024 * 1024;
-  let myCode = null;
-  let incoming = null;
-
-  // folder/queue state
-  let destDir = null;
+  let staged = [];
+  let sending = false, currentSend = null;
   const sendQueue = [];
-  const staged = [];          // picked before a peer connected
-  let sending = false;
-  let currentSend = null;
-  const totals = { size:0, done:0, count:0, sentCount:0 };
+  const totals = { size: 0, done: 0, count: 0, sentCount: 0 };
   let txBytes = 0, rxBytes = 0;
+  let batchSeq = 0;
+  let destDir = null;
+  const batchDirs = new Map();
 
-  function genCode(){
-    return String(Math.floor(10000000 + Math.random() * 90000000));
+  // E2EE Chat State
+  let ecdhPair = null, aesKey = null, cryptoReady = false, helloSent = false;
+  let safetyDigits = '', verified = false;
+  let userTabbed = false;
+
+  // Helpers
+  function fmtBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    if (b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
+    return (b / 1073741824).toFixed(2) + ' GB';
   }
+  function fmtRate(bps) {
+    if (!isFinite(bps) || bps <= 0) return '—';
+    if (bps >= 1048576) return (bps / 1048576).toFixed(1) + ' MB/s';
+    return Math.max(1, Math.round(bps / 1024)) + ' KB/s';
+  }
+  function fmtDur(sec) {
+    sec = Math.round(sec);
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    return h ? h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') : m + ':' + String(s).padStart(2, '0');
+  }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'''}[c])); }
 
-  /* status: 'searching' (in flight) | 'live' (connected) | 'bad' (failed).
-     The orb carries the in-flight state, the dot carries the outcome.
-     'bad' and not 'error' — theme.css's global `.error` is the error-banner
-     class (display:none), so an `.error` modifier would blank the card.
-     orbState overrides the orb's animation for states that read better as
-     a different motion — 'searching' for looking for a peer, 'connecting'
-     for a link that is being wired up. */
-  function setStatus(state, text, orbState){
+  // Status
+  function setStatus(state, text, orbState) {
     statusText.textContent = text;
-    var inFlight = (state === 'searching');
+    const inFlight = (state === 'searching');
     statusOrb.setAttribute('state', orbState || 'searching');
     statusOrb.hidden = !inFlight;
     statusDot.hidden = inFlight;
-    statusDot.className = 'dot ' + state;
+    statusDot.className = 'tool-dot ' + state;
     waveform.className = 'waveform ' + state;
-    sessionCard.className = 'card ' + state;
+    sessionCard.className = 'tool-card ' + (state === 'searching' ? 'tool-card--pending' : state === 'live' ? 'tool-card--active' : 'tool-card--error');
   }
 
-  function setConnected(isConnected){
+  function setConnected(isConnected) {
     document.body.classList.toggle('linked', isConnected);
-    if(isConnected){
-      dropzone.classList.add('enabled');
-      const subline = dropzone.querySelectorAll('div')[1];
-      if(subline) subline.textContent = 'ready to send';
+    if (isConnected) {
+      dropzone.classList.add('tool-dropzone--enabled');
+      dropzone.querySelector('.tool-dropzone-hint').textContent = 'ready to send';
       sessionTabs.classList.remove('hidden');
       showTab('files');
     } else {
-      dropzone.classList.remove('enabled');
+      dropzone.classList.remove('tool-dropzone--enabled');
       sessionTabs.classList.add('hidden');
-      // re-arm the connect step so a new code can be tried without a reload
       connectCard.classList.remove('hidden');
       connectBtn.disabled = false;
       connectBtn.textContent = 'connect';
@@ -485,656 +451,306 @@
     }
   }
 
-  function initPeer(){
+  function genCode() { return String(10000000 + Math.floor(Math.random() * 90000000)); }
+
+  // Peer init
+  function initPeer() {
     myCode = genCode();
     myCodeEl.textContent = myCode;
-    peer = new Peer(PREFIX + myCode, {
-      debug: 0,
-      config: { iceServers: ICE_SERVERS.concat(TURN_SERVERS) }
-    });
+    peer = new Peer(PREFIX + myCode, { debug: 0, config: { iceServers: ICE_SERVERS.concat(TURN_SERVERS) } });
 
-    peer.on('open', () => {
-      setStatus('searching', 'waiting for peer…');
-    });
-
-    peer.on('connection', (c) => {
-      if(conn || pendingConn){ console.log('busy, rejecting', c.peer); c.close(); return; }
-      setStatus('searching', 'incoming connection… accept to receive', 'connecting');
+    peer.on('open', () => { if (!ready && !conn && !pendingConn) setStatus('searching', 'waiting for peer…'); });
+    peer.on('connection', c => {
+      if (conn || pendingConn) { c.close(); return; }
       pendingConn = c;
-      pendingConn.on('data', bufferPending);
-      pendingConn.on('close', () => {
-        if(pendingConn === c){ pendingConn = null; pendingBuf = []; pendingBytes = 0; rejectBtn.disabled = false; acceptBtn.disabled = false; }
-      });
-      pendingConn.on('error', () => {});
+      setStatus('searching', 'incoming connection… accept to receive', 'connecting');
+      c.on('data', bufferPending);
+      c.on('close', () => { if (pendingConn === c) { pendingConn = null; pendingBuf = []; pendingBytes = 0; } });
       pendingPeer.textContent = c.peer.slice(PREFIX.length);
       incomingCard.classList.remove('hidden');
     });
-
-    peer.on('error', (err) => {
-      console.error('peer error', err);
-      if(err.type === 'unavailable-id'){
-        initPeer();
-      } else if (err.type === 'peer-unavailable') {
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') initPeer();
+      else if (err.type === 'peer-unavailable') {
         connectHint.textContent = 'No device found with that code. Check it and try again.';
-        connectHint.style.color = 'var(--red)';
-        connectBtn.disabled = false;
-        connectBtn.textContent = 'connect';
-      } else {
-        setStatus('bad', 'connection error — reload to retry');
-      }
+        connectHint.style.color = 'var(--tool-red)';
+        connectBtn.disabled = false; connectBtn.textContent = 'connect';
+      } else { setStatus('bad', 'connection error — reload to retry'); }
     });
   }
 
-  function acceptIncoming(){
-    if(!pendingConn) return;
-    const c = pendingConn;
-    pendingConn = null;
-    if(c.off) c.off('data', bufferPending);
-    incomingCard.classList.add('hidden');
-    bindConnection(c, true);
-    connReady = true;
-    if(c.open){
-      setStatus('live', 'connected');
-      setConnected(true);
-      c.send({ type:'ok' });
-    } else {
-      // ponytail: callee side must also enter connected UI when the channel
-      // opens late — otherwise tabs/status stay stale forever.
-      c.on('open', () => { setStatus('live', 'connected'); setConnected(true); c.send({ type:'ok' }); });
-    }
-    for(const msg of pendingBuf) handleIncomingData(msg);
-    pendingBuf = [];
-    pendingBytes = 0;
-    startHandshake();
-    if(staged.length){ enqueue(staged); staged.length = 0; }
-  }
-
-  function bufferPending(msg){
+  // Status helpers
+  function bufferPending(msg) {
     pendingBuf.push(msg);
     const len = typeof msg === 'string' ? msg.length : (msg.buffer ? msg.buffer.byteLength : 0);
     pendingBytes += len;
-    if(pendingBytes > PENDING_ACCEPT_LIMIT) rejectIncoming();
+    if (pendingBytes > PENDING_ACCEPT_LIMIT) rejectIncoming();
   }
-
-  function rejectIncoming(){
-    if(!pendingConn) return;
-    const c = pendingConn;
-    pendingConn = null;
-    pendingBuf = [];
-    pendingBytes = 0;
+  function acceptIncoming() {
+    if (!pendingConn) return;
+    const c = pendingConn; pendingConn = null;
+    if (c.off) c.off('data', bufferPending);
     incomingCard.classList.add('hidden');
-    c.close();
+    bindConnection(c, true);
+    connReady = true;
+    if (c.open) { setStatus('live', 'connected'); setConnected(true); c.send({ type: 'ok' }); }
+    else { c.on('open', () => { setStatus('live', 'connected'); setConnected(true); c.send({ type: 'ok' }); }); }
+    for (const msg of pendingBuf) handleIncomingData(msg);
+    pendingBuf = []; pendingBytes = 0;
+    startHandshake();
+    if (staged.length) { enqueue(staged); staged.length = 0; }
+  }
+  function rejectIncoming() {
+    if (!pendingConn) return;
+    const c = pendingConn; pendingConn = null; pendingBuf = []; pendingBytes = 0;
+    incomingCard.classList.add('hidden'); c.close();
     setStatus('searching', 'waiting for peer…');
   }
-
   acceptBtn.addEventListener('click', acceptIncoming);
   rejectBtn.addEventListener('click', rejectIncoming);
 
-  function markReady(){
-    if(connReady) return;
-    connReady = true;
-    setStatus('live', 'connected');
-    setConnected(true);
-    startHandshake();
-    if(staged.length){ enqueue(staged); staged.length = 0; }
+  function markReady() {
+    if (connReady) return;
+    connReady = true; setStatus('live', 'connected'); setConnected(true); startHandshake();
+    if (staged.length) { enqueue(staged); staged.length = 0; }
   }
 
-  function resetConnState(){
-    conn = null;
-    connReady = false;
-    batchDirs.clear();
-    sendQueue.length = 0;
-    sending = false;
-    if(currentSend){ currentSend.ui.setError(); currentSend = null; }
-    if(incoming && incoming.writer){
-      try{ incoming.writer.abort(); }catch(e){}
-      incoming.ui.setError();
-      incoming = null;
-    }
+  function resetConnState() {
+    conn = null; connReady = false; batchDirs.clear(); sendQueue.length = 0; sending = false;
+    if (currentSend) { currentSend.ui.setError(); currentSend = null; }
+    if (incoming && incoming.writer) { try { incoming.writer.abort(); } catch(e) {} incoming.ui.setError(); incoming = null; }
   }
 
-  // ---------- E2EE chat (ECDH P-256 + AES-GCM, WebCrypto, no deps) ----------
-  // Transport (DTLS) already hides bytes; this hides meaning too: even a
-  // signaling-server MITM sees only ciphertext. Safety digits let both ends
-  // confirm no one sits in between. Ephemeral — keys + log die on disconnect.
-  let ecdhPair = null, aesKey = null, cryptoReady = false, helloSent = false;
-  let safetyDigits = '', verified = false;
-  const chatLog = [];
-  const chatLogEl = el('chatLog'), chatInput = el('chatInput'), chatSendBtn = el('chatSendBtn');
-  const cryptoDot = el('cryptoDot'), cryptoText = el('cryptoText'), cryptoOrb = el('cryptoOrb');
-  const safetyCode = el('safetyCode'), verifyBtn = el('verifyBtn'), verifiedTag = el('verifiedTag');
-  const sessionTabs = el('sessionTabs'), tabFiles = el('tabFiles'), tabChat = el('tabChat');
-  const chatCard = el('chatCard'), fileCard = document.querySelector('#fileCard'), chatDot = el('chatDot');
-
-  function b64encode(buf){
-    const u = new Uint8Array(buf);
-    let s = '';
-    for(let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]);
-    return btoa(s);
-  }
-  function b64decode(s){
-    const b = atob(s);
-    const u = new Uint8Array(b.length);
-    for(let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
-    return u.buffer;
-  }
-  async function ensureEcdh(){
-    if(!ecdhPair) ecdhPair = await crypto.subtle.generateKey({ name:'ECDH', namedCurve:'P-256' }, true, ['deriveBits']);
-    return ecdhPair;
-  }
-  async function startHandshake(){
-    if(helloSent || !conn) return;
-    if(conn.open === false){ conn.on('open', () => startHandshake()); return; }
-    helloSent = true;
-    try {
-      const pair = await ensureEcdh();
-      const raw = await crypto.subtle.exportKey('raw', pair.publicKey);
-      conn.send({ type:'hello', pub:b64encode(raw) });
-    } catch(e){ helloSent = false; }
-  }
-  async function onHello(pubB64){
-    try {
-      const pair = await ensureEcdh();
-      const pub = await crypto.subtle.importKey('raw', b64decode(pubB64), { name:'ECDH', namedCurve:'P-256' }, false, []);
-      const bits = await crypto.subtle.deriveBits({ name:'ECDH', public:pub }, pair.privateKey, 256);
-      aesKey = await crypto.subtle.importKey('raw', bits, 'AES-GCM', false, ['encrypt', 'decrypt']);
-      const digest = await crypto.subtle.digest('SHA-256', bits);
-      safetyDigits = String(new DataView(digest).getUint32(0, false) % 1000000).padStart(6, '0');
-      cryptoReady = true;
-      paintSafety();
-    } catch(e){ /* malformed hello — stay unencrypted, chat stays locked */ }
-  }
-  function paintSafety(){
-    cryptoDot.className = 'dot ' + (cryptoReady ? 'live' : 'searching');
-    cryptoDot.hidden = cryptoReady;
-    cryptoOrb.hidden = !cryptoReady;
-    cryptoText.textContent = cryptoReady ? 'end-to-end encrypted' : 'establishing encryption…';
-    safetyCode.innerHTML = cryptoReady ? safetyDigits.slice(0,3) + '&nbsp;' + safetyDigits.slice(3) : '···&nbsp;···';
-    verifyBtn.classList.toggle('hidden', !cryptoReady || verified);
-    verifiedTag.classList.toggle('hidden', !verified);
-    chatInput.disabled = !cryptoReady;
-    chatSendBtn.disabled = !cryptoReady;
-    chatInput.placeholder = cryptoReady ? 'type a message…' : 'establishing encryption…';
-  }
-  function addChatMsg(who, text){
-    chatLog.push({ who, text });
-    const empty = chatLogEl.querySelector('.chat-empty');
-    if(empty) empty.remove();
-    const div = document.createElement('div');
-    div.className = 'chat-msg ' + who;
-    div.textContent = text;
-    chatLogEl.appendChild(div);
-    chatLogEl.scrollTop = chatLogEl.scrollHeight;
-    if(who === 'peer' && chatCard.classList.contains('hidden') === false && tabChat.classList.contains('active') === false){
-      chatDot.classList.remove('hidden');
-    }
-  }
-  async function sendChat(){
-    const text = chatInput.value.trim();
-    if(!text || !cryptoReady || !conn || !conn.open) return;
-    try {
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const data = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, aesKey,
-        new TextEncoder().encode(JSON.stringify({ text, ts:Date.now() })));
-      conn.send({ type:'chat', iv:b64encode(iv.buffer), data:b64encode(data) });
-      addChatMsg('me', text);
-      chatInput.value = '';
-    } catch(e){ /* drop on crypto failure */ }
-  }
-  async function onChat(msg){
-    if(!cryptoReady) return;
-    try {
-      const plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv:new Uint8Array(b64decode(msg.iv)) }, aesKey, b64decode(msg.data));
-      const { text } = JSON.parse(new TextDecoder().decode(plain));
-      if(typeof text === 'string' && text) addChatMsg('peer', text.slice(0, 500));
-    } catch(e){ /* tamper/corrupt — ignore */ }
-  }
-  function resetCrypto(){
-    ecdhPair = null; aesKey = null; cryptoReady = false; helloSent = false;
-    safetyDigits = ''; verified = false; chatLog.length = 0;
-    chatLogEl.innerHTML = '<div class="chat-empty">no messages yet</div>';
-    chatInput.value = '';
-    paintSafety();
-  }
-  function showTab(which){
-    const files = which === 'files';
-    tabFiles.classList.toggle('active', files);
-    tabChat.classList.toggle('active', !files);
-    tabFiles.setAttribute('aria-selected', files);
-    tabChat.setAttribute('aria-selected', !files);
-    fileCard.classList.toggle('hidden', !files);
-    chatCard.classList.toggle('hidden', files);
-    if(!files){ chatDot.classList.add('hidden'); chatLogEl.scrollTop = chatLogEl.scrollHeight; }
-  }
-  tabFiles.addEventListener('click', () => showTab('files'));
-  tabChat.addEventListener('click', () => showTab('chat'));
-  chatSendBtn.addEventListener('click', sendChat);
-  chatInput.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); } });
-  verifyBtn.addEventListener('click', () => { verified = true; paintSafety(); });
-  paintSafety();
-
-  // ponytail: per-batch destination choice lives here (folder handle or
-  // explicit downloads); unknown batches fall back to the global destDir.
-  const batchDirs = new Map();
-  function onAskBatch(msg){
-    const files = Array.isArray(msg.files) ? msg.files.slice(0, 200) : [];
-    if(!files.length || !conn || conn.open === false) return;
-    const total = files.reduce((a, f) => a + (f.size || 0), 0);
-    const wrap = document.createElement('div');
-    wrap.className = 'transfer';
-    wrap.innerHTML =
-      `<div class="t-top"><span class="t-name">↓ ${files.length} file${files.length > 1 ? 's' : ''} offered — ${formatBytes(total)}</span></div>` +
-      `<div class="t-files">${files.map(f => `<div class="t-file"><span>${escapeHtml(f.name || 'file')}</span><span>${formatBytes(f.size || 0)}</span></div>`).join('')}</div>` +
-      `<div class="t-actions">
-        <button class="mini-btn accept-folder">save to folder…</button>
-        <button class="mini-btn accept-dl">accept → downloads</button>
-        <button class="mini-btn reject">decline</button>
-      </div>`;
-    transferList.prepend(wrap);
-    const lock = (note) => {
-      wrap.querySelectorAll('button').forEach(b => { b.disabled = true; });
-      const s = document.createElement('span');
-      s.className = 't-saved'; s.textContent = note;
-      wrap.querySelector('.t-actions').appendChild(s);
-    };
-    const okIds = files.map(f => f.id);
-    wrap.querySelector('.accept-dl').addEventListener('click', () => {
-      batchDirs.set(msg.bid, null);
-      conn.send({ type:'ok-batch', bid:msg.bid, ids:okIds });
-      lock('accepted → downloads');
-    });
-    wrap.querySelector('.accept-folder').addEventListener('click', async () => {
-      if(!window.showDirectoryPicker){
-        batchDirs.set(msg.bid, null);
-        conn.send({ type:'ok-batch', bid:msg.bid, ids:okIds });
-        lock('accepted → downloads (no folder picker here)');
-        return;
-      }
-      try {
-        batchDirs.set(msg.bid, await window.showDirectoryPicker({ mode:'readwrite' }));
-      } catch(e){ return; /* picker cancelled — card stays open */ }
-      conn.send({ type:'ok-batch', bid:msg.bid, ids:okIds });
-      lock('accepted → chosen folder');
-    });
-    wrap.querySelector('.reject').addEventListener('click', () => {
-      conn.send({ type:'no-batch', bid:msg.bid });
-      lock('declined');
-    });
-  }
-  function onData(msg){
-    if(msg && msg.type === 'ok'){ markReady(); return; }
-    if(msg && msg.type === 'hello'){ onHello(msg.pub); startHandshake(); return; }
-    if(msg && msg.type === 'chat'){ onChat(msg); return; }
-    if(msg && msg.type === 'ask-batch'){ onAskBatch(msg); return; }
-    if(msg && msg.type === 'ok-batch'){ approveBatch(msg.bid, msg.ids || []); return; }
-    if(msg && msg.type === 'no-batch'){ declineBatch(msg.bid); return; }
-    handleIncomingData(msg);
-  }
-
-  function bindConnection(c, autoReady){
+  // Connection binding
+  function bindConnection(c, autoReady) {
     conn = c;
-    conn.on('open', () => {
-      if(autoReady) markReady();
-      else setStatus('searching', 'waiting for the other device to accept…', 'connecting');
-    });
-    conn.on('data', onData);
-    conn.on('close', () => {
-      setStatus('bad', 'peer disconnected');
-      setConnected(false);
-      resetConnState();
-    });
-    conn.on('error', (e) => console.error('conn error', e));
+    c.on('open', () => { if (autoReady) markReady(); else setStatus('searching', 'waiting for the other device to accept…', 'connecting'); });
+    c.on('data', onData);
+    c.on('close', () => { setStatus('bad', 'peer disconnected'); setConnected(false); resetConnState(); });
+    c.on('error', e => console.error('conn error', e));
   }
 
+  // Connect button
   connectBtn.addEventListener('click', () => {
     const code = peerCodeInput.value.trim();
-    if(!/^\d{8}$/.test(code)){
-      connectHint.textContent = 'Enter the 8-digit code exactly as shown.';
-      connectHint.style.color = 'var(--red)';
-      return;
-    }
-    connectHint.style.color = 'var(--muted)';
-    connectHint.textContent = 'Connecting…';
-    connectBtn.disabled = true;
-    connectBtn.textContent = 'connecting…';
+    if (!/^\d{8}$/.test(code)) { connectHint.textContent = 'Enter the 8-digit code exactly as shown.'; connectHint.style.color = 'var(--tool-red)'; return; }
+    connectHint.style.color = 'var(--tool-text-muted)'; connectHint.textContent = 'Connecting…';
+    connectBtn.disabled = true; connectBtn.textContent = 'connecting…';
     const c = peer.connect(PREFIX + code, { reliable: true });
     bindConnection(c, false);
   });
 
+  // Copy code
   copyBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(myCode).then(() => {
-      copyBtn.textContent = 'copied ✓';
-      setTimeout(() => copyBtn.textContent = 'copy code', 1500);
+    navigator.clipboard.writeText(myCode).then(() => { copyBtn.textContent = 'copied ✓'; setTimeout(() => copyBtn.textContent = 'copy code', 1500); });
+  });
+
+  // =================== E2EE CHAT ===================
+  async function b64encode(buf) { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s); }
+  async function b64decode(s) { const b = atob(s); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; }
+  async function ensureEcdh() { if (!ecdhPair) ecdhPair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']); return ecdhPair; }
+  async function startHandshake() {
+    if (helloSent || !conn) return;
+    if (conn.open === false) { conn.on('open', startHandshake); return; }
+    helloSent = true;
+    try { const pair = await ensureEcdh(); const raw = await crypto.subtle.exportKey('raw', pair.publicKey); conn.send({ type: 'hello', pub: await b64encode(raw) }); }
+    catch (e) { helloSent = false; }
+  }
+  async function onHello(pubB64) {
+    try { const pair = await ensureEcdh(); const pub = await crypto.subtle.importKey('raw', await b64decode(pubB64), { name: 'ECDH', namedCurve: 'P-256' }, false, []); const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: pub }, pair.privateKey, 256); aesKey = await crypto.subtle.importKey('raw', bits, 'AES-GCM', false, ['encrypt', 'decrypt']); const digest = await crypto.subtle.digest('SHA-256', bits); safetyDigits = String(new DataView(digest).getUint32(0, false) % 1000000).padStart(6, '0'); cryptoReady = true; paintSafety(); } catch(e) {}
+  }
+  function paintSafety() {
+    cryptoDot.className = 'tool-dot ' + (cryptoReady ? 'tool-dot--live' : 'tool-dot--pending');
+    cryptoDot.hidden = cryptoReady; cryptoOrb.hidden = !cryptoReady;
+    cryptoText.textContent = cryptoReady ? 'end-to-end encrypted' : 'establishing encryption…';
+    safetyCode.innerHTML = cryptoReady ? safetyDigits.slice(0,3) + '&nbsp;' + safetyDigits.slice(3) : '···&nbsp;···';
+    verifyBtn.classList.toggle('hidden', !cryptoReady || verified);
+    verifiedTag.classList.toggle('hidden', !verified);
+    chatInput.disabled = !cryptoReady; chatSendBtn.disabled = !cryptoReady;
+    chatInput.placeholder = cryptoReady ? 'type a message…' : 'establishing encryption…';
+  }
+  function addChatMsg(who, text) {
+    const empty = chatLog.querySelector('.chat-empty'); if (empty) empty.remove();
+    const div = document.createElement('div'); div.className = 'chat-msg ' + who; div.textContent = text; chatLog.appendChild(div);
+    chatLog.scrollTop = chatLog.scrollHeight;
+    if (who === 'peer' && !chatCard.classList.contains('hidden') && !tabChat.classList.contains('tool-tab--active')) chatDot.classList.remove('hidden');
+  }
+  async function sendChat() {
+    const text = chatInput.value.trim(); if (!text || !cryptoReady || !conn || !conn.open) return;
+    try { const iv = crypto.getRandomValues(new Uint8Array(12)); const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, new TextEncoder().encode(JSON.stringify({ text, ts: Date.now() }))); conn.send({ type: 'chat', iv: await b64encode(iv.buffer), data: await b64encode(data) }); addChatMsg('me', text); chatInput.value = ''; } catch(e) {}
+  }
+  async function onChat(msg) {
+    if (!cryptoReady) return; try { const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(await b64decode(msg.iv)) }, aesKey, await b64decode(msg.data)); const { text } = JSON.parse(new TextDecoder().decode(plain)); if (typeof text === 'string' && text) addChatMsg('peer', text.slice(0, 500)); } catch(e) {}
+  }
+  function resetCrypto() { ecdhPair = null; aesKey = null; cryptoReady = false; helloSent = false; safetyDigits = ''; verified = false; chatLog.innerHTML = '<div class="chat-empty">no messages yet</div>'; chatInput.value = ''; paintSafety(); }
+  function showTab(which) { const files = which === 'files'; tabFiles.classList.toggle('tool-tab--active', files); tabChat.classList.toggle('tool-tab--active', !files); tabFiles.setAttribute('aria-selected', files); tabChat.setAttribute('aria-selected', !files); document.getElementById('fileCard').classList.toggle('hidden', !files); chatCard.classList.toggle('hidden', files); if (!files) { chatDot.classList.add('hidden'); chatLog.scrollTop = chatLog.scrollHeight; } }
+  tabFiles.addEventListener('click', () => { userTabbed = true; showTab('files'); });
+  tabChat.addEventListener('click', () => { userTabbed = true; showTab('chat'); });
+  chatSendBtn.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+  verifyBtn.addEventListener('click', () => { verified = true; paintSafety(); });
+  paintSafety();
+
+  // =================== DATA HANDLING ===================
+  function onData(msg) {
+    if (msg && msg.type === 'ok') { markReady(); return; }
+    if (msg && msg.type === 'hello') { onHello(msg.pub); startHandshake(); return; }
+    if (msg && msg.type === 'chat') { onChat(msg); return; }
+    if (msg && msg.type === 'ask-batch') { onAskBatch(msg); return; }
+    if (msg && msg.type === 'ok-batch') { approveBatch(msg.bid, msg.ids || []); return; }
+    if (msg && msg.type === 'no-batch') { declineBatch(msg.bid); return; }
+    handleIncomingData(msg);
+  }
+
+  // Batch approval (receiver)
+  function onAskBatch(msg) {
+    const files = Array.isArray(msg.files) ? msg.files.slice(0, 200) : [];
+    if (!files.length || !conn || conn.open === false) return;
+    const total = files.reduce((a, f) => a + (f.size || 0), 0);
+    const wrap = document.createElement('div');
+    wrap.className = 'transfer batch-prompt';
+    wrap.innerHTML = `<div class="t-top"><span class="t-name">↓ ${files.length} file${files.length > 1 ? 's' : ''} offered — ${fmtBytes(total)}</span></div>` +
+      `<div class="t-files">${files.map(f => `<div class="t-file"><span>${escapeHtml(f.name || 'file')}</span><span>${fmtBytes(f.size || 0)}</span></div>`).join('')}</div>` +
+      `<div class="t-actions"><button class="tool-btn tool-btn--secondary tool-btn--sm accept-folder">save to folder…</button><button class="tool-btn tool-btn--primary tool-btn--sm accept-dl">accept → downloads</button><button class="tool-btn tool-btn--danger tool-btn--sm reject">decline</button></div>`;
+    transferList.prepend(wrap);
+    const lock = note => { wrap.querySelectorAll('button').forEach(b => b.disabled = true); const s = document.createElement('span'); s.className = 't-saved'; s.textContent = note; wrap.querySelector('.t-actions').appendChild(s); };
+    const okIds = files.map(f => f.id);
+    wrap.querySelector('.accept-dl').addEventListener('click', () => { batchDirs.set(msg.bid, null); conn.send({ type: 'ok-batch', bid: msg.bid, ids: okIds }); lock('accepted → downloads'); });
+    wrap.querySelector('.accept-folder').addEventListener('click', async () => {
+      if (!window.showDirectoryPicker) { batchDirs.set(msg.bid, null); conn.send({ type: 'ok-batch', bid: msg.bid, ids: okIds }); lock('accepted → downloads (no folder picker here)'); return; }
+      try { batchDirs.set(msg.bid, await window.showDirectoryPicker({ mode: 'readwrite' })); } catch(e) { return; }
+      conn.send({ type: 'ok-batch', bid: msg.bid, ids: okIds }); lock('accepted → chosen folder');
     });
-  });
-
-  // ---------- destination folder (receiver) ----------
-  if(window.showDirectoryPicker){
-    destBtn.addEventListener('click', async () => {
-      try{ destDir = await window.showDirectoryPicker({ mode:'readwrite' }); }catch(e){ /* cancelled */ }
-      destBtn.textContent = destDir ? 'change…' : 'choose folder…';
-      destLabel.textContent = destDir ? 'writing straight into "' + destDir.name + '"' : 'files arrive as browser downloads';
-    });
-  } else {
-    destBtn.classList.add('hidden');
-    destLabel.textContent = 'direct folder saving needs Chrome or Edge — files arrive as downloads';
+    wrap.querySelector('.reject').addEventListener('click', () => { conn.send({ type: 'no-batch', bid: msg.bid }); lock('declined'); });
   }
 
-  async function uniqueName(dir, name){
-    const exists = n => dir.getFileHandle(n).then(() => true, () => false);
-    if(!(await exists(name))) return name;
-    const dot = name.lastIndexOf('.');
-    const base = dot > 0 ? name.slice(0, dot) : name;
-    const ext = dot > 0 ? name.slice(dot) : '';
-    for(let i = 1; ; i++){
-      const n = base + '-' + i + ext;
-      if(!(await exists(n))) return n;
-    }
+  function approveBatch(bid, ids) {
+    let n = 0; for (const st of sendQueue) { if (st.bid !== bid || st.state !== 'pending' || !ids.includes(st.fid)) continue; st.state = 'approved'; totals.size += st.file.size; totals.count++; n++; } if (n) { renderOverall(); pump(); }
   }
+  function declineBatch(bid) { for (let i = sendQueue.length - 1; i >= 0; i--) { const st = sendQueue[i]; if (st.bid !== bid || st.state !== 'pending') continue; st.state = 'declined'; st.ui.setNote('declined by peer'); sendQueue.splice(i, 1); } }
 
-  async function openDestWriter(root, path, fallbackName){
-    const parts = (path || '').split('/').filter(Boolean);
-    const fname = parts.pop() || fallbackName;
-    let d = root;
-    for(const p of parts) d = await d.getDirectoryHandle(p, { create:true });
-    const fh = await d.getFileHandle(await uniqueName(d, fname), { create:true });
-    return fh.createWritable();
-  }
-
-  // ---------- picking / dropping ----------
-  pickFilesBtn.addEventListener('click', () => fileInput.click());
-  pickFolderBtn.addEventListener('click', () => folderInput.click());
-  dropzone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => {
-    enqueue([...fileInput.files].map(f => ({ file:f })));
-    fileInput.value = '';
-  });
-  folderInput.addEventListener('change', () => {
-    enqueue([...folderInput.files].map(f => ({ file:f, relPath:f.webkitRelativePath || f.name })));
-    folderInput.value = '';
-  });
-
-  ['dragover','dragenter'].forEach(evt => dropzone.addEventListener(evt, (e) => {
-    e.preventDefault();
-    if(conn) dropzone.classList.add('drag');
-  }));
-  ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('drag');
-  }));
-  dropzone.addEventListener('drop', (e) => { collectDrop(e.dataTransfer); });
-
-  // reads dt.items synchronously — they expire when the event handler yields
-  function collectDrop(dt){
-    const out = [];
-    const entries = [];
-    for(const item of dt.items){
-      const entry = item.webkitGetAsEntry && item.webkitGetAsEntry();
-      if(entry) entries.push(entry);
-    }
-    const walkAll = async () => {
-      if(entries.length === 0){
-        for(const f of dt.files) out.push({ file:f });
-        return;
-      }
-      async function walk(entry, prefix){
-        if(entry.isFile){
-          const f = await new Promise((res) => entry.file(res, () => res(null)));
-          if(f) out.push({ file:f, relPath:(prefix ? prefix + '/' : '') + f.name });
-          return;
-        }
-        const reader = entry.createReader();
-        const sub = (prefix ? prefix + '/' : '') + entry.name;
-        for(;;){
-          const batch = await new Promise((res, rej) => reader.readEntries(res, rej));
-          if(batch.length === 0) break;
-          for(const child of batch) await walk(child, sub);
-        }
-      }
-      for(const entry of entries) await walk(entry, '');
-    };
-    walkAll().then(() => enqueue(out)).catch(err => console.error('drop traversal failed', err));
-  }
-
-  // ---------- send queue ----------
-  function subline(){ return dropzone.querySelectorAll('div')[1]; }
-
-  let batchSeq = 0;
-  function enqueue(items){
-    if(items.length === 0) return;
-    if(!conn || conn.open === false){
-      staged.push(...items);
-      subline().textContent = staged.length + ' item(s) waiting — connect to a peer to send';
-      return;
-    }
-    // ponytail: nothing moves until the receiver accepts — one request per batch.
-    const bid = 'b' + (++batchSeq) + '-' + Math.random().toString(36).slice(2, 7);
-    for(const it of items){
-      const st = { ...it, bid, fid: bid + ':' + Math.random().toString(36).slice(2, 7), state:'pending', started:false };
-      sendQueue.push(st);
-      st.ui = makeTransferRow(st.file.name, st.file.size, 'up');
-      st.ui.setNote('waiting for peer approval…');
-    }
-    conn.send({ type:'ask-batch', bid, files: sendQueue.filter(s => s.bid === bid).map(st => ({
-      id:st.fid, name:st.file.name, size:st.file.size, mime:st.file.type,
-      path:(st.relPath || st.file.name).replace(/^\/+/, '') })) });
-  }
-
-  function approveBatch(bid, ids){
-    let n = 0;
-    for(const st of sendQueue){
-      if(st.bid !== bid || st.state !== 'pending' || !ids.includes(st.fid)) continue;
-      st.state = 'approved';
-      totals.size += st.file.size;
-      totals.count += 1;
-      n++;
-    }
-    if(n){ renderOverall(); pump(); }
-  }
-
-  function declineBatch(bid){
-    for(let i = sendQueue.length - 1; i >= 0; i--){
-      const st = sendQueue[i];
-      if(st.bid !== bid || st.state !== 'pending') continue;
-      st.state = 'declined';
-      st.ui.setNote('declined by peer');
-      sendQueue.splice(i, 1);
-    }
-  }
-
-  async function pump(){
-    if(sending) return;
-    const st = sendQueue.find(s => s.state === 'approved' && !s.started);
-    if(!st) return;
-    if(!conn || conn.open === false) return;
-    sending = true;
-    st.started = true;
-    currentSend = st;
-    try{
-      await sendItem(st);
-      const ix = sendQueue.indexOf(st);
-      if(ix >= 0) sendQueue.splice(ix, 1);
-    }catch(err){
-      console.error('send failed', err);
-      st.ui.setError();
-      st.ui.setNote('failed');
-    }
-    currentSend = null;
-    sending = false;
-    pump();
-  }
-
-  async function sendItem(st){
-    const file = st.file;
-    const relPath = (st.relPath || file.name).replace(/^\/+/, '');
-    ovName.textContent = relPath;
-    conn.send({ type:'meta', bid:st.bid, name:file.name, size:file.size, mime:file.type, path:relPath });
-
-    const dc = conn.dataChannel;
-    let offset = 0;
-    while(offset < file.size){
-      if(!conn || conn.open === false) throw new Error('peer disconnected');
-      if(dc && dc.bufferedAmount > BUFFERED_AMOUNT_LOW){
-        await new Promise(resolve => {
-          dc.onbufferedamountlow = () => { dc.onbufferedamountlow = null; resolve(); };
-        });
-        continue;
-      }
-      const buf = await file.slice(offset, offset + CHUNK_SIZE).arrayBuffer();
-      conn.send({ type:'chunk', data:buf });
-      offset += buf.byteLength;
-      txBytes += buf.byteLength;
-      totals.done += buf.byteLength;
-      st.ui.setProgress(Math.min(100, (offset / file.size) * 100));
-      await new Promise(r => setTimeout(r, 0));
-    }
-    conn.send({ type:'done' });
-    totals.sentCount += 1;
-    st.ui.setProgress(100);
-    st.ui.setNote('sent');
-    renderOverall();
-  }
-
-  // ---------- transfer rows ----------
-  function makeTransferRow(name, size, direction){
-    while(transferList.children.length >= 60) transferList.lastChild.remove();
-    const row = document.createElement('div');
-    row.className = 'transfer';
-    row.innerHTML = `
-      <div class="t-top">
-        <span class="t-name">${direction === 'up' ? '\u2191 ' : '\u2193 '}${escapeHtml(name)}</span>
-        <span class="t-meta">${formatBytes(size)}</span>
-      </div>
-      <div class="bar-track"><div class="bar-fill"></div></div>
-      <div class="t-actions"></div>
-    `;
+  // Send queue
+  function makeTransferRow(name, size, direction) {
+    while (transferList.children.length >= 60) transferList.lastChild.remove();
+    const row = document.createElement('div'); row.className = 'transfer';
+    row.innerHTML = `<div class="t-top"><span class="t-name">${direction === 'up' ? '↑ ' : '↓ '}${escapeHtml(name)}</span><span class="t-meta">${fmtBytes(size)}</span></div><div class="bar-track"><div class="bar-fill"></div></div><div class="t-actions"></div>`;
     transferList.prepend(row);
     return {
-      row,
-      setProgress(pct){ row.querySelector('.bar-fill').style.transform = 'scaleX(' + pct / 100 + ')'; },
-      setError(){ row.querySelector('.bar-fill').classList.add('err'); },
-      setNote(text){
-        const s = document.createElement('span');
-        s.className = 't-saved'; s.textContent = text;
-        row.querySelector('.t-actions').appendChild(s);
-      },
-      setDownload(url, fname){
-        const a = document.createElement('a');
-        a.href = url; a.download = fname; a.textContent = 'save file';
-        row.querySelector('.t-actions').appendChild(a);
-      }
+      row, setProgress(pct) { row.querySelector('.bar-fill').style.transform = 'scaleX(' + pct / 100 + ')'; }, setError() { row.querySelector('.bar-fill').classList.add('err'); },
+      setNote(text) { const s = document.createElement('span'); s.className = 't-saved'; s.textContent = text; row.querySelector('.t-actions').appendChild(s); },
+      setDownload(url, fname) { const a = document.createElement('a'); a.href = url; a.download = fname; a.textContent = 'save file'; row.querySelector('.t-actions').appendChild(a); }
     };
   }
 
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
-  function formatBytes(b){
-    if(b < 1024) return b + ' B';
-    if(b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
-    if(b < 1024*1024*1024) return (b/(1024*1024)).toFixed(1) + ' MB';
-    if(b < 1024*1024*1024*1024) return (b/(1024*1024*1024)).toFixed(1) + ' GB';
-    return (b/(1024*1024*1024*1024)).toFixed(2) + ' TB';
+  function enqueue(items) {
+    if (!items.length) return;
+    if (!conn || conn.open === false) { staged.push(...items); dropzone.querySelector('.tool-dropzone-hint').textContent = staged.length + ' item(s) waiting — connect to a peer to send'; return; }
+    const bid = 'b' + (++batchSeq) + '-' + Math.random().toString(36).slice(2, 7);
+    for (const it of items) {
+      const st = { ...it, bid, fid: bid + ':' + Math.random().toString(36).slice(2, 7), state: 'pending', started: false };
+      sendQueue.push(st); st.ui = makeTransferRow(st.file.name, st.file.size, 'up'); st.ui.setNote('waiting for peer approval…');
+    }
+    conn.send({ type: 'ask-batch', bid, files: sendQueue.filter(s => s.bid === bid).map(st => ({ id: st.fid, name: st.file.name, size: st.file.size, mime: st.file.type, path: (st.relPath || st.file.name).replace(/^\/+/, '') })) });
   }
 
-  // ---------- receive (stream to disk when a destination folder is set) ----------
-  function handleIncomingData(msg){
-    if(msg && msg.type === 'hello'){ onHello(msg.pub); startHandshake(); return; }
-    if(msg && msg.type === 'chat'){ onChat(msg); return; }
-    if(msg && msg.type === 'ask-batch'){ onAskBatch(msg); return; }
-    if(msg && msg.type === 'ok-batch'){ approveBatch(msg.bid, msg.ids || []); return; }
-    if(msg && msg.type === 'no-batch'){ declineBatch(msg.bid); return; }
-    if(msg.type === 'meta'){
-      const recvDir = (msg.bid && batchDirs.has(msg.bid)) ? batchDirs.get(msg.bid) : destDir;
-      const useFs = !!recvDir;
-      incoming = {
-        name: msg.name, size: msg.size, mime: msg.mime || 'application/octet-stream',
-        path: msg.path || msg.name,
-        chunks: useFs ? null : [],   // RAM fallback path
-        writer: null,
-        pending: useFs ? [] : null,  // chunks arriving while the writer opens
-        received: 0,
-        ui: makeTransferRow(msg.name, msg.size, 'down')
-      };
-      ovName.textContent = incoming.path;
-      totals.size += msg.size;
-      totals.count += 1;
-      renderOverall();
-      if(useFs){
-        const cur = incoming;
-        openDestWriter(recvDir, cur.path, cur.name).then(w => {
-          cur.writer = w;
-          if(cur.pending){ for(const d of cur.pending) w.write(d); cur.pending = null; }
-        }).catch(err => {
-          console.error('destination write failed, falling back to download', err);
-          cur.chunks = [];
-          cur.pending = null;
-        });
-      }
-    } else if(msg.type === 'chunk' && incoming){
-      incoming.received += msg.data.byteLength;
-      rxBytes += msg.data.byteLength;
-      totals.done += msg.data.byteLength;
-      if(incoming.writer) incoming.writer.write(msg.data);
-      else if(incoming.pending) incoming.pending.push(msg.data);
-      else if(incoming.chunks) incoming.chunks.push(msg.data);
+  async function pump() {
+    if (sending) return; const st = sendQueue.find(s => s.state === 'approved' && !s.started); if (!st) return; if (!conn || conn.open === false) return;
+    sending = true; st.started = true; currentSend = st;
+    try { await sendItem(st); const ix = sendQueue.indexOf(st); if (ix >= 0) sendQueue.splice(ix, 1); } catch(err) { console.error('send failed', err); st.ui.setError(); st.ui.setNote('failed'); }
+    currentSend = null; sending = false; pump();
+  }
+
+  async function sendItem(st) {
+    const file = st.file; const relPath = (st.relPath || file.name).replace(/^\/+/, '');
+    ovName.textContent = relPath; conn.send({ type: 'meta', bid: st.bid, name: file.name, size: file.size, mime: file.type, path: relPath });
+    const dc = conn.dataChannel; let offset = 0;
+    while (offset < file.size) {
+      if (!conn || conn.open === false) throw new Error('peer disconnected');
+      if (dc && dc.bufferedAmount > BUFFERED_AMOUNT_LOW) { await new Promise(resolve => { dc.onbufferedamountlow = () => { dc.onbufferedamountlow = null; resolve(); }; }); continue; }
+      const buf = await file.slice(offset, offset + CHUNK_SIZE).arrayBuffer(); conn.send({ type: 'chunk', data: buf }); offset += buf.byteLength; txBytes += buf.byteLength; totals.done += buf.byteLength; st.ui.setProgress(Math.min(100, (offset / file.size) * 100)); await new Promise(r => setTimeout(r, 0));
+    }
+    conn.send({ type: 'done' }); totals.sentCount++; st.ui.setProgress(100); st.ui.setNote('sent'); renderOverall();
+  }
+
+  // Receive handling
+  let incoming = null;
+  function handleIncomingData(msg) {
+    if (msg.type === 'meta') {
+      const recvDir = (msg.bid && batchDirs.has(msg.bid)) ? batchDirs.get(msg.bid) : destDir; const useFs = !!recvDir;
+      incoming = { name: msg.name, size: msg.size, mime: msg.mime || 'application/octet-stream', path: msg.path || msg.name, chunks: useFs ? null : [], writer: null, pending: useFs ? [] : null, received: 0, ui: makeTransferRow(msg.name, msg.size, 'down') };
+      ovName.textContent = incoming.path; totals.size += msg.size; totals.count++; renderOverall();
+      if (useFs) { const cur = incoming; openDestWriter(recvDir, cur.path, cur.name).then(w => { cur.writer = w; if (cur.pending) { for (const d of cur.pending) w.write(d); cur.pending = null; } }).catch(err => { console.error('destination write failed', err); cur.chunks = []; cur.pending = null; }); }
+    } else if (msg.type === 'chunk' && incoming) {
+      incoming.received += msg.data.byteLength; rxBytes += msg.data.byteLength; totals.done += msg.data.byteLength;
+      if (incoming.writer) incoming.writer.write(msg.data); else if (incoming.pending) incoming.pending.push(msg.data); else if (incoming.chunks) incoming.chunks.push(msg.data);
       incoming.ui.setProgress(Math.min(100, (incoming.received / incoming.size) * 100));
-    } else if(msg.type === 'done' && incoming){
-      totals.sentCount += 1;
-      const inc = incoming;
-      inc.ui.setProgress(100);
-      if(inc.writer){
-        inc.writer.close()
-          .then(() => inc.ui.setNote('saved'))
-          .catch(err => { console.error(err); inc.ui.setError(); });
-      } else if((inc.chunks && inc.chunks.length) || (inc.pending && inc.pending.length)){
-        const blob = new Blob([...(inc.chunks || []), ...(inc.pending || [])], { type:inc.mime });
-        inc.ui.setDownload(URL.createObjectURL(blob), inc.name);
-      } else {
-        inc.ui.setError();
-      }
+    } else if (msg.type === 'done' && incoming) {
+      totals.sentCount++; incoming.ui.setProgress(100);
+      if (incoming.writer) { incoming.writer.close().then(() => incoming.ui.setNote('saved')).catch(err => { console.error(err); incoming.ui.setError(); }); }
+      else if ((incoming.chunks && incoming.chunks.length) || (incoming.pending && incoming.pending.length)) { const blob = new Blob([...(incoming.chunks || []), ...(incoming.pending || [])], { type: incoming.mime }); incoming.ui.setDownload(URL.createObjectURL(blob), incoming.name); }
+      else { incoming.ui.setError(); }
       incoming = null;
     }
   }
 
-  // ---------- overall progress panel ----------
-  function renderOverall(){
-    if(totals.count === 0){ overallCard.classList.add('hidden'); return; }
+  async function openDestWriter(root, path, fallbackName) {
+    const parts = (path || '').split('/').filter(Boolean); const fname = parts.pop() || fallbackName; let d = root;
+    for (const p of parts) d = await d.getDirectoryHandle(p, { create: true });
+    const fh = await d.getFileHandle(await uniqueName(d, fname), { create: true }); return fh.createWritable();
+  }
+  async function uniqueName(dir, name) { const exists = n => dir.getFileHandle(n).then(() => true, () => false); if (!(await exists(name))) return name; const dot = name.lastIndexOf('.'); const base = dot > 0 ? name.slice(0, dot) : name; const ext = dot > 0 ? name.slice(dot) : ''; for (let i = 1;; i++) { const n = base + '-' + i + ext; if (!(await exists(n))) return n; } }
+
+  // Overall progress
+  function renderOverall() {
+    if (totals.count === 0) { overallCard.classList.add('hidden'); return; }
     overallCard.classList.remove('hidden');
     ovBar.style.transform = 'scaleX(' + (totals.size ? Math.min(100, totals.done / totals.size * 100) : 0) / 100 + ')';
-    ovMeta.textContent = formatBytes(totals.done) + ' / ' + formatBytes(totals.size) +
-      ' \u00b7 ' + totals.sentCount + '/' + totals.count + ' files' +
-      (sendQueue.length ? ' \u00b7 ' + sendQueue.length + ' queued' : '');
+    ovMeta.textContent = fmtBytes(totals.done) + ' / ' + fmtBytes(totals.size) + ' · ' + totals.sentCount + '/' + totals.count + ' files' + (sendQueue.length ? ' · ' + sendQueue.length + ' queued' : '');
   }
 
-  function fmtRate(bps){
-    if(!isFinite(bps) || bps <= 0) return '\u2014';
-    if(bps >= 1024*1024) return (bps/(1024*1024)).toFixed(1) + ' MB/s';
-    return Math.max(1, Math.round(bps/1024)) + ' KB/s';
-  }
-  function fmtDur(sec){
-    sec = Math.round(sec);
-    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
-    const p = n => String(n).padStart(2,'0');
-    return h ? h + ':' + p(m) + ':' + p(s) : m + ':' + p(s);
-  }
-
+  // Speed/ETA
   let lastTick = performance.now(), lastTx = 0, lastRx = 0, dispSpeed = 0;
-  setInterval(() => {
-    const now = performance.now();
-    const dt = (now - lastTick) / 1000;
-    lastTick = now;
-    if(dt <= 0) return;
-    const inst = ((txBytes - lastTx) + (rxBytes - lastRx)) / dt;
-    lastTx = txBytes; lastRx = rxBytes;
-    dispSpeed = inst > 0 ? (dispSpeed ? dispSpeed*0.6 + inst*0.4 : inst) : dispSpeed * 0.85;
-    if(dispSpeed < 1) dispSpeed = 0;
-    ovSpeed.textContent = fmtRate(dispSpeed);
-    const remain = totals.size - totals.done;
-    ovEta.textContent = remain <= 0 ? '' : (dispSpeed > 0 ? 'ETA ' + fmtDur(remain / dispSpeed) : 'ETA \u2014');
-    if(totals.count) renderOverall();
-  }, 500);
+  setInterval(() => { const now = performance.now(); const dt = (now - lastTick) / 1000; lastTick = now; if (dt <= 0) return; const inst = ((txBytes - lastTx) + (rxBytes - lastRx)) / dt; lastTx = txBytes; lastRx = rxBytes; dispSpeed = inst > 0 ? (dispSpeed ? dispSpeed * 0.6 + inst * 0.4 : inst) : dispSpeed * 0.85; if (dispSpeed < 1) dispSpeed = 0; ovSpeed.textContent = fmtRate(dispSpeed); const remain = totals.size - totals.done; ovEta.textContent = remain <= 0 ? '' : (dispSpeed > 0 ? 'ETA ' + fmtDur(remain / dispSpeed) : 'ETA —'); if (totals.count) renderOverall(); }, 500);
 
+  // Destination folder
+  if (window.showDirectoryPicker) {
+    destBtn.addEventListener('click', async () => { try { destDir = await window.showDirectoryPicker({ mode: 'readwrite' }); } catch(e) {} destBtn.textContent = destDir ? 'change…' : 'choose folder…'; destLabel.textContent = destDir ? 'writing straight into "' + destDir.name + '"' : 'files arrive as browser downloads'; });
+  } else { destBtn.classList.add('hidden'); destLabel.textContent = 'direct folder saving needs Chrome or Edge — files arrive as downloads'; }
+
+  // File picking
+  pickFilesBtn.addEventListener('click', () => fileInput.click());
+  pickFolderBtn.addEventListener('click', () => folderInput.click());
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => { enqueue([...fileInput.files].map(f => ({ file: f }))); fileInput.value = ''; });
+  folderInput.addEventListener('change', () => { enqueue([...folderInput.files].map(f => ({ file: f, relPath: f.webkitRelativePath || f.name }))); folderInput.value = ''; });
+
+  ['dragover', 'dragenter'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); if (conn) dropzone.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', e => collectDrop(e.dataTransfer));
+
+  async function collectDrop(dt) {
+    const out = []; const entries = []; for (const item of dt.items) { const entry = item.webkitGetAsEntry && item.webkitGetAsEntry(); if (entry) entries.push(entry); }
+    async function walkAll() { if (entries.length === 0) { for (const f of dt.files) out.push({ file: f }); return; } async function walk(entry, prefix) { if (entry.isFile) { const f = await new Promise(res => entry.file(res, () => res(null))); if (f) out.push({ file: f, relPath: (prefix ? prefix + '/' : '') + f.name }); return; } const reader = entry.createReader(); const sub = (prefix ? prefix + '/' : '') + entry.name; for (;;) { const batch = await new Promise((res, rej) => reader.readEntries(res, rej)); if (!batch.length) break; for (const child of batch) await walk(child, sub); } } for (const entry of entries) await walk(entry, ''); }
+    walkAll().then(() => enqueue(out)).catch(err => console.error('drop failed', err));
+  }
+
+  // Link code verification
+  async function showLinkStrip() {
+    if (!conn) return;
+    try { const pc = conn.peerConnection; const fp = sdp => { const m = /a=fingerprint:\S+ (\S+)/.exec(sdp || ''); return m ? m[1].toUpperCase() : ''; }; const a = fp(pc.localDescription?.sdp); const b = fp(pc.remoteDescription?.sdp); if (!a || !b) return; const d = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode([a, b].sort().join('|')))); const n = (((d[0] << 24) | (d[1] << 16) | (d[2] << 8) | d[3]) >>> 0) % 1000000; const s = String(n).padStart(6, '0'); linkCodeEl.textContent = s.slice(0, 3) + ' ' + s.slice(3); } catch(e) { linkCodeEl.textContent = '——'; }
+    linkStrip.classList.remove('hidden');
+    try { const stats = await conn.peerConnection.getStats(); let pair = null; stats.forEach(r => { if (r.type === 'transport' && r.selectedCandidatePairId) pair = stats.get(r.selectedCandidatePairId); }); if (!pair) stats.forEach(r => { if (r.type === 'candidate-pair' && (r.selected || (r.nominated && r.state === 'succeeded'))) pair = r; }); const local = pair && stats.get(pair.localCandidateId); const t = local && local.candidateType; if (t === 'host') statusText.textContent = 'connected · same network'; else if (t === 'relay') statusText.textContent = 'connected · relayed (slow)'; else if (t) statusText.textContent = 'connected · via router'; } catch(e) {}
+    setTimeout(showLinkStrip, 5000);
+  }
+
+  // Heartbeat
+  let lastSeen = Date.now(), stale = false, staleText = '';
+  function heard() { lastSeen = Date.now(); if (stale) { stale = false; statusText.textContent = staleText || 'connected'; statusDot.className = 'tool-dot tool-dot--live'; } }
+  setInterval(() => { if (!ready) return; conn.send({ t: 'ping' }); const silent = Date.now() - lastSeen; if (silent > 45000 && document.visibilityState === 'visible') { try { conn.close(); } catch(e) {} if (conn === conn) { setStatus('bad', 'other device disconnected'); setConnected(false); resetConnState(); } return; } if (!stale && document.visibilityState === 'visible' && silent > 12000) { stale = true; staleText = statusText.textContent; statusText.textContent = 'other device not responding…'; statusDot.className = 'tool-dot tool-dot--error'; } }, 4000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') lastSeen = Date.now(); });
+  window.addEventListener('pagehide', () => { try { if (conn) conn.close(); } catch(e) {} });
+
+  // Init
   initPeer();
 })();
 </script>

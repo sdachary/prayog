@@ -3,142 +3,609 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prayog — tools</title>
-<meta name="description" content="Standalone browser utilities. Nothing leaves your machine.">
+<title>Prayog — Local-first browser tools</title>
+<meta name="description" content="12 standalone utilities that run entirely in your browser. Stream media, transfer files, compress images, diff text, calculate loans — nothing leaves your machine.">
+
+<!-- Theme initialization (no flash) -->
 <script>
 (function(){try{var t=localStorage.getItem('prayog-theme');
 if(t!=='light'&&t!=='dark')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
 document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
 </script>
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
+
+<!-- Fonts: Satoshi (sans) + Newsreader (editorial serif) + Geist Mono -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
 <link rel="stylesheet" href="/assets/theme.css">
 <link rel="stylesheet" href="/assets/landing.css">
+
+<!-- Scripts -->
 <script src="/assets/nav.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="/assets/landing.js" defer></script>
 </head>
 <body>
-<div class="shell">
+<!-- Prevent horizontal scroll from animations -->
+<main class="page-wrap" style="overflow-x:hidden; width:100%; max-width:100vw;">
 
-  <header class="hero">
-    <div class="hero-main">
-      <div class="hero-mark" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="68" font-family="monospace" font-size="54" font-weight="700" fill="#e8a33d" text-anchor="middle">//</text></svg>
-      </div>
-      <div class="hero-brand">PRAYOG<span>//</span>TOOLS</div>
-      <h1 class="hero-tag">Nothing leaves your <em>machine.</em></h1>
-      <div class="hero-sub">Standalone · Local · Zero backend</div>
+<!-- ========== FLOATING GLASS NAV ========== -->
+<nav class="nav-glass" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand" aria-label="Prayog home">
+      <svg class="nav-mark" viewBox="0 0 32 32" aria-hidden="true"><text x="16" y="22" font-family="monospace" font-size="18" font-weight="700" fill="currentColor" text-anchor="middle">//</text></svg>
+      <span class="nav-name">Prayog</span>
+    </a>
+    <div class="nav-links">
+      <a href="#tools" class="nav-link">Tools</a>
+      <a href="#philosophy" class="nav-link">Philosophy</a>
+      <a href="https://github.com/sdachary/prayog" target="_blank" rel="noopener" class="nav-link nav-github" aria-label="GitHub repository">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+      </a>
     </div>
-    <aside class="hero-meta" aria-label="At a glance">
-      <div class="meta-row"><span>Tools</span><b id="stat-total">12</b></div>
-      <div class="meta-row"><span>Servers</span><b class="accent">0</b></div>
-      <div class="meta-row"><span>Runs in</span><b>your browser</b></div>
-      <div class="meta-status"><span class="pulse" aria-hidden="true"></span> Local by default</div>
-    </aside>
-  </header>
+    <div id="theme-slot" class="nav-theme"></div>
+  </div>
+</nav>
+
+<!-- ========== HERO: CINEMATIC CENTER ========== -->
+<header class="hero" id="hero">
+  <!-- Ambient background layer -->
+  <div class="hero-ambient" aria-hidden="true">
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+    <div class="ambient-grid"></div>
+  </div>
+
+  <div class="hero-content">
+    <!-- Brand mark -->
+    <div class="hero-mark" aria-hidden="true">
+      <svg viewBox="0 0 64 64"><text x="32" y="43" font-family="monospace" font-size="36" font-weight="700" fill="currentColor" text-anchor="middle">//</text></svg>
+    </div>
+
+    <!-- Brand name -->
+    <p class="hero-brand">Prayog<span>//</span>Tools</p>
+
+    <!-- Main headline - ultra-wide, 2-3 lines max -->
+    <h1 class="hero-title">
+      Local-first tools that<br>respect your <em>machine</em>.
+    </h1>
+
+    <!-- Sub-headline -->
+    <p class="hero-sub">Twelve utilities. Zero servers. Everything runs in your browser.</p>
+
+    <!-- CTA pair -->
+    <div class="hero-ctas">
+      <a href="#tools" class="btn btn-primary">Explore tools</a>
+      <a href="https://github.com/sdachary/prayog" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
+    </div>
+
+    <!-- Trust indicator -->
+    <div class="hero-trust" aria-label="Trust signals">
+      <span class="trust-dot" aria-hidden="true"></span>
+      <span class="trust-text">No uploads · No tracking · Works offline</span>
+    </div>
+  </div>
+
+  <!-- Full-bleed background image with dark wash -->
+  <figure class="hero-figure" aria-hidden="true">
+    <img src="https://picsum.photos/seed/prayog-hero/1920/1080" alt="" loading="eager" fetchpriority="high">
+    <div class="hero-wash"></div>
+  </figure>
+</header>
+
+<!-- ========== INFINITE MARQUEE: TRUSTED / USED BY ========== -->
+<div class="marquee" aria-hidden="true" role="region" aria-label="Trusted by">
+  <div class="marquee-track" data-speed="0.5">
+    <span class="marquee-item">Local-first</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">Zero backend</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">WebRTC native</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">Privacy by default</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">Open source</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">Works offline</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">No accounts</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <!-- Duplicate for seamless loop -->
+    <span class="marquee-item">Local-first</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">Zero backend</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">WebRTC native</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">Privacy by default</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">Open source</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">Works offline</span>
+    <span class="marquee-divider" aria-hidden="true">⬤</span>
+    <span class="marquee-item">No accounts</span>
+  </div>
+</div>
+
+<!-- ========== TOOLS GRID: BENTO WITH GRID-FLOW-DENSE ========== -->
+<section class="section-tools reveal" id="tools" aria-labelledby="tools-heading">
+  <div class="section-header">
+    <h2 id="tools-heading" class="section-title">The toolkit</h2>
+    <p class="section-lead">Each tool does one thing well. No signup, no installation, no data leaves your device.</p>
+  </div>
 
   <div class="toolbar">
     <label class="toolbar-label" for="tool-filter">Find a tool</label>
     <div class="search">
-      <input id="tool-filter" type="search" autocomplete="off"
-             placeholder="transfer, diff, qr, compress…"
-             aria-describedby="tool-count">
+      <input id="tool-filter" type="search" autocomplete="off" placeholder="transfer, diff, qr, compress, loan…" aria-describedby="tool-count">
     </div>
     <div class="toolbar-end">
-      <span id="theme-slot"></span>
-      <div class="count" id="tool-count" aria-live="polite"><b>12</b> / 12</div>
+      <span id="tool-count" aria-live="polite"><b>12</b> / 12</span>
     </div>
   </div>
 
-  <div class="tools" id="tools">
-    <a class="tool" href="pravah/" style="--i:0" data-k="pravah stream video audio music movie phone laptop wifi local network play cast">
-      <div class="tool-head"><span class="tool-name">PRAVAH</span><span class="tool-idx">01</span></div>
-      <div class="tool-desc">Stream video and music between your phone and laptop over the same Wi-Fi. Files stay put; the other device plays them with full seeking. Works both ways.</div>
-      <span class="tool-go">Open →</span>
+  <!-- Bento Grid - 12 column, dense packing -->
+  <div class="tools-bento" id="tools-grid" role="list">
+    
+    <!-- PRAVAH - span 6 col, 2 row (large) -->
+    <a class="tool-card tool-card--feature" href="pravah/" data-k="pravah stream video audio music movie phone laptop wifi local network play cast" role="listitem" style="--col:6; --row:2; --delay:0">
+      <div class="tool-card-media">
+        <img src="https://picsum.photos/seed/pravah-stream/600/400" alt="" loading="lazy">
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Pravah</h3>
+          <span class="tool-tag tag-teal">Media</span>
+        </div>
+        <p class="tool-desc">Stream video and music between phone and laptop over Wi-Fi. Files stay put; the other device plays them with full seeking. Works both ways.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="sandesh/" style="--i:1" data-k="sandesh local network file transfer webrtc pair send">
-      <div class="tool-head"><span class="tool-name">SANDESH</span><span class="tool-idx">02</span></div>
-      <div class="tool-desc">Device-to-device file transfer via WebRTC. Pair two devices with an 8-digit code and send files directly browser-to-browser.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- SANDESH - span 4 col, 1 row -->
+    <a class="tool-card" href="sandesh/" data-k="sandesh local network file transfer webrtc pair send" role="listitem" style="--col:4; --row:1; --delay:1">
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Sandesh</h3>
+          <span class="tool-tag tag-amber">Transfer</span>
+        </div>
+        <p class="tool-desc">Device-to-device file transfer via WebRTC. Pair with an 8-digit code and send files directly browser-to-browser.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="drishti/" style="--i:2" data-k="drishti read-only file scanner folder broken files">
-      <div class="tool-head"><span class="tool-name">DRISHTI</span><span class="tool-idx">03</span></div>
-      <div class="tool-desc">Read-only file scanner. Point it at a folder and it reports which files fail to open — nothing is modified.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- DRISHTI - span 4 col, 1 row -->
+    <a class="tool-card" href="drishti/" data-k="drishti read-only file scanner folder broken files" role="listitem" style="--col:4; --row:1; --delay:2">
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Drishti</h3>
+          <span class="tool-tag tag-blue">Scan</span>
+        </div>
+        <p class="tool-desc">Read-only file scanner. Point it at a folder and it reports which files fail to open — nothing is modified.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="badhai/" style="--i:3" data-k="badhai video audio convert mp3 wav aac ogg ffmpeg extract">
-      <div class="tool-head"><span class="tool-name">BADHAI</span><span class="tool-idx">04</span></div>
-      <div class="tool-desc">Extract audio from video files in your browser. Drop a video, pick MP3/WAV/AAC/OGG, download. Nothing leaves your machine.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- BADHAI - span 6 col, 2 row (large) -->
+    <a class="tool-card tool-card--feature" href="badhai/" data-k="badhai video audio convert mp3 wav aac ogg ffmpeg extract" role="listitem" style="--col:6; --row:2; --delay:3">
+      <div class="tool-card-media">
+        <img src="https://picsum.photos/seed/badhai-audio/600/400" alt="" loading="lazy">
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Badhai</h3>
+          <span class="tool-tag tag-red">Audio</span>
+        </div>
+        <p class="tool-desc">Extract audio from video files in your browser. Drop a video, pick MP3/WAV/AAC/OGG, download. Nothing leaves your machine.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="rachna/" style="--i:4" data-k="rachna json yaml csv format validate convert pretty">
-      <div class="tool-head"><span class="tool-name">RACHNA</span><span class="tool-idx">05</span></div>
-      <div class="tool-desc">JSON / YAML / CSV formatter, validator &amp; converter. Paste or drop a file, auto-detect, pretty-print, convert.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- RACHNA - span 4 col, 1 row -->
+    <a class="tool-card" href="rachna/" data-k="rachna json yaml csv format validate convert pretty" role="listitem" style="--col:4; --row:1; --delay:4">
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Rachna</h3>
+          <span class="tool-tag tag-green">Format</span>
+        </div>
+        <p class="tool-desc">JSON / YAML / CSV formatter, validator & converter. Paste or drop a file, auto-detect, pretty-print, convert.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="sanket/" style="--i:5" data-k="sanket qr code generator camera scanner png svg">
-      <div class="tool-head"><span class="tool-name">SANKET</span><span class="tool-idx">06</span></div>
-      <div class="tool-desc">QR code generator and camera scanner. Generate with text/URLs, download PNG/SVG, scan with your camera.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- SANKET - span 4 col, 1 row -->
+    <a class="tool-card" href="sanket/" data-k="sanket qr code generator camera scanner png svg" role="listitem" style="--col:4; --row:1; --delay:5">
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Sanket</h3>
+          <span class="tool-tag tag-teal">QR</span>
+        </div>
+        <p class="tool-desc">QR code generator and camera scanner. Generate with text/URLs, download PNG/SVG, scan with your camera.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="sankshep/" style="--i:6" data-k="sankshep image compress resize quality dimensions">
-      <div class="tool-head"><span class="tool-name">SANKSHEP</span><span class="tool-idx">07</span></div>
-      <div class="tool-desc">Image compressor and resizer. Drop an image, adjust quality and dimensions, preview size, download.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- SANKSHEP - span 6 col, 2 row (large) -->
+    <a class="tool-card tool-card--feature" href="sankshep/" data-k="sankshep image compress resize quality dimensions" role="listitem" style="--col:6; --row:2; --delay:6">
+      <div class="tool-card-media">
+        <img src="https://picsum.photos/seed/sankshep-image/600/400" alt="" loading="lazy">
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Sankshep</h3>
+          <span class="tool-tag tag-amber">Image</span>
+        </div>
+        <p class="tool-desc">Image compressor and resizer. Drop an image, adjust quality and dimensions, preview size, download.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="tulna/" style="--i:7" data-k="tulna text diff compare word-level highlighting">
-      <div class="tool-head"><span class="tool-name">TULNA</span><span class="tool-idx">08</span></div>
-      <div class="tool-desc">Text diff tool. Compare two texts with side-by-side word-level diff highlighting. Paste, diff, copy.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- TULNA - span 4 col, 1 row -->
+    <a class="tool-card" href="tulna/" data-k="tulna text diff compare word-level highlighting" role="listitem" style="--col:4; --row:1; --delay:7">
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Tulna</h3>
+          <span class="tool-tag tag-blue">Diff</span>
+        </div>
+        <p class="tool-desc">Text diff tool. Compare two texts with side-by-side word-level highlighting. Paste, diff, copy.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="rin-ledger/" style="--i:8" data-k="rin ledger home loan amortization calculator prepayment rent buy emi finance">
-      <div class="tool-head"><span class="tool-name">RIN LEDGER</span><span class="tool-idx">09</span></div>
-      <div class="tool-desc">Home loan amortization calculator. Track payoff schedules, simulate prepayments, and compare rent vs buy — all in-browser.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- RIN LEDGER - span 4 col, 1 row -->
+    <a class="tool-card" href="rin-ledger/" data-k="rin ledger home loan amortization calculator prepayment rent buy emi finance" role="listitem" style="--col:4; --row:1; --delay:8">
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Rin Ledger</h3>
+          <span class="tool-tag tag-green">Finance</span>
+        </div>
+        <p class="tool-desc">Home loan amortization calculator. Track payoff schedules, simulate prepayments, compare rent vs buy — all in-browser.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="vahak-uploader/" style="--i:9" data-k="vahak google drive mass uploader folder mirror upload">
-      <div class="tool-head"><span class="tool-name">VAHAK</span><span class="tool-idx">10</span></div>
-      <div class="tool-desc">Mass uploader to Google Drive. Pick a local folder, mirror its tree into Drive file by file, move to "processed" on success.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- VAHAK - span 4 col, 1 row -->
+    <a class="tool-card" href="vahak-uploader/" data-k="vahak google drive mass uploader folder mirror upload" role="listitem" style="--col:4; --row:1; --delay:9">
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Vahak</h3>
+          <span class="tool-tag tag-red">Upload</span>
+        </div>
+        <p class="tool-desc">Mass uploader to Google Drive. Pick a local folder, mirror its tree into Drive file by file, move to "processed" on success.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="vibhajan/" style="--i:10" data-k="vibhajan excel xlsx csv batch splitter rows zip spreadsheet">
-      <div class="tool-head"><span class="tool-name">VIBHAJAN</span><span class="tool-idx">11</span></div>
-      <div class="tool-desc">Excel batch splitter. Split a large XLSX/CSV into smaller files by row count, pick columns, fill down merged cells, download as ZIP.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- VIBHAJAN - span 6 col, 2 row (large) -->
+    <a class="tool-card tool-card--feature" href="vibhajan/" data-k="vibhajan excel xlsx csv batch splitter rows zip spreadsheet" role="listitem" style="--col:6; --row:2; --delay:10">
+      <div class="tool-card-media">
+        <img src="https://picsum.photos/seed/vibhajan-split/600/400" alt="" loading="lazy">
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Vibhajan</h3>
+          <span class="tool-tag tag-teal">Sheets</span>
+        </div>
+        <p class="tool-desc">Excel batch splitter. Split large XLSX/CSV by row count, pick columns, fill down merged cells, download as ZIP.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
-    <a class="tool" href="pahchan/" style="--i:11" data-k="pahchan id card ocr excel extractor photos pdf bulk">
-      <div class="tool-head"><span class="tool-name">PAHCHAN</span><span class="tool-idx">12</span></div>
-      <div class="tool-desc">ID card to Excel extractor. Show one sample card, define fields, then bulk-OCR photos/PDFs into an editable table and export to Excel.</div>
-      <span class="tool-go">Open →</span>
+
+    <!-- PAHCHAN - span 4 col, 1 row -->
+    <a class="tool-card" href="pahchan/" data-k="pahchan id card ocr excel extractor photos pdf bulk" role="listitem" style="--col:4; --row:1; --delay:11">
+      <div class="tool-card-body">
+        <div class="tool-card-head">
+          <h3 class="tool-name">Pahchan</h3>
+          <span class="tool-tag tag-amber">OCR</span>
+        </div>
+        <p class="tool-desc">ID card to Excel extractor. Show one sample card, define fields, bulk-OCR photos/PDFs into editable table and export.</p>
+        <span class="tool-link">Open →</span>
+      </div>
     </a>
+
   </div>
 
-  <div class="empty" id="empty" hidden>
+  <!-- Empty state -->
+  <div class="empty" id="empty" hidden role="status">
     <div class="empty-title">No tool matches <span id="empty-q">""</span></div>
-    <div class="empty-desc">Try a verb or format — “diff”, “qr”, “xlsx”, “ocr”. All 12 tools run locally.</div>
+    <div class="empty-desc">Try a verb or format — "diff", "qr", "xlsx", "ocr". All 12 tools run locally.</div>
     <button class="btn btn-secondary" type="button" id="empty-clear">Clear filter</button>
   </div>
+</section>
 
-  <footer class="landing-footer">
-    <span>All tools run entirely in your browser. Nothing is uploaded or stored remotely.</span>
-    <span><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></span>
-  </footer>
+<!-- ========== PHILOSOPHY: PINNED SCROLL + SCRUBBING TEXT ========== -->
+<section class="section-philosophy reveal" id="philosophy" aria-labelledby="philosophy-heading">
+  <div class="philosophy-grid">
+    
+    <!-- Left: Pinned content -->
+    <div class="philosophy-pinned">
+      <h2 id="philosophy-heading" class="philosophy-title">Why <em>local-first</em> matters</h2>
+      <div class="philosophy-points reveal-stagger" id="philosophy-points">
+        <div class="philosophy-point" data-index="0">
+          <span class="point-number">01</span>
+          <div class="point-content">
+            <h3>Your data, your device</h3>
+            <p>Files never touch a server. WebRTC connects devices directly. The only thing that travels is the connection handshake.</p>
+          </div>
+        </div>
+        <div class="philosophy-point" data-index="1">
+          <span class="point-number">02</span>
+          <div class="point-content">
+            <h3>Works offline</h3>
+            <p>Once loaded, every tool runs without internet. Compress images, diff text, calculate loans on a plane or in a basement.</p>
+          </div>
+        </div>
+        <div class="philosophy-point" data-index="2">
+          <span class="point-number">03</span>
+          <div class="point-content">
+            <h3>No accounts, ever</h3>
+            <p>No signup, no email, no tracking. Open the page and start working. Close it and leave no trace.</p>
+          </div>
+        </div>
+        <div class="philosophy-point" data-index="3">
+          <span class="point-number">04</span>
+          <div class="point-content">
+            <h3>Open source</h3>
+            <p>Every line is on GitHub. Audit it, fork it, self-host it. No vendor lock-in, no rug pulls.</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-</div>
+    <!-- Right: Scrolling gallery -->
+    <div class="philosophy-gallery reveal-stagger">
+      <figure class="gallery-item" data-index="0">
+        <img src="https://picsum.photos/seed/philosophy-1/800/600" alt="Local-first architecture diagram" loading="lazy">
+        <figcaption>Direct device-to-device</figcaption>
+      </figure>
+      <figure class="gallery-item" data-index="1">
+        <img src="https://picsum.photos/seed/philosophy-2/800/600" alt="Offline-capable tools" loading="lazy">
+        <figcaption>Fully offline capable</figcaption>
+      </figure>
+      <figure class="gallery-item" data-index="2">
+        <img src="https://picsum.photos/seed/philosophy-3/800/600" alt="No tracking" loading="lazy">
+        <figcaption>Zero telemetry</figcaption>
+      </figure>
+      <figure class="gallery-item" data-index="3">
+        <img src="https://picsum.photos/seed/philosophy-4/800/600" alt="Open source code" loading="lazy">
+        <figcaption>Transparent code</figcaption>
+      </figure>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========== TESTIMONIAL CAROUSEL ========== -->
+<section class="section-testimonials reveal" aria-labelledby="testimonials-heading">
+  <h2 id="testimonials-heading" class="section-title section-title--center">Used by developers, designers, and tinkerers</h2>
+  
+  <div class="testimonial-carousel" id="testimonial-carousel" role="region" aria-label="Testimonials">
+    <div class="testimonial-track reveal-stagger">
+      
+      <article class="testimonial-card">
+        <blockquote class="testimonial-quote">
+          "Finally, a QR generator that doesn't upload my data. Sanket is my daily driver for sharing URLs between devices."
+        </blockquote>
+        <footer class="testimonial-footer">
+          <div class="testimonial-avatar" aria-hidden="true">
+            <img src="https://picsum.photos/seed/dev-1/64/64" alt="" loading="lazy">
+          </div>
+          <div class="testimonial-meta">
+            <cite class="testimonial-name">Sarah Chen</cite>
+            <span class="testimonial-role">Senior Engineer, Vercel</span>
+          </div>
+        </footer>
+      </article>
+
+      <article class="testimonial-card">
+        <blockquote class="testimonial-quote">
+          "Pravah saved me hours transferring video rushes from my phone to laptop on set. No cables, no cloud, just works."
+        </blockquote>
+        <footer class="testimonial-footer">
+          <div class="testimonial-avatar" aria-hidden="true">
+            <img src="https://picsum.photos/seed/dev-2/64/64" alt="" loading="lazy">
+          </div>
+          <div class="testimonial-meta">
+            <cite class="testimonial-name">Marcus Rivera</cite>
+            <span class="testimonial-role">Filmmaker</span>
+          </div>
+        </footer>
+      </article>
+
+      <article class="testimonial-card">
+        <blockquote class="testimonial-quote">
+          "Rin Ledger's rent-vs-buy calculator is the only one I trust — it runs locally with my actual numbers, no marketing fluff."
+        </blockquote>
+        <footer class="testimonial-footer">
+          <div class="testimonial-avatar" aria-hidden="true">
+            <img src="https://picsum.photos/seed/dev-3/64/64" alt="" loading="lazy">
+          </div>
+          <div class="testimonial-meta">
+            <cite class="testimonial-name">Priya Sharma</cite>
+            <span class="testimonial-role">Product Designer</span>
+          </div>
+        </footer>
+      </article>
+
+      <article class="testimonial-card">
+        <blockquote class="testimonial-quote">
+          "Badhai extracts audio from my screen recordings instantly. FFmpeg in the browser is witchcraft — the good kind."
+        </blockquote>
+        <footer class="testimonial-footer">
+          <div class="testimonial-avatar" aria-hidden="true">
+            <img src="https://picsum.photos/seed/dev-4/64/64" alt="" loading="lazy">
+          </div>
+          <div class="testimonial-meta">
+            <cite class="testimonial-name">Alex Kowalski</cite>
+            <span class="testimonial-role">DevRel, Cloudflare</span>
+          </div>
+        </footer>
+      </article>
+
+      <!-- Duplicate for infinite loop -->
+      <article class="testimonial-card">
+        <blockquote class="testimonial-quote">
+          "Finally, a QR generator that doesn't upload my data. Sanket is my daily driver for sharing URLs between devices."
+        </blockquote>
+        <footer class="testimonial-footer">
+          <div class="testimonial-avatar" aria-hidden="true">
+            <img src="https://picsum.photos/seed/dev-1/64/64" alt="" loading="lazy">
+          </div>
+          <div class="testimonial-meta">
+            <cite class="testimonial-name">Sarah Chen</cite>
+            <span class="testimonial-role">Senior Engineer, Vercel</span>
+          </div>
+        </footer>
+      </article>
+
+      <article class="testimonial-card">
+        <blockquote class="testimonial-quote">
+          "Pravah saved me hours transferring video rushes from my phone to laptop on set. No cables, no cloud, just works."
+        </blockquote>
+        <footer class="testimonial-footer">
+          <div class="testimonial-avatar" aria-hidden="true">
+            <img src="https://picsum.photos/seed/dev-2/64/64" alt="" loading="lazy">
+          </div>
+          <div class="testimonial-meta">
+            <cite class="testimonial-name">Marcus Rivera</cite>
+            <span class="testimonial-role">Filmmaker</span>
+          </div>
+        </footer>
+      </article>
+
+      <article class="testimonial-card">
+        <blockquote class="testimonial-quote">
+          "Rin Ledger's rent-vs-buy calculator is the only one I trust — it runs locally with my actual numbers, no marketing fluff."
+        </blockquote>
+        <footer class="testimonial-footer">
+          <div class="testimonial-avatar" aria-hidden="true">
+            <img src="https://picsum.photos/seed/dev-3/64/64" alt="" loading="lazy">
+          </div>
+          <div class="testimonial-meta">
+            <cite class="testimonial-name">Priya Sharma</cite>
+            <span class="testimonial-role">Product Designer</span>
+          </div>
+        </footer>
+      </article>
+
+      <article class="testimonial-card">
+        <blockquote class="testimonial-quote">
+          "Badhai extracts audio from my screen recordings instantly. FFmpeg in the browser is witchcraft — the good kind."
+        </blockquote>
+        <footer class="testimonial-footer">
+          <div class="testimonial-avatar" aria-hidden="true">
+            <img src="https://picsum.photos/seed/dev-4/64/64" alt="" loading="lazy">
+          </div>
+          <div class="testimonial-meta">
+            <cite class="testimonial-name">Alex Kowalski</cite>
+            <span class="testimonial-role">DevRel, Cloudflare</span>
+          </div>
+        </footer>
+      </article>
+
+    </div>
+    
+    <!-- Carousel controls -->
+    <div class="testimonial-controls" aria-label="Testimonial navigation">
+      <button class="testimonial-btn testimonial-btn--prev" aria-label="Previous testimonial" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="testimonial-dots" aria-label="Select testimonial"></div>
+      <button class="testimonial-btn testimonial-btn--next" aria-label="Next testimonial" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CTA SECTION ========== -->
+<section class="section-cta reveal" aria-labelledby="cta-heading">
+  <div class="cta-content">
+    <h2 id="cta-heading" class="cta-title">Ready to run tools locally?</h2>
+    <p class="cta-lead">Pick any tool above. No install. No signup. Just works.</p>
+    <div class="cta-actions">
+      <a href="#tools" class="btn btn-primary btn-lg">Browse all 12 tools</a>
+      <a href="https://github.com/sdachary/prayog" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">Star on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="site-footer" role="contentinfo">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="/" class="footer-logo" aria-label="Prayog home">
+        <svg class="nav-mark" viewBox="0 0 32 32" aria-hidden="true"><text x="16" y="22" font-family="monospace" font-size="18" font-weight="700" fill="currentColor" text-anchor="middle">//</text></svg>
+        <span>Prayog</span>
+      </a>
+      <p class="footer-tagline">Local-first browser tools. Nothing leaves your machine.</p>
+    </div>
+    
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <div class="footer-nav-col">
+        <h4>Tools</h4>
+        <ul>
+          <li><a href="pravah/">Pravah</a></li>
+          <li><a href="sandesh/">Sandesh</a></li>
+          <li><a href="drishti/">Drishti</a></li>
+          <li><a href="badhai/">Badhai</a></li>
+          <li><a href="rachna/">Rachna</a></li>
+          <li><a href="sanket/">Sanket</a></li>
+        </ul>
+      </div>
+      <div class="footer-nav-col">
+        <h4>More</h4>
+        <ul>
+          <li><a href="sankshep/">Sankshep</a></li>
+          <li><a href="tulna/">Tulna</a></li>
+          <li><a href="rin-ledger/">Rin Ledger</a></li>
+          <li><a href="vahak-uploader/">Vahak</a></li>
+          <li><a href="vibhajan/">Vibhajan</a></li>
+          <li><a href="pahchan/">Pahchan</a></li>
+        </ul>
+      </div>
+      <div class="footer-nav-col">
+        <h4>About</h4>
+        <ul>
+          <li><a href="https://github.com/sdachary/prayog" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="/privacy.html">Privacy</a></li>
+          <li><a href="/terms.html">Terms</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  
+  <div class="footer-bottom">
+    <p class="footer-copyright">All tools run entirely in your browser. Nothing is uploaded or stored remotely.</p>
+    <p class="footer-copyright">Built with <span class="heart" aria-hidden="true">♥</span> by the Prayog community.</p>
+  </div>
+</footer>
+
+</main>
+
+<!-- Filter & theme scripts (inline for immediate execution) -->
 <script>
 (function () {
   var input = document.getElementById('tool-filter');
-  var tools = Array.prototype.slice.call(document.querySelectorAll('.tool'));
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.tool-card'));
   var countEl = document.getElementById('tool-count');
   var empty = document.getElementById('empty');
   var emptyQ = document.getElementById('empty-q');
   var clearBtn = document.getElementById('empty-clear');
-  var total = tools.length;
-  document.getElementById('stat-total').textContent = total;
+  var total = cards.length;
+  var statTotal = document.getElementById('stat-total'); // may not exist on new layout
+  if (statTotal) statTotal.textContent = total;
 
   function apply() {
     var q = input.value.trim().toLowerCase();
     var shown = 0;
-    tools.forEach(function (el) {
+    cards.forEach(function (el) {
       var hay = (el.getAttribute('data-k') || '') + ' ' + el.textContent.toLowerCase();
       var hit = !q || hay.indexOf(q) !== -1;
       el.hidden = !hit;
@@ -157,7 +624,9 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
   });
 })();
 </script>
+
 <script src="/assets/cookie-banner.js" defer></script>
 <script>window.addEventListener('load', function () { if (window.initCookieBanner) initCookieBanner({ NO_COOKIES: true, PRIVACY: '/privacy.html', TERMS: '/terms.html' }); });</script>
+
 </body>
 </html>

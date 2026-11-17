@@ -4,174 +4,356 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rachna — Prayog</title>
+<meta name="description" content="JSON / YAML / CSV formatter, validator & converter. Paste or drop a file, auto-detect, pretty-print, convert.">
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
 <link rel="stylesheet" href="/assets/theme.css">
-<script src="../assets/nav.js" defer data-tool="rachna"></script>
-<script src="../assets/vendor/js-yaml.min.js"></script>
+<link rel="stylesheet" href="/assets/tool.css">
+
+<!-- Scripts -->
+<script src="/assets/nav.js" defer data-tool="RACHNA"></script>
+<script src="/assets/vendor/js-yaml.min.js"></script>
+<script src="/assets/tool.js" defer></script>
+
+<!-- Page-specific styles -->
 <style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg);color:var(--text)}
-  .wrap{max-width:800px;width:100%;flex:0 0 auto}
-  h1{font-size:1.3rem;font-weight:700;letter-spacing:0.02em;margin-bottom:1rem}
-  h1 span{font-size:0.8rem;font-weight:400;color:var(--muted)}
-  .toolbar{display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-bottom:0.75rem}
-  .toolbar label{font-size:0.75rem;color:var(--muted);font-family:monospace;text-transform:uppercase;letter-spacing:0.05em}
-  select{padding:0.35rem 0.6rem;border-radius:var(--radius-sm);background:var(--fill-2);border:1px solid var(--hair);color:var(--text);font-size:0.82rem}
-  textarea{width:100%;height:300px;background:var(--fill);border:1px solid var(--hair);border-radius:var(--radius-md);padding:0.75rem;color:var(--text);font-family:monospace;font-size:0.82rem;resize:vertical;line-height:1.5;tab-size:2}
-  textarea:focus{outline:none;border-color:var(--amber)}
-  .actions{display:flex;gap:0.5rem;margin:0.75rem 0;flex-wrap:wrap}
-  .copy-msg{font-size:0.75rem;color:#4ade80;opacity:0;transition:opacity .3s;margin-left:0.5rem}
-  .copy-msg.show{opacity:1}
-  /* ponytail: laptop dashboard — editors fill the viewport, no page scroll */
-  @media (min-width:900px){
-    body{align-items:stretch;height:100dvh;overflow:hidden}
-    .wrap{max-width:1100px;margin:0 auto;height:100%;display:flex;flex-direction:column;min-height:0}
-    textarea#input{flex:1 1 auto;min-height:110px;height:auto}
-    textarea#output{flex:1 1 auto;min-height:90px;height:auto}
+  .editor-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--tool-space-4);
   }
-  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  @media (min-width: 900px) {
+    .editor-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+  }
+
+  .editor-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .editor-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tool-space-2);
+    margin-bottom: var(--tool-space-2);
+    flex-wrap: wrap;
+  }
+
+  .editor-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tool-text-muted);
+  }
+
+  .editor-select {
+    padding: var(--tool-space-1) var(--tool-space-3);
+    border-radius: var(--tool-radius-md);
+    background: var(--tool-surface);
+    border: 1px solid var(--tool-border);
+    color: var(--tool-text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b95a1' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--tool-space-2) center;
+    padding-right: var(--tool-space-8);
+  }
+  .editor-select:focus { outline: none; border-color: var(--tool-teal); box-shadow: 0 0 0 3px rgba(47,163,154,0.15); }
+
+  .editor-textarea {
+    flex: 1;
+    min-height: 300px;
+    background: var(--tool-bg);
+    border: 1px solid var(--tool-border);
+    border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-4);
+    color: var(--tool-text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    resize: vertical;
+    tab-size: 2;
+    transition: border-color var(--tool-duration-fast);
+  }
+  .editor-textarea:focus { outline: none; border-color: var(--tool-teal); box-shadow: 0 0 0 3px rgba(47,163,154,0.15); }
+  .editor-textarea::placeholder { color: var(--tool-text-subtle); }
+
+  @media (min-width: 900px) {
+    .tool-main { height: calc(100vh - 160px); display: flex; flex-direction: column; }
+    .editor-textarea { min-height: 0; }
+  }
+
+  .dropzone-compact {
+    border: 2px dashed var(--tool-border);
+    border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-3) var(--tool-space-4);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--tool-duration-fast), background var(--tool-duration-fast);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--tool-text-muted);
+    margin-bottom: var(--tool-space-3);
+  }
+  .dropzone-compact:hover,
+  .dropzone-compact.drag {
+    border-color: var(--tool-teal);
+    background: rgba(47,163,154,0.06);
+  }
+  .dropzone-compact:focus-visible { outline: 2px solid var(--tool-teal); outline-offset: 2px; }
+
+  .error-banner {
+    background: rgba(217,83,79,0.1);
+    border: 1px solid rgba(217,83,79,0.3);
+    border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-3) var(--tool-space-4);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--tool-red);
+    margin-bottom: var(--tool-space-3);
+    display: none;
+  }
+  .error-banner.show { display: block; }
+
+  .actions-row {
+    display: flex;
+    gap: var(--tool-space-2);
+    flex-wrap: wrap;
+    margin-bottom: var(--tool-space-3);
+  }
+
+  .copy-toast { font-family: var(--font-mono); font-size: 11px; color: var(--tool-teal); margin-left: var(--tool-space-2); opacity: 0; transition: opacity 0.3s; }
+  .copy-toast.show { opacity: 1; }
+
+  .format-indicator {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--tool-text-subtle);
+  }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Rachna <span>formatter & converter</span></h1>
-  <div class="toolbar">
-    <label for="inFmt">input</label>
-    <select id="inFmt">
-      <option value="json">JSON</option>
-      <option value="yaml">YAML</option>
-      <option value="csv">CSV</option>
-    </select>
-    <label for="outFmt" style="margin-left:0.5rem">output</label>
-    <select id="outFmt">
-      <option value="json">JSON</option>
-      <option value="yaml" selected>YAML</option>
-      <option value="csv">CSV</option>
-    </select>
+<div class="tool-page">
+  <div class="tool-wrap">
+    <header class="tool-header">
+      <h1 class="tool-brand">RACHNA<span class="tool-brand-mark">//</span></h1>
+      <p class="tool-tagline">formatter & converter</p>
+    </header>
+
+    <main class="tool-main tool-main--wide">
+      <div class="editor-grid">
+        <!-- Input Pane -->
+        <section class="editor-pane" aria-labelledby="input-label">
+          <div class="editor-label">
+            <span id="input-label" class="editor-title">Input</span>
+            <div style="display: flex; align-items: center; gap: var(--tool-space-2);">
+              <label class="editor-title" for="inFmt" style="margin: 0;">format</label>
+              <select id="inFmt" class="editor-select" aria-label="Input format">
+                <option value="json">JSON</option>
+                <option value="yaml">YAML</option>
+                <option value="csv">CSV</option>
+              </select>
+              <span class="format-indicator" id="inDetected">auto-detect</span>
+            </div>
+          </div>
+
+          <div class="dropzone-compact" id="dropzone" tabindex="0" role="button" aria-label="Drop a JSON, YAML, or CSV file, or press Enter to browse">
+            Drop a JSON / YAML / CSV file, or paste below
+          </div>
+          <input type="file" id="fileInput" accept=".json,.yaml,.yml,.csv" class="tool-file-input">
+
+          <div class="error-banner" id="error" role="alert"></div>
+
+          <div class="actions-row">
+            <button class="tool-btn tool-btn--primary" id="prettyBtn" type="button">pretty-print</button>
+            <button class="tool-btn tool-btn--accent" id="convertBtn" type="button">convert</button>
+          </div>
+
+          <label class="visually-hidden" for="input">Input data</label>
+          <textarea id="input" class="editor-textarea" placeholder="Paste your data here…" spellcheck="false" aria-describedby="error"></textarea>
+        </section>
+
+        <!-- Output Pane -->
+        <section class="editor-pane" aria-labelledby="output-label">
+          <div class="editor-label">
+            <span id="output-label" class="editor-title">Output</span>
+            <div style="display: flex; align-items: center; gap: var(--tool-space-2);">
+              <label class="editor-title" for="outFmt" style="margin: 0;">format</label>
+              <select id="outFmt" class="editor-select" aria-label="Output format">
+                <option value="json">JSON</option>
+                <option value="yaml" selected>YAML</option>
+                <option value="csv">CSV</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <button class="tool-btn tool-btn--secondary" id="copyBtn" type="button">copy result <span class="copy-toast" id="copyMsg">copied</span></button>
+            <button class="tool-btn tool-btn--secondary" id="downloadBtn" type="button">download</button>
+          </div>
+
+          <label class="visually-hidden" for="output">Result</label>
+          <textarea id="output" class="editor-textarea" placeholder="Result will appear here…" spellcheck="false" readonly aria-live="polite"></textarea>
+        </section>
+      </div>
+    </main>
+
+    <footer class="tool-footer">
+      Nothing is uploaded or stored remotely — all processing happens in your browser.
+    </footer>
   </div>
-  <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop a JSON, YAML, or CSV file, or press Enter to browse for one">Drop a JSON / YAML / CSV file, or paste below</div>
-  <label class="sr-only" for="input">Input data</label>
-  <textarea id="input" placeholder="Paste your data here…" spellcheck="false"></textarea>
-  <div class="error" id="error" role="alert"></div>
-  <div class="actions">
-    <button class="btn btn-primary" id="convertBtn">convert</button>
-    <button class="btn btn-secondary" id="copyBtn">copy result</button>
-    <button class="btn btn-secondary" id="downloadBtn">download</button>
-    <button class="btn btn-secondary" id="prettyBtn">pretty-print</button>
-    <span class="copy-msg" id="copyMsg">copied</span>
-  </div>
-  <label class="sr-only" for="output">Result</label>
-  <textarea id="output" placeholder="Result will appear here…" spellcheck="false" readonly style="height:200px;margin-top:0.5rem" aria-live="polite"></textarea>
-  <footer>Nothing is uploaded or stored remotely — all processing happens in your browser.</footer>
 </div>
+
 <script>
 (function(){
-  var input=document.getElementById('input'),output=document.getElementById('output');
-  var err=document.getElementById('error'),inFmt=document.getElementById('inFmt'),outFmt=document.getElementById('outFmt');
-  var dz=document.getElementById('dropzone');
-  var fi=document.createElement('input');fi.type='file';fi.style.display='none';document.body.appendChild(fi);
+  'use strict';
 
-  dz.onclick=function(){fi.click()};
-  dz.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fi.click()}};
-  dz.ondragover=function(e){e.preventDefault();dz.classList.add('dragover')};
-  dz.ondragleave=function(){dz.classList.remove('dragover')};
-  dz.ondrop=function(e){e.preventDefault();dz.classList.remove('dragover');readFile(e.dataTransfer.files[0])};
-  fi.onchange=function(){readFile(this.files[0])};
+  const input = document.getElementById('input');
+  const output = document.getElementById('output');
+  const err = document.getElementById('error');
+  const inFmt = document.getElementById('inFmt');
+  const outFmt = document.getElementById('outFmt');
+  const inDetected = document.getElementById('inDetected');
+  const dz = document.getElementById('dropzone');
+  const fi = document.getElementById('fileInput');
 
-  function readFile(f){
-    if(!f)return;
-    var ext=f.name.split('.').pop().toLowerCase();
-    if(ext==='json')inFmt.value='json';else if(ext==='yaml'||ext==='yml')inFmt.value='yaml';else if(ext==='csv')inFmt.value='csv';
-    var r=new FileReader();r.onload=function(){input.value=r.result};
+  const convertBtn = document.getElementById('convertBtn');
+  const prettyBtn = document.getElementById('prettyBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const copyMsg = document.getElementById('copyMsg');
+
+  // Dropzone
+  dz.onclick = () => fi.click();
+  dz.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fi.click(); } };
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); readFile(e.dataTransfer.files[0]); };
+  fi.onchange = () => { readFile(fi.files[0]); fi.value = ''; };
+
+  function readFile(f) {
+    if (!f) return;
+    const ext = f.name.split('.').pop().toLowerCase();
+    if (ext === 'json') inFmt.value = 'json';
+    else if (ext === 'yaml' || ext === 'yml') inFmt.value = 'yaml';
+    else if (ext === 'csv') inFmt.value = 'csv';
+    inDetected.textContent = ext.toUpperCase();
+    const r = new FileReader();
+    r.onload = () => { input.value = r.result; };
     r.readAsText(f);
   }
 
-  function parseData(str,fmt){
-    if(fmt==='json')return JSON.parse(str);
-    if(fmt==='yaml')return jsyaml.load(str);
-    if(fmt==='csv')return parseCSV(str);
+  function parseData(str, fmt) {
+    if (fmt === 'json') return JSON.parse(str);
+    if (fmt === 'yaml') return jsyaml.load(str);
+    if (fmt === 'csv') return parseCSV(str);
   }
 
-  function formatData(data,fmt,pretty){
-    if(fmt==='json')return JSON.stringify(data,null,pretty?2:undefined);
-    if(fmt==='yaml')return jsyaml.dump(data,{indent:2,lineWidth:-1,noRefs:true});
-    if(fmt==='csv')return toCSV(data);
+  function formatData(data, fmt, pretty) {
+    if (fmt === 'json') return JSON.stringify(data, null, pretty ? 2 : undefined);
+    if (fmt === 'yaml') return jsyaml.dump(data, { indent: 2, lineWidth: -1, noRefs: true });
+    if (fmt === 'csv') return toCSV(data);
   }
 
-  // RFC 4180 parser. The old split(',') corrupted any quoted field containing
-  // a comma (and dropped embedded newlines) — silent data corruption.
-  function parseCSV(s){
-    var rows=[],row=[],field='',inQ=false,i=0;
-    while(i<s.length){
-      var c=s[i];
-      if(inQ){
-        if(c==='"'){
-          if(s[i+1]==='"'){field+='"';i+=2;continue;}
-          inQ=false;i++;continue;
+  // RFC 4180 CSV parser
+  function parseCSV(s) {
+    const rows = [], row = [], field = []; let inQ = false, i = 0;
+    while (i < s.length) {
+      const c = s[i];
+      if (inQ) {
+        if (c === '"') {
+          if (s[i+1] === '"') { field.push('"'); i += 2; continue; }
+          inQ = false; i++; continue;
         }
-        field+=c;i++;continue;
+        field.push(c); i++; continue;
       }
-      if(c==='"'){inQ=true;i++;continue;}
-      if(c===','){row.push(field);field='';i++;continue;}
-      if(c==='\r'){i++;continue;}
-      if(c==='\n'){row.push(field);rows.push(row);row=[];field='';i++;continue;}
-      field+=c;i++;
+      if (c === '"') { inQ = true; i++; continue; }
+      if (c === ',') { row.push(field.join('')); field.length = 0; i++; continue; }
+      if (c === '\r') { i++; continue; }
+      if (c === '\n') { row.push(field.join('')); rows.push(row); row.length = 0; field.length = 0; i++; continue; }
+      field.push(c); i++;
     }
-    row.push(field);rows.push(row);
-    // trailing newline produces a final empty row — drop it
-    if(rows.length>1&&rows[rows.length-1].length===1&&rows[rows.length-1][0]==='')rows.pop();
-    if(!rows.length)return[];
-    var headers=rows[0].map(function(h){return h.trim()});
-    var out=[];
-    for(var r=1;r<rows.length;r++){
-      if(rows[r].length===1&&rows[r][0]==='')continue;
-      var rec={};
-      for(var j=0;j<headers.length;j++)rec[headers[j]]=rows[r][j]!==undefined?rows[r][j]:'';
+    row.push(field.join('')); rows.push(row);
+    if (rows.length > 1 && rows[rows.length-1].length === 1 && rows[rows.length-1][0] === '') rows.pop();
+    if (!rows.length) return [];
+    const headers = rows[0].map(h => h.trim());
+    const out = [];
+    for (let r = 1; r < rows.length; r++) {
+      if (rows[r].length === 1 && rows[r][0] === '') continue;
+      const rec = {};
+      for (let j = 0; j < headers.length; j++) rec[headers[j]] = rows[r][j] !== undefined ? rows[r][j] : '';
       out.push(rec);
     }
     return out;
   }
 
-  function toCSV(data){
-    if(!Array.isArray(data))data=[data];
-    if(!data.length)return'';
-    var keys=Object.keys(data[0]);
-    var lines=[keys.map(function(k){return'"'+String(k).replace(/"/g,'""')+'"'}).join(',')];
-    for(var i=0;i<data.length;i++){
-      lines.push(keys.map(function(k){var v=data[i][k];return v==null?'':'"'+String(v).replace(/"/g,'""')+'"'}).join(','));
+  function toCSV(data) {
+    if (!Array.isArray(data)) data = [data];
+    if (!data.length) return '';
+    const keys = Object.keys(data[0]);
+    const lines = [keys.map(k => '"' + String(k).replace(/"/g, '""') + '"').join(',')];
+    for (let i = 0; i < data.length; i++) {
+      lines.push(keys.map(k => { const v = data[i][k]; return v == null ? '' : '"' + String(v).replace(/"/g, '""') + '"'; }).join(','));
     }
     return lines.join('\n');
   }
 
-  document.getElementById('convertBtn').onclick=function(){
-    err.classList.remove('show');err.textContent='';
-    try{
-      var data=parseData(input.value,inFmt.value);
-      output.value=formatData(data,outFmt.value,true);
-    }catch(e){err.textContent=e.message;err.classList.add('show')}
-  };
+  function runConversion(inFormat, outFormat, pretty) {
+    err.classList.remove('show'); err.textContent = '';
+    try {
+      const data = parseData(input.value, inFormat);
+      output.value = formatData(data, outFormat, pretty);
+    } catch (e) {
+      err.textContent = e.message; err.classList.add('show');
+      output.value = '';
+    }
+  }
 
-  document.getElementById('prettyBtn').onclick=function(){
-    err.classList.remove('show');err.textContent='';
-    try{
-      var data=parseData(input.value,inFmt.value);
-      output.value=formatData(data,inFmt.value,true);
-    }catch(e){err.textContent=e.message;err.classList.add('show')}
-  };
+  convertBtn.onclick = () => runConversion(inFmt.value, outFmt.value, true);
+  prettyBtn.onclick = () => runConversion(inFmt.value, inFmt.value, true);
 
-  document.getElementById('copyBtn').onclick=function(){
-    if(!output.value)return;
+  copyBtn.onclick = () => {
+    if (!output.value) return;
     navigator.clipboard.writeText(output.value);
-    var m=document.getElementById('copyMsg');m.classList.add('show');
-    setTimeout(function(){m.classList.remove('show')},1500);
+    copyMsg.classList.add('show');
+    setTimeout(() => copyMsg.classList.remove('show'), 1500);
   };
 
-  document.getElementById('downloadBtn').onclick=function(){
-    if(!output.value)return;
-    var a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(output.value);
-    a.download='output.'+outFmt.value; a.click();
+  downloadBtn.onclick = () => {
+    if (!output.value) return;
+    const a = document.createElement('a');
+    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(output.value);
+    a.download = 'output.' + outFmt.value;
+    a.click();
   };
+
+  // Auto-convert on input change (debounced)
+  let debounceTimer;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => runConversion(inFmt.value, outFmt.value, true), 500);
+  });
 })();
 </script>
 </body>

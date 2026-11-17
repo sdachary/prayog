@@ -4,121 +4,287 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sankshep — Prayog</title>
+<meta name="description" content="Image compressor and resizer. Drop an image, adjust quality and dimensions, preview size, download.">
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
 <link rel="stylesheet" href="/assets/theme.css">
-<script src="../assets/nav.js" defer data-tool="sankshep"></script>
+<link rel="stylesheet" href="/assets/tool.css">
+
+<!-- Scripts -->
+<script src="/assets/nav.js" defer data-tool="SANKSHEP"></script>
+<script src="/assets/tool.js" defer></script>
+
+<!-- Page-specific styles -->
 <style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg);overflow-x:hidden}
-  .wrap{max-width:760px;width:100%;flex:0 0 auto}
-  .card{background:var(--fill);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid var(--fill-2);margin-top:1rem}
-  h1{font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:0.02em}
-  .preview{display:none;margin-top:1rem}
-  .preview.show{display:block}
-  .img-row{display:flex;gap:1rem;margin:1rem 0}
-  .img-box{flex:1;text-align:center}
-  .img-box img{max-width:100%;border-radius:var(--radius-md);background:var(--fill-2)}
-  .img-box .label{font-size:0.75rem;color:var(--muted);margin-top:0.3rem}
-  .img-box .size{font-size:0.75rem;color:var(--amber);font-family:monospace}
-  .controls{display:flex;flex-direction:column;gap:0.75rem;margin:1rem 0}
-  .ctrl-row{display:flex;align-items:center;gap:0.75rem}
-  .ctrl-row label{font-size:0.8rem;color:var(--muted);min-width:80px}
-  .ctrl-row input[type=range]{flex:1;accent-color:var(--amber)}
-  .ctrl-row .val{font-family:monospace;font-size:0.8rem;color:var(--amber);min-width:3rem;text-align:right}
-  .ctrl-row select{padding:0.4rem 0.6rem;border-radius:var(--radius-sm);background:var(--fill-2);border:1px solid var(--hair);color:var(--text);font-size:0.85rem}
-  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .img-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--tool-space-4);
+    margin: var(--tool-space-4) 0;
+  }
+  @media (min-width: 640px) {
+    .img-row { grid-template-columns: 1fr 1fr; }
+  }
+  .img-box {
+    text-align: center;
+    background: var(--tool-bg);
+    border: 1px solid var(--tool-border);
+    border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-3);
+  }
+  .img-box img,
+  .img-box canvas {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: var(--tool-radius-sm);
+    display: block;
+    margin: 0 auto var(--tool-space-2);
+  }
+  .img-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tool-text-muted);
+    margin-bottom: var(--tool-space-1);
+  }
+  .img-size {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tool-amber);
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tool-space-3);
+    margin: var(--tool-space-4) 0;
+  }
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: var(--tool-space-3);
+  }
+  .ctrl-row label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tool-text-muted);
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .ctrl-row input[type=range] {
+    flex: 1;
+    accent-color: var(--tool-amber);
+  }
+  .ctrl-row .val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tool-amber);
+    min-width: 60px;
+    text-align: right;
+  }
+  .ctrl-row select {
+    flex: 1;
+    padding: var(--tool-space-2) var(--tool-space-3);
+    border-radius: var(--tool-radius-md);
+    background: var(--tool-surface);
+    border: 1px solid var(--tool-border);
+    color: var(--tool-text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .ctrl-row select:focus { outline: none; border-color: var(--tool-teal); box-shadow: 0 0 0 3px rgba(47,163,154,0.15); }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Sankshep <span style="font-size:0.8rem;font-weight:400;color:var(--muted)">image compressor</span></h1>
-  <div class="card">
-    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop an image here, or press Enter to browse for one">Drop an image here, or click to browse</div>
-    <input type="file" id="fileInput" accept="image/*" style="display:none">
-    <div class="preview" id="preview">
-      <div class="img-row">
-        <div class="img-box">
-          <div id="origImage"></div>
-          <div class="label">original</div>
-          <div class="size" id="origSize"></div>
+<div class="tool-page">
+  <div class="tool-wrap">
+    <header class="tool-header">
+      <h1 class="tool-brand">SANKSHEP<span class="tool-brand-mark">//</span></h1>
+      <p class="tool-tagline">image compressor & resizer</p>
+    </header>
+
+    <main class="tool-main tool-main--narrow">
+
+      <section class="tool-card">
+        <div class="tool-dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop an image here, or press Enter to browse">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="tool-dropzone-title">Drop an image here, or click to browse</div>
+          <div class="tool-dropzone-hint">JPEG, PNG, WebP, GIF, AVIF supported</div>
         </div>
-        <div class="img-box">
-          <div id="compImage"></div>
-          <div class="label">compressed</div>
-          <div class="size" id="compSize"></div>
+        <input type="file" id="fileInput" accept="image/*" class="tool-file-input">
+
+        <div class="hidden" id="preview" aria-live="polite">
+          <div class="img-row">
+            <div class="img-box">
+              <div class="img-label">original</div>
+              <div id="origImage"></div>
+              <div class="img-size" id="origSize">—</div>
+            </div>
+            <div class="img-box">
+              <div class="img-label">compressed</div>
+              <div id="compImage"></div>
+              <div class="img-size" id="compSize">—</div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <div class="ctrl-row">
+              <label for="quality">Quality</label>
+              <input type="range" id="quality" min="10" max="100" value="80" aria-label="Compression quality">
+              <span class="val" id="qualityVal">80%</span>
+            </div>
+            <div class="ctrl-row">
+              <label for="maxW">Max width</label>
+              <input type="range" id="maxW" min="100" max="4000" value="1920" step="10" aria-label="Maximum width in pixels">
+              <span class="val" id="maxWVal">1920px</span>
+            </div>
+            <div class="ctrl-row">
+              <label for="format">Format</label>
+              <select id="format" aria-label="Output format">
+                <option value="image/jpeg">JPEG</option>
+                <option value="image/webp" selected>WebP</option>
+                <option value="image/png">PNG</option>
+                <option value="image/avif">AVIF</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="tool-btn tool-btn--primary tool-btn--full" id="downloadBtn" type="button" disabled>Download compressed image</button>
         </div>
-      </div>
-      <div class="controls">
-        <div class="ctrl-row">
-          <label for="quality">quality</label>
-          <input type="range" id="quality" min="0" max="100" value="80">
-          <span class="val" id="qualityVal">80%</span>
-        </div>
-        <div class="ctrl-row">
-          <label for="maxW">max width</label>
-          <input type="range" id="maxW" min="100" max="4000" value="1920" step="10">
-          <span class="val" id="maxWVal">1920</span>
-        </div>
-        <div class="ctrl-row">
-          <label for="format">format</label>
-          <select id="format">
-            <option value="image/jpeg">JPEG</option>
-            <option value="image/webp" selected>WebP</option>
-            <option value="image/png">PNG</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn btn-primary" id="downloadBtn">download</button>
-    </div>
+      </section>
+
+    </main>
+
+    <footer class="tool-footer">
+      Nothing is uploaded or stored remotely — all processing happens in your browser.
+    </footer>
   </div>
-  <footer>Nothing is uploaded or stored remotely — all processing happens in your browser.</footer>
 </div>
+
 <script>
 (function(){
-  var dz=document.getElementById('dropzone'), fi=document.getElementById('fileInput');
-  var pv=document.getElementById('preview'), origImg, origSizeEl=document.getElementById('origSize');
-  var compImgEl=document.getElementById('compImage'), compSizeEl=document.getElementById('compSize');
-  var q=document.getElementById('quality'), qv=document.getElementById('qualityVal');
-  var mw=document.getElementById('maxW'), mwv=document.getElementById('maxWVal');
-  var fmt=document.getElementById('format');
-  var dl=document.getElementById('downloadBtn');
-  var _img, _origFile;
+  'use strict';
 
-  q.oninput=function(){qv.textContent=this.value+'%';this.setAttribute('aria-valuetext',this.value+'%');render()};
-  mw.oninput=function(){mwv.textContent=this.value;this.setAttribute('aria-valuetext',this.value+' pixels');render()};
-  fmt.onchange=render;
+  const dz = document.getElementById('dropzone');
+  const fi = document.getElementById('fileInput');
+  const pv = document.getElementById('preview');
+  const origImageEl = document.getElementById('origImage');
+  const origSizeEl = document.getElementById('origSize');
+  const compImageEl = document.getElementById('compImage');
+  const compSizeEl = document.getElementById('compSize');
+  const q = document.getElementById('quality');
+  const qv = document.getElementById('qualityVal');
+  const mw = document.getElementById('maxW');
+  const mwv = document.getElementById('maxWVal');
+  const fmt = document.getElementById('format');
+  const dl = document.getElementById('downloadBtn');
 
-  dz.onclick=function(){fi.click()};
-  dz.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fi.click()}};
-  dz.ondragover=function(e){e.preventDefault();dz.classList.add('dragover')};
-  dz.ondragleave=function(){dz.classList.remove('dragover')};
-  dz.ondrop=function(e){e.preventDefault();dz.classList.remove('dragover');load(e.dataTransfer.files[0])};
-  fi.onchange=function(){load(this.files[0])};
+  let _img = null, _origFile = null, _blob = null;
 
-  function load(f){if(!f||!f.type.match(/image\//))return;_origFile=f;var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){_img=i;show()};i.src=r.result};r.readAsDataURL(f)}
-  function show(){
-    origImg=_img.cloneNode();origImg.style.maxHeight='200px';origImg.alt='Original image preview';
-    document.getElementById('origImage').innerHTML='';document.getElementById('origImage').appendChild(origImg);
-    origSizeEl.textContent=formatSize(_origFile.size);
-    pv.classList.add('show');render()
+  function formatSize(b) {
+    if (!b) return '—';
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
   }
-  function render(){
-    if(!_img)return;
-    var c=document.createElement('canvas'), ctx=c.getContext('2d');
-    var w=_img.naturalWidth,h=_img.naturalHeight,m=parseInt(mw.value);
-    if(w>m){h=h*m/w|0;w=m}
-    c.width=w;c.height=h;
-    ctx.drawImage(_img,0,0,w,h);
-    var qv2=parseInt(q.value)/100,f=fmt.value;
-    c.toBlob(function(blob){
-      if(!blob)return;
-      compImgEl.innerHTML='';var ci=new Image();ci.src=URL.createObjectURL(blob);ci.style.maxHeight='200px';ci.alt='Compressed image preview';compImgEl.appendChild(ci);
-      compSizeEl.textContent=formatSize(blob.size);
-      dl.onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='compressed.'+f.split('/')[1];a.click()};
-    },f,qv2)
+
+  function updateVal() {
+    qv.textContent = q.value + '%';
+    q.setAttribute('aria-valuetext', q.value + '%');
+    mwv.textContent = mw.value + 'px';
+    mw.setAttribute('aria-valuetext', mw.value + ' pixels');
   }
-  function formatSize(b){if(!b)return'—';return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'}
+
+  q.oninput = () => { updateVal(); render(); };
+  mw.oninput = () => { updateVal(); render(); };
+  fmt.onchange = render;
+
+  // Dropzone
+  dz.onclick = () => fi.click();
+  dz.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fi.click(); } };
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); load(e.dataTransfer.files[0]); };
+  fi.onchange = () => { load(fi.files[0]); fi.value = ''; };
+
+  function load(f) {
+    if (!f || !f.type.match(/image\//)) return;
+    _origFile = f;
+    const r = new FileReader();
+    r.onload = () => {
+      const i = new Image();
+      i.onload = () => { _img = i; show(); };
+      i.src = r.result;
+    };
+    r.readAsDataURL(f);
+  }
+
+  function show() {
+    origImageEl.innerHTML = '';
+    const origImg = _img.cloneNode();
+    origImg.style.maxHeight = '300px';
+    origImg.alt = 'Original image preview';
+    origImageEl.appendChild(origImg);
+    origSizeEl.textContent = formatSize(_origFile.size);
+    pv.classList.remove('hidden');
+    dl.disabled = false;
+    render();
+  }
+
+  function render() {
+    if (!_img) return;
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    let w = _img.naturalWidth, h = _img.naturalHeight;
+    const m = parseInt(mw.value);
+    if (w > m) { h = (h * m / w) | 0; w = m; }
+    c.width = w; c.height = h;
+    ctx.drawImage(_img, 0, 0, w, h);
+
+    const qv2 = parseInt(q.value) / 100;
+    const f = fmt.value;
+
+    c.toBlob(blob => {
+      if (!blob) return;
+      _blob = blob;
+      compImageEl.innerHTML = '';
+      const ci = new Image();
+      ci.src = URL.createObjectURL(blob);
+      ci.style.maxHeight = '300px';
+      ci.alt = 'Compressed image preview';
+      compImageEl.appendChild(ci);
+      compSizeEl.textContent = formatSize(blob.size);
+
+      dl.onclick = () => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const ext = f.split('/')[1];
+        a.download = 'compressed.' + ext;
+        a.click();
+        showToast('Downloaded: compressed.' + ext, 'success');
+      };
+    }, f, qv2);
+  }
+
+  updateVal();
 })();
 </script>
 </body>

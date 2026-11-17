@@ -4,154 +4,272 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sanket — Prayog</title>
+<meta name="description" content="QR code generator and camera scanner. Generate with text/URLs, download PNG/SVG, scan with your camera.">
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="stylesheet" href="/assets/theme.css">
-<script src="../assets/nav.js" defer data-tool="sanket"></script>
-<style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg);color:var(--text)}
-  .wrap{max-width:640px;width:100%;flex:0 0 auto}
-  h1{font-size:1.3rem;font-weight:700;letter-spacing:0.02em;margin-bottom:1rem}
-  h1 span{font-size:0.8rem;font-weight:400;color:var(--muted)}
-  .card{background:var(--fill);border-radius:var(--radius-lg);padding:1.5rem;border:1px solid var(--fill-2);margin-bottom:1rem}
-  .tabs{display:flex;gap:0;margin-bottom:1.5rem;background:var(--fill);border-radius:100px;padding:3px}
-  .tab{flex:1;text-align:center;padding:0.5rem 0.4rem;min-height:44px;border-radius:100px;font-size:0.82rem;font-weight:500;cursor:pointer;transition:.2s;color:var(--muted);font-family:inherit;border:none;background:transparent}
-  .tab:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-  .tab.active{background:var(--amber);color:var(--bg)}
-  .panel{display:none}
-  .panel.active{display:block}
-  input[type=text]{width:100%;padding:0.6rem 0.75rem;border-radius:var(--radius-md);background:var(--fill);border:1px solid var(--hair);color:var(--text);font-size:0.9rem;outline:none;transition:.2s}
-  input[type=text]:focus{border-color:var(--amber)}
-  .qr-display{text-align:center;margin:1.5rem 0;min-height:180px;display:flex;align-items:center;justify-content:center}
-  .qr-display canvas{border-radius:var(--radius-md)}
-  .actions{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem}
-  .scan-result{background:var(--fill);border-radius:var(--radius-md);padding:0.75rem;margin-top:1rem;word-break:break-all;display:none;font-size:0.85rem}
-  .scan-result.show{display:block}
-  .scan-result a{color:var(--amber)}
-  video{border-radius:var(--radius-md);width:100%;max-height:300px;background:#000;transform:scaleX(-1)}
-  #scanner{display:none}
-  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
+<link rel="stylesheet" href="/assets/theme.css">
+<link rel="stylesheet" href="/assets/tool.css">
+
+<!-- Scripts -->
+<script src="/assets/nav.js" defer data-tool="SANKET"></script>
+<script src="/assets/vendor/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" integrity="sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx" crossorigin="anonymous"></script>
+<script src="/assets/tool.js" defer></script>
+
+<!-- Page-specific styles -->
+<style>
+  .qr-display {
+    text-align: center;
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--tool-bg);
+    border: 1px solid var(--tool-border);
+    border-radius: var(--tool-radius-md);
+    margin: var(--tool-space-4) 0;
+  }
+  .qr-display canvas { border-radius: var(--tool-radius-sm); max-width: 100%; height: auto; }
+  .qr-display svg { border-radius: var(--tool-radius-sm); max-width: 100%; height: auto; }
+
+  .scan-result {
+    background: var(--tool-surface);
+    border: 1px solid var(--tool-border);
+    border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-4);
+    margin-top: var(--tool-space-4);
+    word-break: break-all;
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .scan-result.show { display: block; }
+  .scan-result a { color: var(--tool-amber); text-decoration: underline; }
+
+  video#scanVideo {
+    border-radius: var(--tool-radius-md);
+    width: 100%;
+    max-height: 50vh;
+    background: var(--tool-bg);
+    transform: scaleX(-1);
+  }
+
+  .scanner-hidden { display: none; }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Sanket <span>QR code</span></h1>
-  <div class="card">
-    <div class="tabs" role="tablist">
-      <div class="tab active" role="tab" id="genTab" aria-controls="genPanel" aria-selected="true" tabindex="0" data-tab="gen">generate</div>
-      <div class="tab" role="tab" id="scanTab" aria-controls="scanPanel" aria-selected="false" tabindex="-1" data-tab="scan">scan</div>
-    </div>
-    <div class="panel active" id="genPanel" role="tabpanel" aria-labelledby="genTab">
-      <input type="text" id="qrInput" placeholder="Type text or paste a URL…" value="https://prayog.pages.dev">
-      <div class="qr-display" id="qrDisplay"></div>
-      <div class="actions">
-        <button class="btn btn-primary" id="genBtn">generate</button>
-        <button class="btn btn-secondary" id="dlPng">PNG</button>
-        <button class="btn btn-secondary" id="dlSvg">SVG</button>
-      </div>
-    </div>
-    <div class="panel" id="scanPanel" role="tabpanel" aria-labelledby="scanTab">
-      <div id="scanner">
-        <video id="video" autoplay playsinline></video>
-        <canvas id="scanCanvas" style="display:none"></canvas>
-      </div>
-      <div class="actions">
-        <button class="btn btn-primary" id="scanBtn">start camera</button>
-        <button class="btn btn-secondary" id="stopScanBtn" disabled>stop</button>
-      </div>
-      <div class="scan-result" id="scanResult" role="status"></div>
-    </div>
+<div class="tool-page">
+  <div class="tool-wrap">
+    <header class="tool-header">
+      <h1 class="tool-brand">SANKET<span class="tool-brand-mark">//</span></h1>
+      <p class="tool-tagline">QR code generator & scanner</p>
+    </header>
+
+    <main class="tool-main tool-main--narrow">
+
+      <section class="tool-card">
+        <div class="tool-tabs" role="tablist">
+          <button class="tool-tab tool-tab--active" id="genTab" role="tab" aria-selected="true" aria-controls="genPanel" type="button">generate</button>
+          <button class="tool-tab" id="scanTab" role="tab" aria-selected="false" aria-controls="scanPanel" type="button">scan</button>
+        </div>
+
+        <!-- Generate Panel -->
+        <div class="panel active" id="genPanel" role="tabpanel" aria-labelledby="genTab">
+          <label class="visually-hidden" for="qrInput">Text or URL to encode</label>
+          <input type="text" id="qrInput" class="tool-input" placeholder="Type text or paste a URL…" value="https://prayog.pages.dev" aria-describedby="qrInputDesc">
+          <span id="qrInputDesc" class="visually-hidden">Enter the text or URL you want to encode as a QR code</span>
+
+          <div class="qr-display" id="qrDisplay" aria-live="polite"></div>
+
+          <div class="actions-row">
+            <button class="tool-btn tool-btn--primary" id="genBtn" type="button">generate</button>
+            <button class="tool-btn tool-btn--secondary" id="dlPng" type="button">download PNG</button>
+            <button class="tool-btn tool-btn--secondary" id="dlSvg" type="button">download SVG</button>
+          </div>
+        </div>
+
+        <!-- Scan Panel -->
+        <div class="panel hidden" id="scanPanel" role="tabpanel" aria-labelledby="scanTab">
+          <div id="scanner" class="scanner-hidden">
+            <video id="scanVideo" autoplay playsinline aria-hidden="true"></video>
+            <canvas id="scanCanvas" style="display:none" aria-hidden="true"></canvas>
+          </div>
+
+          <div class="actions-row">
+            <button class="tool-btn tool-btn--primary" id="scanBtn" type="button">start camera</button>
+            <button class="tool-btn tool-btn--secondary" id="stopScanBtn" type="button" disabled>stop</button>
+          </div>
+
+          <div class="scan-result" id="scanResult" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="tool-footer">
+      Nothing is uploaded or stored remotely — all processing happens in your browser. Camera feed never leaves your device.
+    </footer>
   </div>
-  <footer>Nothing is uploaded or stored remotely — all processing happens in your browser. Camera feed never leaves your device.</footer>
 </div>
-<script src="../assets/vendor/qrcode.min.js"></script>
-<script src="/assets/cdn-guard.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" integrity="sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx" crossorigin="anonymous"></script>
+
 <script>
 (function(){
-  var tab=document.querySelectorAll('.tab'),panel=document.querySelectorAll('.panel');
-  function activate(t){
-    tab.forEach(function(x){
-      var on=(x===t);
-      x.classList.toggle('active',on);
-      x.setAttribute('aria-selected',on?'true':'false');
-      x.tabIndex=on?0:-1;   // roving tabindex: one stop, arrows move within
+  'use strict';
+
+  // Tab switching
+  const tabs = document.querySelectorAll('.tool-tab');
+  const panels = document.querySelectorAll('.panel');
+  function activate(targetTab) {
+    tabs.forEach(t => {
+      const on = t === targetTab;
+      t.classList.toggle('tool-tab--active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
     });
-    panel.forEach(function(p){p.classList.toggle('active',p.id===t.dataset.tab+'Panel')});
+    panels.forEach(p => p.classList.toggle('active', p.id === targetTab.dataset.tab + 'Panel'));
   }
-  tab.forEach(function(t){t.onclick=function(){activate(t)}});
-  // Left/Right/Home/End move and activate, per the WAI-ARIA tabs pattern.
-  document.querySelector('.tabs').addEventListener('keydown',function(e){
-    var i=Array.prototype.indexOf.call(tab,e.target),n=null;
-    if(i<0)return;
-    if(e.key==='ArrowRight'||e.key==='ArrowDown')n=(i+1)%tab.length;
-    else if(e.key==='ArrowLeft'||e.key==='ArrowUp')n=(i-1+tab.length)%tab.length;
-    else if(e.key==='Home')n=0;
-    else if(e.key==='End')n=tab.length-1;
-    else if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(e.target);return;}
-    if(n===null)return;
-    e.preventDefault();activate(tab[n]);tab[n].focus();
+  tabs.forEach(t => t.onclick = () => activate(t));
+  document.querySelector('.tool-tabs').addEventListener('keydown', e => {
+    const i = Array.prototype.indexOf.call(tabs, e.target);
+    if (i < 0) return;
+    let n = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = (i + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') n = 0;
+    else if (e.key === 'End') n = tabs.length - 1;
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(e.target); return; }
+    if (n === null) return;
+    e.preventDefault(); activate(tabs[n]); tabs[n].focus();
   });
 
-  var _qr;
-  var genBtn=document.getElementById('genBtn'),qrInput=document.getElementById('qrInput');
-  genBtn.disabled=!qrInput.value.trim();
-  qrInput.addEventListener('input',function(){genBtn.disabled=!qrInput.value.trim()});
-  genBtn.onclick=function(){
-    var val=qrInput.value.trim();
-    if(!val)return;
-    document.getElementById('qrDisplay').innerHTML='';
-    _qr=new QRCode(document.getElementById('qrDisplay'),{text:val,width:180,height:180,colorDark:'#0b0e1a',colorLight:'#e0e0e0',correctLevel:QRCode.CorrectLevel.H});
-  };
-  document.getElementById('dlPng').onclick=function(){
-    var c=document.querySelector('#qrDisplay canvas');if(!c)return;
-    var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='qrcode.png';a.click();
-  };
-  document.getElementById('dlSvg').onclick=function(){
-    var val=document.getElementById('qrInput').value.trim();if(!val||!_qr)return;
-    // reuse the module matrix from the already-rendered QR (the library's
-    // QRCode(-1, ...) constructor expects a DOM element and throws on a number)
-    var cells=_qr._oQRCode.modules;var s=4;var size=cells.length*s;
-    var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+size+' '+size+'">';
-    svg+='<rect width="'+size+'" height="'+size+'" fill="#e0e0e0" rx="4"/>';
-    for(var r=0;r<cells.length;r++)for(var c=0;c<cells.length;c++)if(cells[r][c])svg+='<rect x="'+c*s+'" y="'+r*s+'" width="'+s+'" height="'+s+'" fill="#0b0e1a"/>';
-    svg+='</svg>';
-    var a=document.createElement('a');a.href='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);a.download='qrcode.svg';a.click();
-  };
-  document.getElementById('genBtn').click();
+  // QR Generation
+  let _qr;
+  const genBtn = document.getElementById('genBtn');
+  const qrInput = document.getElementById('qrInput');
+  const qrDisplay = document.getElementById('qrDisplay');
 
-  var video=document.getElementById('video'),scanCanvas=document.getElementById('scanCanvas'),scanResult=document.getElementById('scanResult');
-  var ctx=scanCanvas.getContext('2d'),_stream,_scanInt;
+  genBtn.disabled = !qrInput.value.trim();
+  qrInput.addEventListener('input', () => { genBtn.disabled = !qrInput.value.trim(); });
 
-  document.getElementById('scanBtn').onclick=function(){
-    if(typeof jsQR==='undefined'){scanResult.textContent='Scanner library did not load — check your connection and reload.';scanResult.classList.add('show');return}
-    document.getElementById('scanner').style.display='block';
-    scanResult.classList.remove('show');
-    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(s){
-      _stream=s;video.srcObject=s;video.play();
-      document.getElementById('scanBtn').disabled=true;
-      document.getElementById('stopScanBtn').disabled=false;
-      _scanInt=setInterval(scan,500);
-    }).catch(function(e){scanResult.textContent='Camera error: '+e.message;scanResult.classList.add('show')});
+  function generateQR() {
+    const val = qrInput.value.trim();
+    if (!val) return;
+    qrDisplay.innerHTML = '';
+    _qr = new QRCode(qrDisplay, { text: val, width: 240, height: 240, colorDark: '#0b0e1a', colorLight: '#f0f0f0', correctLevel: QRCode.CorrectLevel.H });
+  }
+  genBtn.onclick = generateQR;
+
+  // Download PNG
+  document.getElementById('dlPng').onclick = function() {
+    const c = qrDisplay.querySelector('canvas');
+    if (!c) return;
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = 'qrcode.png';
+    a.click();
+    showToast('PNG downloaded', 'success');
   };
 
-  function scan(){
-    if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
-    scanCanvas.width=video.videoWidth;scanCanvas.height=video.videoHeight;
-    ctx.drawImage(video,0,0);
-    var imgData=ctx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
-    var code=jsQR(imgData.data,imgData.width,imgData.height);
-    if(code){
-      clearInterval(_scanInt);stopCam();
-      scanResult.innerHTML='<strong>Decoded:</strong> '+(code.data.match(/^https?:\/\//)?'<a href="'+code.data+'" target="_blank">'+code.data+'</a>':code.data);
+  // Download SVG
+  document.getElementById('dlSvg').onclick = function() {
+    const val = qrInput.value.trim();
+    if (!val || !_qr) return;
+    const cells = _qr._oQRCode.modules;
+    const s = 4;
+    const size = cells.length * s;
+    let svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '">';
+    svg += '<rect width="' + size + '" height="' + size + '" fill="#f0f0f0" rx="8"/>';
+    for (let r = 0; r < cells.length; r++) {
+      for (let c = 0; c < cells.length; c++) {
+        if (cells[r][c]) svg += '<rect x="' + c * s + '" y="' + r * s + '" width="' + s + '" height="' + s + '" fill="#0b0e1a"/>';
+      }
+    }
+    svg += '</svg>';
+    const a = document.createElement('a');
+    a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    a.download = 'qrcode.svg';
+    a.click();
+    showToast('SVG downloaded', 'success');
+  };
+
+  // Initial generation
+  generateQR();
+
+  // QR Scanning
+  const video = document.getElementById('scanVideo');
+  const scanCanvas = document.getElementById('scanCanvas');
+  const scanResult = document.getElementById('scanResult');
+  const scannerDiv = document.getElementById('scanner');
+  const scanBtn = document.getElementById('scanBtn');
+  const stopScanBtn = document.getElementById('stopScanBtn');
+  const ctx = scanCanvas.getContext('2d');
+  let _stream = null, _scanInt = null;
+
+  function stopCam() {
+    if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
+    scannerDiv.classList.add('scanner-hidden');
+    scanBtn.disabled = false;
+    stopScanBtn.disabled = true;
+    if (_scanInt) { clearInterval(_scanInt); _scanInt = null; }
+  }
+
+  scanBtn.onclick = async function() {
+    if (typeof jsQR === 'undefined') {
+      scanResult.textContent = 'Scanner library did not load — check your connection and reload.';
       scanResult.classList.add('show');
+      return;
+    }
+    scannerDiv.classList.remove('scanner-hidden');
+    scanResult.classList.remove('show');
+    try {
+      _stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      video.srcObject = _stream;
+      await video.play();
+      scanBtn.disabled = true;
+      stopScanBtn.disabled = false;
+      _scanInt = setInterval(scan, 500);
+    } catch (e) {
+      scanResult.textContent = 'Camera error: ' + e.message;
+      scanResult.classList.add('show');
+    }
+  };
+
+  function scan() {
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+    scanCanvas.width = video.videoWidth;
+    scanCanvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+    const imgData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+    const code = jsQR(imgData.data, imgData.width, imgData.height);
+    if (code) {
+      clearInterval(_scanInt);
+      stopCam();
+      const data = code.data;
+      if (data.match(/^https?:\/\//)) {
+        scanResult.innerHTML = '<strong>Decoded:</strong> <a href="' + data + '" target="_blank" rel="noopener">' + data + '</a>';
+      } else {
+        scanResult.innerHTML = '<strong>Decoded:</strong> ' + data;
+      }
+      scanResult.classList.add('show');
+      showToast('QR code scanned', 'success');
     }
   }
 
-  document.getElementById('stopScanBtn').onclick=function(){clearInterval(_scanInt);stopCam()};
-  function stopCam(){if(_stream){_stream.getTracks().forEach(function(t){t.stop()})}document.getElementById('scanBtn').disabled=false;document.getElementById('stopScanBtn').disabled=true}
+  stopScanBtn.onclick = function() { clearInterval(_scanInt); stopCam(); };
 })();
 </script>
 </body>

@@ -1,897 +1,530 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Badhai - Video Audio Extraction</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="manifest" href="/site.webmanifest">
-  <link rel="stylesheet" href="/assets/theme.css">
-<script src="../assets/vendor/thinking-orbs-engine.js" defer></script>
-<script src="../assets/orb.js" defer></script>
-  <script src="../assets/nav.js" defer data-tool="badhai"></script>
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: var(--sans);
-      background: linear-gradient(135deg, var(--bg), var(--panel));
-      color: var(--text);
-      padding: 20px;
-      min-height: 100vh;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding: 30px 0;
-      border-bottom: 2px solid rgba(47,163,154, 0.3);
-    }
-    /* ponytail: laptop keeps the wizard tight — one screen per step set */
-    @media (min-width:900px){
-      .header{margin-bottom:20px;padding:14px 0}
-      .header h1{font-size:24px}
-      .header p{font-size:13px}
-      .card{padding:18px;margin-bottom:16px}
-      .card h2{margin-bottom:14px}
-    }
-
-    .header h1 {
-      font-size: 32px;
-      margin-bottom: 10px;
-      color: var(--teal);
-    }
-
-    .header p {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .card {
-      background: var(--panel-2);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 25px;
-      margin-bottom: 25px;
-      transition: border-color .3s ease, background .3s ease, color .3s ease, transform .3s ease;
-    }
-
-    .card:hover {
-      border-color: var(--teal);
-    }
-
-    .card h2 {
-      color: var(--teal);
-      margin-bottom: 20px;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--teal);
-      font-weight: 600;
-      margin-bottom: 15px;
-    }
-
-    .dropzone svg {
-      color: var(--teal);
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    .dropzone p {
-      color: var(--muted);
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-
-    .dropzone-hint {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    #videoFile {
-      display: none;
-    }
-
-    .file-info {
-      background: rgba(47,163,154, 0.1);
-
-      padding: 15px;
-      border-radius: 4px;
-      margin-top: 15px;
-      display: none;
-    }
-
-    .file-info.show {
-      display: block;
-    }
-
-    .file-details {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-top: 10px;
-      font-size: 13px;
-    }
-
-    .detail-item {
-      background: var(--fill-2);
-      padding: 10px;
-      border-radius: 4px;
-    }
-
-    .detail-label {
-      color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 3px;
-    }
-
-    .detail-value {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--text);
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .format-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 10px;
-    }
-
-    .format-btn {
-      padding: 10px;
-      border: 2px solid var(--line);
-      background: var(--panel);
-      color: var(--text);
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: border-color .3s ease, background .3s ease, color .3s ease, transform .3s ease;
-    }
-
-    .format-btn:hover {
-      border-color: var(--teal);
-      color: var(--teal);
-    }
-
-    .format-btn.active {
-      background: var(--teal);
-      border-color: var(--teal);
-      color: #0b0f14;
-    }
-
-    .extraction-mode {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .mode-btn {
-      padding: 15px;
-      border: 2px solid var(--line);
-      background: var(--panel);
-      color: var(--text);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: border-color .3s ease, background .3s ease, color .3s ease, transform .3s ease;
-      font-weight: 600;
-    }
-
-    .mode-btn:hover {
-      border-color: var(--teal);
-    }
-
-    .mode-btn.active {
-      background: var(--teal);
-      border-color: var(--teal);
-      color: #0b0f14;
-    }
-
-    .time-inputs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 20px;
-      display: none;
-    }
-
-    .time-inputs.show {
-      display: grid;
-    }
-
-    .time-input-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--text);
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .time-input-group input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--text);
-      border-radius: 4px;
-      font-family: var(--mono);
-      font-size: 13px;
-    }
-
-    .time-input-group input:focus {
-      outline: none;
-      border-color: var(--teal);
-    }
-
-    .time-preview {
-      background: rgba(47,163,154, 0.1);
-
-      padding: 15px;
-      border-radius: 4px;
-      margin-bottom: 20px;
-      display: none;
-      font-size: 13px;
-    }
-
-    .time-preview.show {
-      display: block;
-    }
-
-    .preview-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .preview-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .preview-label {
-      color: var(--muted);
-    }
-
-    .preview-value {
-      color: var(--teal);
-      font-weight: 600;
-    }
-
-    .extract-btn {
-      width: 100%;
-      padding: 15px;
-      background: var(--teal);
-      border: none;
-      color: #0b0f14;
-      font-weight: 700;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: border-color .3s ease, background .3s ease, color .3s ease, transform .3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .extract-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-    }
-
-    .extract-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .progress-section {
-      display: none;
-      margin-top: 20px;
-    }
-
-    .progress-section.show {
-      display: block;
-    }
-
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: var(--panel-2);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--teal);
-      width: 100%;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease;
-    }
-
-    .status-message {
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 10px;
-    }
-
-    /* status text + the working orb, centred as one unit */
-    .status-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .status-row .status-message { margin-top: 0; }
-
-    .status-message.success {
-      color: var(--teal);
-    }
-
-    .status-message.error {
-      color: var(--red);
-    }
-
-    .video-preview {
-      margin-top: 15px;
-      display: none;
-    }
-
-    .video-preview.show {
-      display: block;
-    }
-
-    video {
-      width: 100%;
-      max-height: 300px;
-      background: var(--panel);
-      border-radius: 6px;
-      border: 1px solid var(--line);
-    }
-
-    .info-box {
-      background: rgba(47,163,154, 0.1);
-
-      padding: 15px;
-      border-radius: 4px;
-      margin-top: 20px;
-      font-size: 13px;
-    }
-
-    .warning-box {
-      background: rgba(232,163,61, 0.1);
-
-      padding: 15px;
-      border-radius: 4px;
-      margin-top: 20px;
-      font-size: 13px;
-      color: var(--amber);
-    }
-
-    .reset-btn {
-      padding: 10px 20px;
-      background: var(--panel-2);
-      border: 1px solid var(--line);
-      color: var(--text);
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: border-color .3s ease, background .3s ease, color .3s ease, transform .3s ease;
-      margin-top: 15px;
-      width: 100%;
-    }
-
-    .reset-btn:hover {
-      border-color: var(--teal);
-      color: var(--teal);
-    }
-
-    .format-info {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    @media (max-width: 600px) {
-      .header h1 {
-        font-size: 24px;
-      }
-
-      .extraction-mode {
-        grid-template-columns: 1fr;
-      }
-
-      .time-inputs {
-        grid-template-columns: 1fr;
-      }
-
-      .format-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .file-details {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Badhai — Prayog</title>
+<meta name="description" content="Extract audio from video files in your browser. Drop a video, pick MP3/WAV/AAC/OGG, download. Nothing leaves your machine.">
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="/site.webmanifest">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
+<link rel="stylesheet" href="/assets/theme.css">
+<link rel="stylesheet" href="/assets/tool.css">
+
+<!-- Scripts -->
+<script src="/assets/vendor/thinking-orbs-engine.js" defer></script>
+<script src="/assets/orb.js" defer></script>
+<script src="/assets/nav.js" defer data-tool="BADHAI"></script>
+<script src="/assets/tool.js" defer></script>
+
+<!-- Page-specific styles -->
+<style>
+  .format-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--tool-space-3);
+  }
+  .format-btn {
+    display: flex; flex-direction: column; align-items: center; gap: var(--tool-space-1);
+    padding: var(--tool-space-3);
+    border: 2px solid var(--tool-border);
+    background: var(--tool-surface);
+    color: var(--tool-text);
+    border-radius: var(--tool-radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all var(--tool-duration-fast);
+  }
+  .format-btn:hover { border-color: var(--tool-teal); color: var(--tool-teal); }
+  .format-btn--active {
+    background: var(--tool-teal);
+    border-color: var(--tool-teal);
+    color: #04211d;
+  }
+  [data-theme="light"] .format-btn--active { color: #fff; }
+  .format-info { font-size: 11px; color: var(--tool-text-muted); }
+
+  .mode-row { display: flex; gap: var(--tool-space-3); margin-bottom: var(--tool-space-4); }
+  .mode-btn {
+    flex: 1; padding: var(--tool-space-4);
+    border: 2px solid var(--tool-border);
+    background: var(--tool-surface);
+    color: var(--tool-text);
+    border-radius: var(--tool-radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all var(--tool-duration-fast);
+  }
+  .mode-btn:hover { border-color: var(--tool-teal); }
+  .mode-btn--active { background: var(--tool-teal); border-color: var(--tool-teal); color: #04211d; }
+  [data-theme="light"] .mode-btn--active { color: #fff; }
+
+  .time-inputs { display: none; grid-template-columns: 1fr 1fr; gap: var(--tool-space-3); margin-bottom: var(--tool-space-4); }
+  .time-inputs.show { display: grid; }
+  @media (max-width: 600px) { .time-inputs { grid-template-columns: 1fr; } }
+
+  .time-input-group label { display: block; margin-bottom: var(--tool-space-1); font-weight: 600; font-size: 13px; color: var(--tool-text); }
+  .time-input-group input {
+    width: 100%; padding: var(--tool-space-2) var(--tool-space-3);
+    border: 1px solid var(--tool-border); background: var(--tool-surface);
+    color: var(--tool-text); border-radius: var(--tool-radius-md);
+    font-family: var(--font-mono); font-size: 13px;
+  }
+  .time-input-group input:focus { outline: none; border-color: var(--tool-teal); box-shadow: 0 0 0 3px rgba(47,163,154,0.15); }
+
+  .time-preview {
+    background: rgba(47,163,154,0.1);
+    border: 1px solid rgba(47,163,154,0.3);
+    border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-3) var(--tool-space-4);
+    margin-bottom: var(--tool-space-4);
+    display: none;
+    font-size: 13px;
+  }
+  .time-preview.show { display: block; }
+  .preview-row { display: flex; justify-content: space-between; margin-bottom: var(--tool-space-1); }
+  .preview-row:last-child { margin-bottom: 0; }
+  .preview-label { color: var(--tool-text-muted); }
+  .preview-value { color: var(--tool-teal); font-weight: 600; }
+
+  .warning-box {
+    background: rgba(232,163,61,0.1);
+    border: 1px solid rgba(232,163,61,0.3);
+    border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-3) var(--tool-space-4);
+    margin-top: var(--tool-space-3);
+    font-size: 13px;
+    color: var(--tool-amber);
+    display: flex; align-items: flex-start; gap: var(--tool-space-2);
+  }
+  .warning-box svg { flex-shrink: 0; margin-top: 2px; }
+
+  .video-preview { margin-top: var(--tool-space-3); display: none; }
+  .video-preview.show { display: block; }
+  .video-preview video { width: 100%; max-height: 50vh; background: var(--tool-bg); border-radius: var(--tool-radius-md); border: 1px solid var(--tool-border); }
+
+  .file-details { display: grid; grid-template-columns: 1fr 1fr; gap: var(--tool-space-3); margin-top: var(--tool-space-3); }
+  .detail-item { background: var(--tool-surface-elevated); padding: var(--tool-space-3); border-radius: var(--tool-radius-md); }
+  .detail-label { color: var(--tool-text-muted); font-size: 12px; margin-bottom: var(--tool-space-1); }
+  .detail-value { color: var(--tool-text); font-weight: 600; }
+
+  .status-row { display: flex; align-items: center; justify-content: center; gap: var(--tool-space-2); margin-top: var(--tool-space-2); }
+  .status-row .tool-hint { margin-top: 0; }
+
+  .info-box {
+    background: rgba(47,163,154,0.1);
+    border: 1px solid rgba(47,163,154,0.3);
+    border-radius: var(--tool-radius-md);
+    padding: var(--tool-space-3) var(--tool-space-4);
+    margin-top: var(--tool-space-4);
+    font-size: 13px;
+    display: flex; align-items: flex-start; gap: var(--tool-space-2);
+  }
+
+  .hidden { display: none !important; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Badhai</h1>
-      <p>Extract audio from video files • Local processing • No uploads</p>
-    </div>
+<div class="tool-page">
+  <div class="tool-wrap">
+    <header class="tool-header">
+      <h1 class="tool-brand">BADHAI<span class="tool-brand-mark">//</span></h1>
+      <p class="tool-tagline">extract audio from video</p>
+    </header>
 
-    <!-- Upload Card -->
-    <div class="card">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M4 14.9A7 7 0 1 1 15.9 9h.1a4 4 0 0 1 0 8H7a3 3 0 0 1-3-3Z"/><path d="M12 13V7"/><polyline points="9 10 12 7 15 10"/></svg> Step 1: Upload Video</h2>
-      
-      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drag and drop your video here, or press Enter to browse for a file (MP4, MKV, AVI, WebM, MOV, etc.)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="48px" height="48px" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><polyline points="10 9 16 12 10 15"/></svg>
-        <p><strong>Drag & drop your video here</strong></p>
-        <p class="dropzone-hint">or click to browse (MP4, MKV, AVI, WebM, MOV, etc.)</p>
-      </div>
+    <main class="tool-main tool-main--narrow">
 
-      <input type="file" id="videoFile" accept="video/*">
-
-      <div class="file-info" id="fileInfo">
-        <div style="margin-bottom: 10px;">
-          <strong id="fileName"></strong>
+      <!-- Step 1: Upload -->
+      <section class="tool-card" id="uploadCard">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 14.9A7 7 0 1 1 15.9 9h.1a4 4 0 0 1 0 8H7a3 3 0 0 1-3-3Z"/><path d="M12 13V7"/><polyline points="9 10 12 7 15 10"/></svg>
+            Step 1: Upload Video
+          </h2>
         </div>
-        <div class="file-details">
-          <div class="detail-item">
-            <div class="detail-label">File Size</div>
-            <div class="detail-value" id="fileSize">-</div>
+
+        <div class="tool-dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drag and drop your video here, or press Enter to browse">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><polyline points="10 9 16 12 10 15"/></svg>
+          <div class="tool-dropzone-title">Drag & drop your video here</div>
+          <div class="tool-dropzone-hint">or click to browse (MP4, MKV, AVI, WebM, MOV, etc.)</div>
+        </div>
+        <input type="file" id="videoFile" accept="video/*" class="tool-file-input">
+
+        <div class="tool-notice notice--info hidden" id="fileInfo">
+          <div style="margin-bottom: var(--tool-space-3);"><strong id="fileName"></strong></div>
+          <div class="file-details">
+            <div class="detail-item">
+              <div class="detail-label">File Size</div>
+              <div class="detail-value" id="fileSize">-</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Duration</div>
+              <div class="detail-value" id="fileDuration">-</div>
+            </div>
           </div>
-          <div class="detail-item">
-            <div class="detail-label">Duration</div>
-            <div class="detail-value" id="fileDuration">-</div>
+        </div>
+
+        <div class="video-preview" id="videoPreview">
+          <video id="videoElement" controls></video>
+        </div>
+
+        <div class="info-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <div><strong>Privacy:</strong> All processing happens on your computer. No files are uploaded to any server.</div>
+        </div>
+      </section>
+
+      <!-- Step 2: Format -->
+      <section class="tool-card hidden" id="formatCard">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Step 2: Choose Output Format
+          </h2>
+        </div>
+
+        <div class="tool-format-grid" role="group" aria-label="Audio format">
+          <button class="format-btn format-btn--active" data-format="mp3" type="button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            MP3
+            <span class="format-info">Best compatibility</span>
+          </button>
+          <button class="format-btn" data-format="wav" type="button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="4" height="6" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="10" rx="1"/></svg>
+            WAV
+            <span class="format-info">Lossless</span>
+          </button>
+          <button class="format-btn" data-format="aac" type="button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            AAC
+            <span class="format-info">Good quality</span>
+          </button>
+          <button class="format-btn" data-format="ogg" type="button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            OGG
+            <span class="format-info">Open format</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Step 3: Extraction Mode -->
+      <section class="tool-card hidden" id="modeCard">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+            Step 3: Extraction Mode
+          </h2>
+        </div>
+
+        <div class="mode-row" role="group" aria-label="Extraction mode">
+          <button class="mode-btn mode-btn--active" data-mode="full" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            <span>Extract Full Audio</span>
+          </button>
+          <button class="mode-btn" data-mode="segment" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><circle cx="4" cy="12" r="2"/><circle cx="12" cy="10" r="2"/><circle cx="20" cy="14" r="2"/></svg>
+            <span>Extract Segment</span>
+          </button>
+        </div>
+
+        <div class="time-inputs" id="timeInputs">
+          <div class="time-input-group">
+            <label for="startTime">Start Time (HH:MM:SS)</label>
+            <input type="text" id="startTime" placeholder="00:00:00" value="00:00:00" maxlength="8" inputmode="numeric">
+          </div>
+          <div class="time-input-group">
+            <label for="endTime">End Time (HH:MM:SS)</label>
+            <input type="text" id="endTime" placeholder="00:01:00" value="00:01:00" maxlength="8" inputmode="numeric">
           </div>
         </div>
-      </div>
 
-      <div class="video-preview" id="videoPreview">
-        <video id="videoElement" controls></video>
-      </div>
-
-      <div class="info-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> <strong>Privacy:</strong> All processing happens on your computer. No files are uploaded to any server.
-      </div>
-    </div>
-
-    <!-- Format Card -->
-    <div class="card">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Step 2: Choose Output Format</h2>
-      
-      <div class="form-group">
-        <label>Audio Format:</label>
-        <div class="format-grid">
-          <button class="format-btn active" data-format="mp3">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> MP3
-            <div class="format-info">Best compatibility</div>
-          </button>
-          <button class="format-btn" data-format="wav">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="3" y="11" width="4" height="6" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="10" rx="1"/></svg> WAV
-            <div class="format-info">Lossless</div>
-          </button>
-          <button class="format-btn" data-format="aac">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> AAC
-            <div class="format-info">Good quality</div>
-          </button>
-          <button class="format-btn" data-format="ogg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> OGG
-            <div class="format-info">Open format</div>
-          </button>
+        <div class="time-preview" id="timePreview">
+          <div class="preview-row"><span class="preview-label">Start Time:</span><span class="preview-value" id="previewStart">00:00:00</span></div>
+          <div class="preview-row"><span class="preview-label">End Time:</span><span class="preview-value" id="previewEnd">00:01:00</span></div>
+          <div class="preview-row"><span class="preview-label">Segment Duration:</span><span class="preview-value" id="previewDuration">1m 0s</span></div>
         </div>
-      </div>
-    </div>
 
-    <!-- Extraction Mode Card -->
-    <div class="card">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Step 3: Extraction Mode</h2>
+        <div class="warning-box" id="warningBox">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>First time? FFmpeg will download (~30MB). This is cached for future use.</span>
+        </div>
+      </section>
 
-      <div class="extraction-mode">
-        <button class="mode-btn active" data-mode="full">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Extract Full Audio
+      <!-- Step 4: Extract -->
+      <section class="tool-card hidden" id="extractCard">
+        <button class="tool-btn tool-btn--primary tool-btn--full" id="extractBtn" type="button" disabled style="padding: var(--tool-space-4); font-size: 15px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Extract Audio
         </button>
-        <button class="mode-btn" data-mode="segment">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><circle cx="4" cy="12" r="2"/><circle cx="12" cy="10" r="2"/><circle cx="20" cy="14" r="2"/></svg> Extract Segment
+
+        <div class="tool-progress-track hidden" id="progressSection" style="margin-top: var(--tool-space-4);">
+          <div class="tool-progress-track" style="height: 8px;">
+            <div class="tool-progress-fill" id="progressFill"></div>
+          </div>
+          <div class="status-row">
+            <thinking-orb state="working" size="20" id="workOrb" aria-hidden="true" hidden></thinking-orb>
+            <span class="tool-hint" id="statusMessage" role="status">Preparing to extract...</span>
+          </div>
+        </div>
+
+        <button class="tool-btn tool-btn--secondary tool-btn--full hidden" id="resetBtn" type="button" style="margin-top: var(--tool-space-3);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Process Another File
         </button>
-      </div>
+      </section>
 
-      <!-- Time Selection for Segment Mode -->
-      <div class="time-inputs" id="timeInputs">
-        <div class="time-input-group">
-          <label for="startTime">Start Time (HH:MM:SS)</label>
-          <input type="text" id="startTime" placeholder="00:00:00" value="00:00:00">
-        </div>
-        <div class="time-input-group">
-          <label for="endTime">End Time (HH:MM:SS)</label>
-          <input type="text" id="endTime" placeholder="00:01:00" value="00:01:00">
-        </div>
-      </div>
+    </main>
 
-      <div class="time-preview" id="timePreview">
-        <div class="preview-row">
-          <span class="preview-label">Start Time:</span>
-          <span class="preview-value" id="previewStart">00:00:00</span>
-        </div>
-        <div class="preview-row">
-          <span class="preview-label">End Time:</span>
-          <span class="preview-value" id="previewEnd">00:01:00</span>
-        </div>
-        <div class="preview-row">
-          <span class="preview-label">Segment Duration:</span>
-          <span class="preview-value" id="previewDuration">1m 0s</span>
-        </div>
-      </div>
-
-      <div class="warning-box" id="warningBox">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> First time? FFmpeg will download (~30MB). This is cached for future use.
-      </div>
-    </div>
-
-    <!-- Extract Button -->
-    <div class="card">
-      <button class="extract-btn" id="extractBtn" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Extract Audio
-      </button>
-
-      <div class="progress-section" id="progressSection">
-        <div class="progress-label">
-          <span>Processing...</span>
-          <span id="progressPercent">0%</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="status-row">
-          <thinking-orb state="working" size="20" id="workOrb" aria-hidden="true" hidden></thinking-orb>
-          <div class="status-message" id="statusMessage" role="status">Preparing to extract...</div>
-        </div>
-      </div>
-
-      <button class="reset-btn" id="resetBtn" style="display: none;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Process Another File
-      </button>
-    </div>
-
+    <footer class="tool-footer">
+      All processing happens locally in your browser using FFmpeg.wasm.<br>
+      No files are uploaded to any server.
+    </footer>
   </div>
+</div>
 
-  <script src="/assets/cdn-guard.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js" integrity="sha384-7uMZnLkwmoVp6S3MfAupnrR4ebeXZyeqewmdTDR7AHRAQKOVWg54P4FufGnrTnk0" crossorigin="anonymous"></script>
-  <script>
-    const { FFmpeg } = window.FFmpegWASM;
-    const fetchFile = async (f) => new Uint8Array(await f.arrayBuffer());
-    let ffmpeg = null;
-    let videoFile = null;
-    let videoDuration = 0;
-    let selectedFormat = 'mp3';
-    let extractionMode = 'full';
+<script src="/assets/cdn-guard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js" integrity="sha384-7uMZnLkwmoVp6S3MfAupnrR4ebeXZyeqewmdTDR7AHRAQKOVWg54P4FufGnrTnk0" crossorigin="anonymous"></script>
 
-    // Initialize FFmpeg
-    async function initFFmpeg() {
-      if (ffmpeg?.isLoaded()) return;
-      
-      ffmpeg = new FFmpeg();
-      
-      ffmpeg.on('log', ({ message }) => {
-        // [FFmpeg], message
-      });
+<script>
+(function(){
+  'use strict';
 
-      ffmpeg.on('progress', ({ progress }) => {
-        const percent = Math.round(progress * 100);
-        document.getElementById('progressPercent').textContent = percent + '%';
-        document.getElementById('progressFill').style.transform = 'scaleX(' + percent / 100 + ')';
-        
-        if (progress < 0.3) {
-          document.getElementById('statusMessage').textContent = 'Loading video...';
-        } else if (progress < 0.7) {
-          document.getElementById('statusMessage').textContent = 'Extracting audio...';
-        } else {
-          document.getElementById('statusMessage').textContent = 'Finalizing...';
-        }
-      });
+  const { FFmpeg } = window.FFmpegWASM;
+  const fetchFile = async (f) => new Uint8Array(await f.arrayBuffer());
+  let ffmpeg = null;
+  let videoFile = null;
+  let videoDuration = 0;
+  let selectedFormat = 'mp3';
+  let extractionMode = 'full';
 
-      try {
-        progressSection.classList.add('show');
-        setBusy(true);
-        document.getElementById('progressPercent').textContent = '';
-        document.getElementById('statusMessage').textContent = 'Loading FFmpeg...';
-        await ffmpeg.load();
-        setBusy(false);
-        // FFmpeg loaded
-      } catch (error) {
-        setBusy(false);
-        console.error('Failed to load FFmpeg:', error);
-        showError('Failed to load FFmpeg. Please try again.');
-      }
-    }
+  // DOM
+  const dropzone = document.getElementById('dropzone');
+  const videoFileInput = document.getElementById('videoFile');
+  const extractBtn = document.getElementById('extractBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const timeInputs = document.getElementById('timeInputs');
+  const timePreview = document.getElementById('timePreview');
+  const progressSection = document.getElementById('progressSection');
+  const progressFill = document.getElementById('progressFill');
+  const workOrb = document.getElementById('workOrb');
+  const statusMessage = document.getElementById('statusMessage');
 
-    // DOM Elements
-    const dropzone = document.getElementById('dropzone');
-    const videoFileInput = document.getElementById('videoFile');
-    const extractBtn = document.getElementById('extractBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const timeInputs = document.getElementById('timeInputs');
-    const timePreview = document.getElementById('timePreview');
-    const progressSection = document.getElementById('progressSection');
-    const workOrb = document.getElementById('workOrb');
-    /* the orb marks "work in flight" — the status text carries the detail */
-    function setBusy(busy){ workOrb.hidden = !busy; }
+  // Upload card elements
+  const fileInfo = document.getElementById('fileInfo');
+  const fileName = document.getElementById('fileName');
+  const fileSize = document.getElementById('fileSize');
+  const fileDuration = document.getElementById('fileDuration');
+  const videoPreview = document.getElementById('videoPreview');
+  const videoElement = document.getElementById('videoElement');
 
-    // Format buttons
-    document.querySelectorAll('.format-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedFormat = btn.dataset.format;
-      });
+  // Cards
+  const uploadCard = document.getElementById('uploadCard');
+  const formatCard = document.getElementById('formatCard');
+  const modeCard = document.getElementById('modeCard');
+  const extractCard = document.getElementById('extractCard');
+
+  // Warning
+  const warningBox = document.getElementById('warningBox');
+
+  // Helpers
+  function showCard(card) {
+    document.querySelectorAll('#uploadCard, #formatCard, #modeCard, #extractCard').forEach(c => c.classList.add('hidden'));
+    card.classList.remove('hidden');
+  }
+  function setBusy(busy) { workOrb.hidden = !busy; }
+
+  // Format buttons
+  document.querySelectorAll('.format-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('format-btn--active'));
+      btn.classList.add('format-btn--active');
+      selectedFormat = btn.dataset.format;
     });
+  });
 
-    // Mode buttons
-    document.querySelectorAll('.mode-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        extractionMode = btn.dataset.mode;
-        
-        if (extractionMode === 'segment') {
-          timeInputs.classList.add('show');
-          timePreview.classList.add('show');
-          updateTimePreview();
-        } else {
-          timeInputs.classList.remove('show');
-          timePreview.classList.remove('show');
-        }
-      });
-    });
-
-    // Time input listeners
-    document.getElementById('startTime').addEventListener('change', updateTimePreview);
-    document.getElementById('endTime').addEventListener('change', updateTimePreview);
-
-    function updateTimePreview() {
-      const startTime = document.getElementById('startTime').value;
-      const endTime = document.getElementById('endTime').value;
-
-      document.getElementById('previewStart').textContent = startTime;
-      document.getElementById('previewEnd').textContent = endTime;
-
-      const startSeconds = timeToSeconds(startTime);
-      const endSeconds = timeToSeconds(endTime);
-      const duration = endSeconds - startSeconds;
-
-      if (duration > 0) {
-        const mins = Math.floor(duration / 60);
-        const secs = Math.round(duration % 60);
-        document.getElementById('previewDuration').textContent = `${mins}m ${secs}s`;
-      }
-    }
-
-    // Dropzone handlers
-    dropzone.addEventListener('click', () => videoFileInput.click());
-    dropzone.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        videoFileInput.click();
-      }
-    });
-    
-    dropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropzone.classList.add('dragover');
-    });
-
-    dropzone.addEventListener('dragleave', () => {
-      dropzone.classList.remove('dragover');
-    });
-
-    dropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('dragover');
-      
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleVideoFile(files[0]);
-      }
-    });
-
-    videoFileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleVideoFile(e.target.files[0]);
-      }
-    });
-
-    async function handleVideoFile(file) {
-      videoFile = file;
-      
-      // Show file info
-      const fileInfo = document.getElementById('fileInfo');
-      document.getElementById('fileName').textContent = `📄 ${file.name}`;
-      document.getElementById('fileSize').textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-      fileInfo.classList.add('show');
-
-      // Create video element to get duration
-      const video = document.getElementById('videoElement');
-      const url = URL.createObjectURL(file);
-      video.src = url;
-
-      video.addEventListener('loadedmetadata', () => {
-        videoDuration = video.duration;
-        const mins = Math.floor(videoDuration / 60);
-        const secs = Math.round(videoDuration % 60);
-        document.getElementById('fileDuration').textContent = `${mins}m ${secs}s`;
-        
-        // Update end time
-        const endTimeStr = secondsToTime(videoDuration);
-        document.getElementById('endTime').value = endTimeStr;
+  // Mode buttons
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('mode-btn--active'));
+      btn.classList.add('mode-btn--active');
+      extractionMode = btn.dataset.mode;
+      if (extractionMode === 'segment') {
+        timeInputs.classList.add('show');
+        timePreview.classList.add('show');
         updateTimePreview();
-      });
-
-      document.getElementById('videoPreview').classList.add('show');
-      extractBtn.disabled = false;
-
-      // Initialize FFmpeg
-      await initFFmpeg();
-    }
-
-    async function extractAudio() {
-      if (!videoFile || !ffmpeg) return;
-
-      progressSection.classList.add('show');
-      document.getElementById('statusMessage').classList.remove('error');
-      document.getElementById('progressPercent').textContent = '0%';
-      setBusy(true);
-      extractBtn.disabled = true;
-
-      try {
-        const inputName = 'input_video';
-        const outputName = `output.${selectedFormat}`;
-
-        // Clear previous files
-        try {
-          await ffmpeg.deleteFile(inputName);
-          await ffmpeg.deleteFile(outputName);
-        } catch (e) {}
-
-        // Write input file
-        document.getElementById('statusMessage').textContent = 'Reading video file...';
-        await ffmpeg.writeFile(inputName, await fetchFile(videoFile));
-
-        // Build FFmpeg command
-        let command = ['-i', inputName];
-
-        if (extractionMode === 'segment') {
-          const startTime = document.getElementById('startTime').value;
-          const endTime = document.getElementById('endTime').value;
-          
-          command.push('-ss', startTime);
-          command.push('-to', endTime);
-        }
-
-        // Add format-specific options
-        if (selectedFormat === 'mp3') {
-          command.push('-q:a', '5', '-acodec', 'libmp3lame');
-        } else if (selectedFormat === 'wav') {
-          command.push('-acodec', 'pcm_s16le');
-        } else if (selectedFormat === 'aac') {
-          command.push('-acodec', 'aac', '-b:a', '128k');
-        } else if (selectedFormat === 'ogg') {
-          command.push('-acodec', 'libvorbis', '-q:a', '5');
-        }
-
-        command.push('-vn', outputName);
-
-        // Extract audio
-        document.getElementById('statusMessage').textContent = 'Extracting audio...';
-        await ffmpeg.exec(command);
-
-        // Download file
-        document.getElementById('statusMessage').textContent = 'Preparing download...';
-        const data = await ffmpeg.readFile(outputName);
-        const blob = new Blob([data.buffer], { type: `audio/${selectedFormat}` });
-        
-        // Generate filename
-        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-        const filename = `audio-${timestamp}.${selectedFormat}`;
-        
-        // Trigger download
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        document.getElementById('statusMessage').classList.add('success');
-        document.getElementById('statusMessage').textContent = `✓ Audio extracted successfully! Downloaded: ${filename}`;
-        
-        resetBtn.style.display = 'block';
-
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('statusMessage').classList.add('error');
-        document.getElementById('statusMessage').textContent = `✗ Error: ${error.message}`;
-      } finally {
-        setBusy(false);
-        extractBtn.disabled = false;
+      } else {
+        timeInputs.classList.remove('show');
+        timePreview.classList.remove('show');
       }
-    }
-
-    extractBtn.addEventListener('click', extractAudio);
-
-    resetBtn.addEventListener('click', () => {
-      location.reload();
     });
+  });
 
-    function timeToSeconds(timeStr) {
-      const parts = timeStr.split(':');
-      if (parts.length !== 3) return 0;
-      
-      const hours = parseInt(parts[0]) || 0;
-      const minutes = parseInt(parts[1]) || 0;
-      const seconds = parseInt(parts[2]) || 0;
-      
-      return hours * 3600 + minutes * 60 + seconds;
+  // Time inputs
+  document.getElementById('startTime').addEventListener('input', updateTimePreview);
+  document.getElementById('endTime').addEventListener('input', updateTimePreview);
+
+  function updateTimePreview() {
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+    document.getElementById('previewStart').textContent = startTime;
+    document.getElementById('previewEnd').textContent = endTime;
+    const startSeconds = timeToSeconds(startTime);
+    const endSeconds = timeToSeconds(endTime);
+    const duration = endSeconds - startSeconds;
+    if (duration > 0) {
+      const mins = Math.floor(duration / 60);
+      const secs = Math.round(duration % 60);
+      document.getElementById('previewDuration').textContent = mins + 'm ' + secs + 's';
     }
+  }
 
-    function secondsToTime(seconds) {
-      seconds = Math.floor(seconds);
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const secs = seconds % 60;
-      
-      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    }
+  // Dropzone
+  dropzone.addEventListener('click', () => videoFileInput.click());
+  dropzone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); videoFileInput.click(); } });
+  ['dragover', 'dragenter'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleVideoFile(f); });
+  videoFileInput.addEventListener('change', e => { if (e.target.files[0]) handleVideoFile(e.target.files[0]); });
 
-    function showError(message) {
-      const statusMessage = document.getElementById('statusMessage');
+  async function handleVideoFile(file) {
+    videoFile = file;
+    fileName.textContent = file.name;
+    fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    fileInfo.classList.remove('hidden');
+    warningBox.classList.remove('hidden');
+
+    const url = URL.createObjectURL(file);
+    videoElement.src = url;
+    videoElement.addEventListener('loadedmetadata', () => {
+      videoDuration = videoElement.duration;
+      const mins = Math.floor(videoDuration / 60);
+      const secs = Math.round(videoDuration % 60);
+      fileDuration.textContent = mins + 'm ' + secs + 's';
+      const endTimeStr = secondsToTime(videoDuration);
+      document.getElementById('endTime').value = endTimeStr;
+      updateTimePreview();
+      videoPreview.classList.add('show');
+    }, { once: true });
+
+    extractBtn.disabled = false;
+    showCard(formatCard);
+    await initFFmpeg();
+  }
+
+  // FFmpeg init
+  async function initFFmpeg() {
+    if (ffmpeg?.isLoaded()) return;
+    ffmpeg = new FFmpeg();
+    ffmpeg.on('log', ({ message }) => { /* console.log('[FFmpeg]', message); */ });
+    ffmpeg.on('progress', ({ progress }) => {
+      const percent = Math.round(progress * 100);
+      progressFill.style.transform = 'scaleX(' + percent / 100 + ')';
+      if (progress < 0.3) statusMessage.textContent = 'Loading video...';
+      else if (progress < 0.7) statusMessage.textContent = 'Extracting audio...';
+      else statusMessage.textContent = 'Finalizing...';
+    });
+    try {
+      progressSection.classList.remove('hidden');
+      setBusy(true);
+      statusMessage.textContent = 'Loading FFmpeg...';
+      await ffmpeg.load();
       setBusy(false);
-      statusMessage.classList.add('error');
-      statusMessage.textContent = `✗ ${message}`;
-      progressSection.classList.add('show');
+      progressSection.classList.add('hidden');
+    } catch (error) {
+      setBusy(false);
+      console.error('Failed to load FFmpeg:', error);
+      showToast('Failed to load FFmpeg. Please try again.', 'error');
     }
+  }
 
-    // Initial time preview
-    updateTimePreview();
-  </script>
+  // Extract
+  async function extractAudio() {
+    if (!videoFile || !ffmpeg) return;
+    progressSection.classList.remove('hidden');
+    statusMessage.classList.remove('tool-hint--error');
+    progressFill.style.transform = 'scaleX(0)';
+    setBusy(true);
+    extractBtn.disabled = true;
+
+    try {
+      const inputName = 'input_video';
+      const outputName = 'output.' + selectedFormat;
+
+      try { await ffmpeg.deleteFile(inputName); } catch(e) {}
+      try { await ffmpeg.deleteFile(outputName); } catch(e) {}
+
+      statusMessage.textContent = 'Reading video file...';
+      await ffmpeg.writeFile(inputName, await fetchFile(videoFile));
+
+      let command = ['-i', inputName];
+      if (extractionMode === 'segment') {
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        command.push('-ss', startTime, '-to', endTime);
+      }
+      if (selectedFormat === 'mp3') command.push('-q:a', '5', '-acodec', 'libmp3lame');
+      else if (selectedFormat === 'wav') command.push('-acodec', 'pcm_s16le');
+      else if (selectedFormat === 'aac') command.push('-acodec', 'aac', '-b:a', '128k');
+      else if (selectedFormat === 'ogg') command.push('-acodec', 'libvorbis', '-q:a', '5');
+      command.push('-vn', outputName);
+
+      statusMessage.textContent = 'Extracting audio...';
+      await ffmpeg.exec(command);
+
+      statusMessage.textContent = 'Preparing download...';
+      const data = await ffmpeg.readFile(outputName);
+      const blob = new Blob([data.buffer], { type: 'audio/' + selectedFormat });
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = 'audio-' + timestamp + '.' + selectedFormat;
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+      statusMessage.classList.add('tool-hint--success');
+      statusMessage.textContent = '✓ Audio extracted successfully! Downloaded: ' + filename;
+      resetBtn.classList.remove('hidden');
+      showToast('Audio extracted: ' + filename, 'success');
+
+    } catch (error) {
+      console.error('Error:', error);
+      statusMessage.classList.add('tool-hint--error');
+      statusMessage.textContent = '✗ Error: ' + error.message;
+      showToast('Extraction failed: ' + error.message, 'error');
+    } finally {
+      setBusy(false);
+      extractBtn.disabled = false;
+    }
+  }
+
+  extractBtn.addEventListener('click', extractAudio);
+  resetBtn.addEventListener('click', () => location.reload());
+
+  function timeToSeconds(timeStr) {
+    const parts = timeStr.split(':');
+    if (parts.length !== 3) return 0;
+    return (parseInt(parts[0]) || 0) * 3600 + (parseInt(parts[1]) || 0) * 60 + (parseInt(parts[2]) || 0);
+  }
+  function secondsToTime(seconds) {
+    seconds = Math.floor(seconds);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  // Initial time preview
+  updateTimePreview();
+})();
+</script>
 </body>
 </html>

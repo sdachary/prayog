@@ -4,158 +4,173 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vahak — Prayog</title>
+<meta name="description" content="Mass uploader to Google Drive. Pick a local folder, mirror its tree into Drive file by file, move to processed on success.">
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
 <link rel="stylesheet" href="/assets/theme.css">
-<script src="../assets/nav.js" defer data-tool="vahak-uploader"></script>
+<link rel="stylesheet" href="/assets/tool.css">
+
+<!-- Scripts -->
+<script src="/assets/nav.js" defer data-tool="VAHAK"></script>
 <script src="/assets/cdn-guard.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="/assets/tool.js" defer></script>
+
+<!-- Page-specific styles -->
 <style>
-  /* Vahak specific styles */
-  .mark{ font-family:var(--mono); font-size:2.38rem; color:var(--teal); line-height:1; }
-  h1{ font-family:var(--mono); font-weight:600; font-size:1.88rem; margin:0; }
-  .subtitle{ color:var(--muted); font-size:0.875rem; margin-top:6px; max-width:620px; line-height:1.5; }
+  .mark-icon { font-size: 2.5rem; color: var(--tool-teal); line-height: 1; margin-bottom: var(--tool-space-2); }
+  .subtitle { color: var(--tool-text-muted); font-size: 14px; margin-top: var(--tool-space-2); max-width: 620px; line-height: 1.5; }
 
-  /* .wrap is flex-column with align-items:center, so cards size to max-content
-     instead of stretching. width:100% pins them to the viewport; .logWrap then
-     scrolls its table horizontally instead of pushing the card wide. */
-  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:18px; width:100%; }
-  .cardLabel{ font-family:var(--mono); font-size:1rem; font-weight:600; margin-bottom:14px; }
-  .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-  .field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:220px; }
-  .field label{ font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
-  input[type=text], input[type=number]{
-    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
-    color:var(--text); font-family:var(--mono),monospace; font-size:0.84rem; outline:none; width:100%;
-  }
-  input:focus{ border-color:var(--teal); }
-  select{
-    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
-    color:var(--text); font-family:var(--mono),monospace; font-size:0.81rem;
-  }
-  .pill{ display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; padding:4px 10px; border-radius:var(--radius-full); border:1px solid var(--line); color:var(--muted); }
-  .dot{ width:8px; height:8px; border-radius:50%; background:var(--red); }
-  .dot.on{ background:var(--teal); }
-  .folderPath{ font-family:var(--mono),monospace; font-size:0.78rem; color:var(--teal); word-break:break-all; }
-  .noteBox{ margin-top:12px; font-size:0.78rem; color:var(--muted); line-height:1.6; border-left:2px solid var(--line); padding-left:12px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--tool-space-3); margin-bottom: var(--tool-space-3); }
+  .stat { background: var(--tool-surface); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-lg); padding: var(--tool-space-3); }
+  .stat-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tool-text-muted); margin-bottom: var(--tool-space-1); }
+  .stat-value { font-family: var(--font-mono); font-size: 16px; font-weight: 600; color: var(--tool-text); }
 
-  .statsGrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
-  .stat{ background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px 16px; }
-  .statLabel{ font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
-  .statValue{ font-family:var(--mono),monospace; font-size:1.13rem; font-weight:600; }
-  .progressOuter{ height:8px; background:var(--panel); border-radius:5px; overflow:hidden; margin-top:14px; }
-  .progressInner{ height:100%; background:linear-gradient(90deg, #1a6b58, var(--teal)); width:100%; transform:scaleX(0); transform-origin:left; transition:transform .3s; }
+  .progress-track { height: 8px; background: var(--tool-surface-elevated); border-radius: var(--tool-radius-full); overflow: hidden; margin-top: var(--tool-space-3); }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--tool-teal), var(--tool-amber)); width: 100%; transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease-out; }
 
-  .logWrap{ max-height:440px; overflow:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
-  table{ width:100%; border-collapse:collapse; font-family:var(--mono),monospace; font-size:0.75rem; }
-  thead th{ position:sticky; top:0; background:#1B2530; color:var(--teal); text-align:left; padding:9px 12px; font-size:0.75rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line); }
-  tbody td{ padding:7px 12px; border-bottom:1px solid #1c2731; }
-  tbody tr:nth-child(even){ background:var(--panel-2); }
-  .status-queued{ color:var(--muted); }
-  .status-uploading{ color:#D9A441; }
-  .status-moving{ color:#D9A441; }
-  .status-done{ color:var(--teal); }
-  .status-error{ color:var(--red); }
-  .rowProgress{ display:inline-block; width:60px; height:5px; background:var(--panel); border-radius:3px; overflow:hidden; vertical-align:middle; margin-right:6px; }
-  .rowProgressInner{ height:100%; background:var(--teal); }
+  .log-wrap { max-height: 440px; overflow: auto; border: 1px solid var(--tool-border); border-radius: var(--tool-radius-md); }
+  table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 12px; }
+  thead th { position: sticky; top: 0; background: var(--tool-surface-elevated); color: var(--tool-teal); text-align: left; padding: var(--tool-space-2) var(--tool-space-3); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--tool-border); }
+  tbody td { padding: var(--tool-space-2) var(--tool-space-3); border-bottom: 1px solid var(--tool-border); }
+  tbody tr:nth-child(even) { background: var(--tool-surface-elevated); }
+  .status-queued { color: var(--tool-text-muted); }
+  .status-uploading { color: var(--tool-amber); }
+  .status-moving { color: var(--tool-amber); }
+  .status-done { color: var(--tool-teal); }
+  .status-error { color: var(--tool-red); }
+  .row-progress { display: inline-block; width: 60px; height: 5px; background: var(--tool-surface-elevated); border-radius: 3px; overflow: hidden; vertical-align: middle; margin-right: var(--tool-space-1); }
+  .row-progress-inner { height: 100%; background: var(--tool-teal); width: 0%; }
 
-  footer{ text-align:center; color:var(--muted); font-family:var(--mono); font-size:0.75rem; margin-top:30px; line-height:1.6; }
+  .note-box { margin-top: var(--tool-space-3); font-size: 13px; color: var(--tool-text-muted); line-height: 1.6; border-left: 2px solid var(--tool-border); padding-left: var(--tool-space-3); }
+  .note-box code { font-family: var(--font-mono); font-size: 12px; color: var(--tool-text); background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-sm); padding: 1px 6px; }
+
+  .folder-path { font-family: var(--font-mono); font-size: 12px; color: var(--tool-teal); word-break: break-all; min-width: 200px; }
+
+  .dot-indicator { display: inline-flex; align-items: center; gap: var(--tool-space-2); font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tool-red); }
+  .dot.on { background: var(--tool-teal); }
+
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="mark">⇪</div>
-    <div>
-      <h1>Vahak</h1>
-      <p class="subtitle">A local, no-install uploader that carries a folder tree into Google Drive — file by file, moving each into a "processed" folder once it's safely confirmed uploaded.</p>
-    </div>
-  </header>
-
-  <div class="error" id="vahakMsg" role="alert" style="width:100%;"></div>
-
-  <!-- Connection -->
-  <section class="card">
-    <div class="cardLabel">Connect to Google Drive</div>
-    <div class="row">
-      <div class="field">
-        <label for="clientId">OAuth Client ID</label>
-        <input type="text" id="clientId" placeholder="xxxxxxxx.apps.googleusercontent.com">
+<div class="tool-page">
+  <div class="tool-wrap">
+    <header class="tool-header">
+      <div class="mark-icon">⇪</div>
+      <div>
+        <h1 class="tool-brand" style="font-size: 2rem; margin: 0;">VAHAK</h1>
+        <p class="subtitle">Local uploader that mirrors a folder tree into Google Drive — file by file, moving each into a "processed" folder once uploaded.</p>
       </div>
-      <button class="btn btn-primary" id="connectBtn">Connect</button>
-      <span class="pill"><span class="dot" id="connDot"></span><span id="connText" role="status">Not connected</span></span>
-    </div>
-    <div class="noteBox">Your Client ID is saved in this browser only (localStorage), never sent anywhere except Google. Access tokens live in memory only and are refreshed automatically while a job is running.</div>
-  </section>
+    </header>
 
-  <!-- Folders -->
-  <section class="card">
-    <div class="cardLabel">Folders</div>
-    <div class="row" style="margin-bottom:12px;">
-      <button class="btn btn-secondary" id="pickSourceBtn">Choose source folder…</button>
-      <span class="folderPath" id="sourcePathOut">none selected</span>
-    </div>
-    <div class="row" style="margin-bottom:12px;">
-      <button class="btn btn-secondary" id="pickProcessedBtn">Choose processed folder…</button>
-      <span class="folderPath" id="processedPathOut">none selected</span>
-    </div>
-    <div class="row">
-      <div class="field">
-        <label for="destFolderId">Destination Drive folder ID</label>
-        <input type="text" id="destFolderId" placeholder="paste folder ID, or use root">
-      </div>
-      <button class="btn btn-secondary" id="useRootBtn">Use My Drive root</button>
-      <button class="btn btn-secondary" id="listFoldersBtn">List root folders</button>
-      <button class="btn btn-secondary" id="createFolderBtn">Create new folder</button>
-    </div>
-    <select id="rootFolderSelect" style="margin-top:10px; width:100%; display:none;"></select>
-    <div class="noteBox">To find a folder ID: open it in Google Drive in your browser, and copy the string after <code>/folders/</code> in the address bar.</div>
-    <div class="row" id="newFolderRow" style="display:none; margin-top:10px;">
-      <div class="field" style="flex:1;">
-        <label for="newFolderName">New folder name</label>
-        <input type="text" id="newFolderName" placeholder="e.g. uploads-2026">
-      </div>
-      <button class="btn btn-primary" id="createFolderConfirmBtn">Create</button>
-      <button class="btn btn-secondary" id="createFolderCancelBtn">Cancel</button>
-    </div>
-  </section>
+    <main class="tool-main tool-main--wide">
 
-  <!-- Controls -->
-  <section class="card">
-    <div class="cardLabel">Run</div>
-    <div class="row">
-      <button class="btn btn-primary" id="startBtn">Start upload</button>
-      <button class="btn btn-secondary" id="pauseBtn" disabled>Pause</button>
-      <button class="btn btn-danger" id="cancelBtn" disabled>Cancel</button>
-    </div>
-    <div class="noteBox">Scans the source folder recursively when you hit Start. Files already moved into "processed" (from a previous run) won't be in the source folder anymore, so re-running after an interruption naturally resumes where you left off.</div>
-  </section>
+      <!-- Message Banner -->
+      <div class="tool-notice notice--error hidden" id="vahakMsg" role="alert" style="width: 100%;"></div>
 
-  <!-- Stats -->
-  <section class="card">
-    <div class="cardLabel">Progress</div>
-    <div class="statsGrid">
-      <div class="stat"><div class="statLabel">Files</div><div class="statValue" id="statFiles" role="status">0 / 0</div></div>
-      <div class="stat"><div class="statLabel">Data</div><div class="statValue" id="statBytes">0 / 0 GB</div></div>
-      <div class="stat"><div class="statLabel">Speed</div><div class="statValue" id="statSpeed">—</div></div>
-      <div class="stat"><div class="statLabel">ETA</div><div class="statValue" id="statEta">—</div></div>
-      <div class="stat"><div class="statLabel">Elapsed</div><div class="statValue" id="statElapsed">—</div></div>
-    </div>
-    <div class="progressOuter"><div class="progressInner" id="overallBar"></div></div>
-  </section>
+      <!-- Connection -->
+      <section class="tool-card">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">Connect to Google Drive</h2>
+        </div>
+        <div style="display: flex; gap: var(--tool-space-3); align-items: center; flex-wrap: wrap; margin-bottom: var(--tool-space-3);">
+          <div class="field" style="flex: 1; min-width: 280px;">
+            <label for="clientId">OAuth Client ID</label>
+            <input type="text" id="clientId" class="tool-input" placeholder="xxxxxxxx.apps.googleusercontent.com">
+          </div>
+          <button class="tool-btn tool-btn--primary" id="connectBtn" type="button">Connect</button>
+          <span class="dot-indicator"><span class="dot" id="connDot"></span><span id="connText" role="status">Not connected</span></span>
+        </div>
+        <div class="note-box">Your Client ID is saved in this browser only (localStorage), never sent anywhere except Google. Access tokens live in memory only and are refreshed automatically while a job is running.</div>
+      </section>
 
-  <!-- Log -->
-  <section class="card">
-    <div class="cardLabel">Log</div>
-    <div class="logWrap">
-      <table>
-        <thead><tr><th>File</th><th>Size</th><th>Status</th><th>Progress</th><th>Speed</th><th>ETA</th></tr></thead>
-        <tbody id="logBody"></tbody>
-      </table>
-    </div>
-  </section>
+      <!-- Folders -->
+      <section class="tool-card">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">Folders</h2>
+        </div>
+        <div style="display: flex; gap: var(--tool-space-3); align-items: center; flex-wrap: wrap; margin-bottom: var(--tool-space-3);">
+          <button class="tool-btn tool-btn--secondary" id="pickSourceBtn" type="button">Choose source folder…</button>
+          <span class="folder-path" id="sourcePathOut">none selected</span>
+        </div>
+        <div style="display: flex; gap: var(--tool-space-3); align-items: center; flex-wrap: wrap; margin-bottom: var(--tool-space-3);">
+          <button class="tool-btn tool-btn--secondary" id="pickProcessedBtn" type="button">Choose processed folder…</button>
+          <span class="folder-path" id="processedPathOut">none selected</span>
+        </div>
+        <div style="display: flex; gap: var(--tool-space-3); align-items: center; flex-wrap: wrap; margin-bottom: var(--tool-space-3);">
+          <div class="field" style="flex: 1; min-width: 280px;"><label for="destFolderId">Destination Drive folder ID</label><input type="text" id="destFolderId" class="tool-input" placeholder="paste folder ID, or use root"></div>
+          <button class="tool-btn tool-btn--secondary" id="useRootBtn" type="button">Use My Drive root</button>
+          <button class="tool-btn tool-btn--secondary" id="listFoldersBtn" type="button">List root folders</button>
+          <button class="tool-btn tool-btn--secondary" id="createFolderBtn" type="button">Create new folder</button>
+        </div>
+        <select id="rootFolderSelect" class="tool-select hidden" style="margin-top: var(--tool-space-2); width: 100%;"></select>
+        <div class="note-box">To find a folder ID: open it in Google Drive in your browser, and copy the string after <code>/folders/</code> in the address bar.</div>
+        <div class="hidden" id="newFolderRow" style="display: flex; gap: var(--tool-space-2); align-items: center; flex-wrap: wrap; margin-top: var(--tool-space-3);">
+          <div class="field" style="flex: 1;"><label for="newFolderName">New folder name</label><input type="text" id="newFolderName" class="tool-input" placeholder="e.g. uploads-2026"></div>
+          <button class="tool-btn tool-btn--primary" id="createFolderConfirmBtn" type="button">Create</button>
+          <button class="tool-btn tool-btn--secondary" id="createFolderCancelBtn" type="button">Cancel</button>
+        </div>
+      </section>
 
-  <footer>Vahak — runs entirely in this browser tab. Keep this tab open and the machine awake for the duration of the upload.</footer>
+      <!-- Controls -->
+      <section class="tool-card">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">Run</h2>
+        </div>
+        <div style="display: flex; gap: var(--tool-space-2); flex-wrap: wrap;">
+          <button class="tool-btn tool-btn--primary" id="startBtn" type="button">Start upload</button>
+          <button class="tool-btn tool-btn--secondary" id="pauseBtn" type="button" disabled>Pause</button>
+          <button class="tool-btn tool-btn--danger" id="cancelBtn" type="button" disabled>Cancel</button>
+        </div>
+        <div class="note-box">Scans the source folder recursively when you hit Start. Files already moved into "processed" (from a previous run) won't be in the source folder anymore, so re-running after an interruption naturally resumes where you left off.</div>
+      </section>
+
+      <!-- Stats -->
+      <section class="tool-card">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">Progress</h2>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-label">Files</div><div class="stat-value" id="statFiles" role="status">0 / 0</div></div>
+          <div class="stat"><div class="stat-label">Data</div><div class="stat-value" id="statBytes">0 / 0 GB</div></div>
+          <div class="stat"><div class="stat-label">Speed</div><div class="stat-value" id="statSpeed">—</div></div>
+          <div class="stat"><div class="stat-label">ETA</div><div class="stat-value" id="statEta">—</div></div>
+          <div class="stat"><div class="stat-label">Elapsed</div><div class="stat-value" id="statElapsed">—</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="overallBar"></div></div>
+      </section>
+
+      <!-- Log -->
+      <section class="tool-card">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">Log</h2>
+        </div>
+        <div class="log-wrap">
+          <table>
+            <thead><tr><th>File</th><th>Size</th><th>Status</th><th>Progress</th><th>Speed</th><th>ETA</th></tr></thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="tool-footer">
+      Vahak — runs entirely in this browser tab. Keep this tab open and the machine awake for the duration of the upload.
+    </footer>
+  </div>
 </div>
 
 <script>
@@ -165,369 +180,141 @@ clientIdInput.value = localStorage.getItem('vahak_client_id') || '';
 clientIdInput.addEventListener('change', () => localStorage.setItem('vahak_client_id', clientIdInput.value.trim()));
 
 // ================= Auth =================
-let tokenClient = null;
-let accessToken = null;
-let tokenExpiryTime = 0;
+let tokenClient = null, accessToken = null, tokenExpiryTime = 0;
 
-// ponytail: every message lands inline (role="alert" div) — no native dialogs.
-let msgTimer = null;
-function showMsg(text){
+function showMsg(text) {
   const el = document.getElementById('vahakMsg');
-  clearTimeout(msgTimer);
-  if(!text){ el.style.display = 'none'; return; }
-  el.textContent = text;
-  el.style.display = 'block';
-  msgTimer = setTimeout(() => { el.style.display = 'none'; }, 8000);
+  if (!text) { el.classList.add('hidden'); return; }
+  el.textContent = text; el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 8000);
 }
-
-function setConnected(on){
+function setConnected(on) {
   document.getElementById('connDot').classList.toggle('on', on);
   document.getElementById('connText').textContent = on ? 'Connected' : 'Not connected';
 }
-
-function initTokenClient(){
+function initTokenClient() {
   const clientId = clientIdInput.value.trim();
-  if(!clientId){ showMsg('Paste your OAuth Client ID first.'); return null; }
-  // GIS is async; if it hasn't landed yet this would throw a bare
-  // "google is not defined" ReferenceError. Say something actionable instead.
-  if(typeof google === 'undefined' || !google.accounts){
-    throw new Error('Google sign-in has not loaded yet. Check your connection and try again.');
-  }
-  return google.accounts.oauth2.initTokenClient({
-    client_id: clientId,
-    scope: 'https://www.googleapis.com/auth/drive',
-    callback: () => {}, // overridden per-call
-  });
+  if (!clientId) { showMsg('Paste your OAuth Client ID first.'); return null; }
+  if (typeof google === 'undefined' || !google.accounts) { throw new Error('Google sign-in has not loaded yet. Check your connection and try again.'); }
+  return google.accounts.oauth2.initTokenClient({ client_id: clientId, scope: 'https://www.googleapis.com/auth/drive', callback: () => {} });
 }
-
-function requestToken(promptType){
+function requestToken(promptType) {
   return new Promise((resolve, reject) => {
-    if(!tokenClient){
-      tokenClient = initTokenClient();
-      if(!tokenClient) return reject(new Error('No client ID'));
-    }
-    tokenClient.callback = (resp) => {
-      if(resp.error){ reject(new Error(resp.error)); return; }
-      accessToken = resp.access_token;
-      tokenExpiryTime = Date.now() + (resp.expires_in * 1000);
-      setConnected(true);
-      resolve(accessToken);
-    };
+    if (!tokenClient) { tokenClient = initTokenClient(); if (!tokenClient) return reject(new Error('No client ID')); }
+    tokenClient.callback = (resp) => { if (resp.error) { reject(new Error(resp.error)); return; } accessToken = resp.access_token; tokenExpiryTime = Date.now() + (resp.expires_in * 1000); setConnected(true); resolve(accessToken); };
     tokenClient.requestAccessToken({ prompt: promptType });
   });
 }
+async function getValidToken() { if (!accessToken || Date.now() > tokenExpiryTime - 60000) { await requestToken(''); } return accessToken; }
 
-async function getValidToken(){
-  if(!accessToken || Date.now() > tokenExpiryTime - 60000){
-    await requestToken('');
-  }
-  return accessToken;
-}
-
-document.getElementById('connectBtn').addEventListener('click', async () => {
-  try{ await requestToken('consent'); showMsg(''); }
-  catch(err){ showMsg('Connection failed: ' + err.message); }
-});
+document.getElementById('connectBtn').addEventListener('click', async () => { try { await requestToken('consent'); showMsg(''); } catch (err) { showMsg('Connection failed: ' + err.message); } });
 
 // ================= Folder pickers =================
-let sourceDirHandle = null;
-let processedDirHandle = null;
-
-document.getElementById('pickSourceBtn').addEventListener('click', async () => {
-  try{
-    sourceDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-    document.getElementById('sourcePathOut').textContent = sourceDirHandle.name;
-  }catch(err){ /* user cancelled */ }
-});
-document.getElementById('pickProcessedBtn').addEventListener('click', async () => {
-  try{
-    processedDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-    document.getElementById('processedPathOut').textContent = processedDirHandle.name;
-  }catch(err){ /* user cancelled */ }
-});
+let sourceDirHandle = null, processedDirHandle = null;
+document.getElementById('pickSourceBtn').addEventListener('click', async () => { try { sourceDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' }); document.getElementById('sourcePathOut').textContent = sourceDirHandle.name; } catch(e) {} });
+document.getElementById('pickProcessedBtn').addEventListener('click', async () => { try { processedDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' }); document.getElementById('processedPathOut').textContent = processedDirHandle.name; } catch(e) {} });
 
 // ================= Drive folder helpers =================
 const destFolderIdInput = document.getElementById('destFolderId');
-
-document.getElementById('useRootBtn').addEventListener('click', () => {
-  destFolderIdInput.value = 'root';
-});
-
+document.getElementById('useRootBtn').addEventListener('click', () => { destFolderIdInput.value = 'root'; });
 document.getElementById('listFoldersBtn').addEventListener('click', async () => {
-  try{
-    const token = await getValidToken();
-    const parent = destFolderIdInput.value.trim() || 'root';
-    const q = encodeURIComponent(`'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=200`, {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    const data = await res.json();
-    const sel = document.getElementById('rootFolderSelect');
-    sel.innerHTML = '<option value="">— select a folder —</option>';
-    (data.files || []).forEach(f => {
-      const opt = document.createElement('option');
-      opt.value = f.id; opt.textContent = f.name;
-      sel.appendChild(opt);
-    });
-    sel.style.display = 'block';
-  }catch(err){ showMsg('Could not list folders: ' + err.message); }
+  try { const token = await getValidToken(); const parent = destFolderIdInput.value.trim() || 'root'; const q = encodeURIComponent(`'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`); const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=200`, { headers: { Authorization: 'Bearer ' + token } }); const data = await res.json(); const sel = document.getElementById('rootFolderSelect'); sel.innerHTML = '<option value="">— select a folder —</option>'; (data.files || []).forEach(f => { const opt = document.createElement('option'); opt.value = f.id; opt.textContent = f.name; sel.appendChild(opt); }); sel.classList.remove('hidden'); } catch(err) { showMsg('Could not list folders: ' + err.message); }
 });
-document.getElementById('rootFolderSelect').addEventListener('change', (e) => {
-  if(e.target.value) destFolderIdInput.value = e.target.value;
-});
-
-document.getElementById('createFolderBtn').addEventListener('click', () => {
-  const row = document.getElementById('newFolderRow');
-  row.style.display = 'flex';
-  document.getElementById('newFolderName').focus();
-});
-document.getElementById('createFolderCancelBtn').addEventListener('click', () => {
-  document.getElementById('newFolderRow').style.display = 'none';
-});
+document.getElementById('rootFolderSelect').addEventListener('change', (e) => { if (e.target.value) destFolderIdInput.value = e.target.value; });
+document.getElementById('createFolderBtn').addEventListener('click', () => { document.getElementById('newFolderRow').style.display = 'flex'; document.getElementById('newFolderName').focus(); });
+document.getElementById('createFolderCancelBtn').addEventListener('click', () => { document.getElementById('newFolderRow').style.display = 'none'; });
 document.getElementById('createFolderConfirmBtn').addEventListener('click', async () => {
-  const name = document.getElementById('newFolderName').value.trim();
-  if(!name){ showMsg('Type a folder name first.'); return; }
-  try{
-    const token = await getValidToken();
-    const parent = destFolderIdInput.value.trim() || 'root';
-    const res = await fetch('https://www.googleapis.com/drive/v3/files', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parent] })
-    });
-    const data = await res.json();
-    if(data.id){
-      destFolderIdInput.value = data.id;
-      document.getElementById('newFolderRow').style.display = 'none';
-      document.getElementById('newFolderName').value = '';
-      showMsg('Created folder "' + name + '". Set as destination.');
-    }
-    else showMsg('Failed: ' + (data.error && data.error.message ? data.error.message : JSON.stringify(data)));
-  }catch(err){ showMsg('Could not create folder: ' + err.message); }
+  const name = document.getElementById('newFolderName').value.trim(); if (!name) { showMsg('Type a folder name first.'); return; }
+  try { const token = await getValidToken(); const parent = destFolderIdInput.value.trim() || 'root'; const res = await fetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parent] }) }); const data = await res.json(); if (data.id) { destFolderIdInput.value = data.id; document.getElementById('newFolderRow').style.display = 'none'; document.getElementById('newFolderName').value = ''; showMsg('Created folder "' + name + '". Set as destination.'); } else showMsg('Failed: ' + (data.error?.message || JSON.stringify(data))); } catch(err) { showMsg('Could not create folder: ' + err.message); }
 });
 
-const driveFolderCache = new Map(); // "parentId|name" -> id
-async function ensureDriveFolder(relPathParts, rootId){
-  let parentId = rootId;
-  let accumPath = '';
-  for(const segment of relPathParts){
-    accumPath += '/' + segment;
-    const cacheKey = accumPath;
-    if(driveFolderCache.has(cacheKey)){ parentId = driveFolderCache.get(cacheKey); continue; }
+const driveFolderCache = new Map();
+async function ensureDriveFolder(relPathParts, rootId) {
+  let parentId = rootId; let accumPath = '';
+  for (const segment of relPathParts) {
+    accumPath += '/' + segment; const cacheKey = accumPath;
+    if (driveFolderCache.has(cacheKey)) { parentId = driveFolderCache.get(cacheKey); continue; }
     const token = await getValidToken();
     const escaped = segment.replace(/'/g, "\\'");
     const q = encodeURIComponent(`'${parentId}' in parents and name='${escaped}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
-      headers: { Authorization: 'Bearer ' + token }
-    });
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, { headers: { Authorization: 'Bearer ' + token } });
     const data = await res.json();
-    let id;
-    if(data.files && data.files.length){
-      id = data.files[0].id;
-    } else {
-      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: segment, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
-      });
-      const createData = await createRes.json();
-      id = createData.id;
-    }
-    driveFolderCache.set(cacheKey, id);
-    parentId = id;
+    let id; if (data.files && data.files.length) { id = data.files[0].id; } else { const createRes = await fetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: segment, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] }) }); const createData = await createRes.json(); id = createData.id; }
+    driveFolderCache.set(cacheKey, id); parentId = id;
   }
   return parentId;
 }
 
 // ================= Local recursive walk & mirrored dirs =================
-async function walkSource(dirHandle, relParts){
+async function walkSource(dirHandle, relParts) {
   const items = [];
-  for await (const [name, handle] of dirHandle.entries()){
-    if(handle.kind === 'file'){
-      items.push({ name, relParts: relParts.slice(), fileHandle: handle, parentDirHandle: dirHandle });
-    } else if(handle.kind === 'directory'){
-      const sub = await walkSource(handle, relParts.concat(name));
-      items.push(...sub);
-    }
+  for await (const [name, handle] of dirHandle.entries()) {
+    if (handle.kind === 'file') { items.push({ name, relParts: relParts.slice(), fileHandle: handle, parentDirHandle: dirHandle }); }
+    else if (handle.kind === 'directory') { const sub = await walkSource(handle, relParts.concat(name)); items.push(...sub); }
   }
   return items;
 }
-
-async function ensureLocalDir(rootHandle, relParts){
-  let dir = rootHandle;
-  for(const part of relParts){
-    dir = await dir.getDirectoryHandle(part, { create: true });
-  }
-  return dir;
-}
-
-async function copyFileToProcessed(fileHandle, destParentDir, name){
-  const file = await fileHandle.getFile();
-  const destHandle = await destParentDir.getFileHandle(name, { create: true });
-  const writable = await destHandle.createWritable();
-  await file.stream().pipeTo(writable);
-}
+async function ensureLocalDir(rootHandle, relParts) { let dir = rootHandle; for (const part of relParts) { dir = await dir.getDirectoryHandle(part, { create: true }); } return dir; }
+async function copyFileToProcessed(fileHandle, destParentDir, name) { const file = await fileHandle.getFile(); const destHandle = await destParentDir.getFileHandle(name, { create: true }); const writable = await destHandle.createWritable(); await file.stream().pipeTo(writable); }
 
 // ================= Resumable upload =================
-const CHUNK_SIZE = 8 * 1024 * 1024; // 8MB, multiple of 256KB
-
-async function createResumableSession(name, parentId){
-  const token = await getValidToken();
-  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json; charset=UTF-8' },
-    body: JSON.stringify({ name, parents: [parentId] })
-  });
-  if(!res.ok) throw new Error('Failed to start upload session: ' + res.status);
-  return res.headers.get('Location');
-}
-
-async function uploadFile(fileHandle, name, parentId, onProgress){
-  const file = await fileHandle.getFile();
-  const total = file.size;
-  const sessionUrl = await createResumableSession(name, parentId);
-  let start = 0;
-  const MAX_RETRIES = 6;
-
-  // handle zero-byte files
-  if(total === 0){
-    const token = await getValidToken();
-    const res = await fetch(sessionUrl, {
-      method: 'PUT',
-      headers: { Authorization: 'Bearer ' + token, 'Content-Range': 'bytes */0' }
-    });
-    if(!res.ok) throw new Error('Upload failed for empty file: ' + res.status);
-    onProgress(0);
-    return;
-  }
-
-  while(start < total){
-    const end = Math.min(start + CHUNK_SIZE, total) - 1;
-    const chunk = file.slice(start, end + 1);
-    let attempt = 0;
-    let done = false;
-    while(!done){
-      try{
-        const token = await getValidToken();
-        const res = await fetch(sessionUrl, {
-          method: 'PUT',
-          headers: {
-            Authorization: 'Bearer ' + token,
-            'Content-Range': `bytes ${start}-${end}/${total}`
-          },
-          body: chunk
-        });
-        if(res.status === 200 || res.status === 201){
-          onProgress(total);
-          done = true;
-        } else if(res.status === 308){
-          onProgress(end + 1);
-          done = true;
-        } else if(res.status === 401){
-          accessToken = null; // force refresh next loop
-          throw new Error('token expired');
-        } else if(res.status >= 500 || res.status === 429){
-          throw new Error('server error ' + res.status);
-        } else {
-          const body = await res.text();
-          throw new Error('upload chunk failed: ' + res.status + ' ' + body);
-        }
-      }catch(err){
-        attempt++;
-        if(attempt > MAX_RETRIES) throw err;
-        await sleep(Math.min(30000, 1000 * Math.pow(2, attempt)));
-      }
+const CHUNK_SIZE = 8 * 1024 * 1024;
+async function createResumableSession(name, parentId) { const token = await getValidToken(); const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ name, parents: [parentId] }) }); if (!res.ok) throw new Error('Failed to start upload session: ' + res.status); return res.headers.get('Location'); }
+async function uploadFile(fileHandle, name, parentId, onProgress) {
+  const file = await fileHandle.getFile(); const total = file.size; const sessionUrl = await createResumableSession(name, parentId); let start = 0; const MAX_RETRIES = 6;
+  if (total === 0) { const token = await getValidToken(); const res = await fetch(sessionUrl, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Range': 'bytes */0' } }); if (!res.ok) throw new Error('Upload failed for empty file: ' + res.status); onProgress(0); return; }
+  while (start < total) {
+    const end = Math.min(start + CHUNK_SIZE, total) - 1; const chunk = file.slice(start, end + 1); let attempt = 0, done = false;
+    while (!done) {
+      try { const token = await getValidToken(); const res = await fetch(sessionUrl, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Range': `bytes ${start}-${end}/${total}` }, body: chunk }); if (res.status === 200 || res.status === 201) { onProgress(total); done = true; } else if (res.status === 308) { onProgress(end + 1); done = true; } else if (res.status === 401) { accessToken = null; throw new Error('token expired'); } else if (res.status >= 500 || res.status === 429) { throw new Error('server error ' + res.status); } else { const body = await res.text(); throw new Error('upload chunk failed: ' + res.status + ' ' + body); } } catch(err) { attempt++; if (attempt > MAX_RETRIES) throw err; await new Promise(r => setTimeout(r, Math.min(30000, 1000 * Math.pow(2, attempt)))); }
     }
     start = end + 1;
   }
 }
-
-function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ================= Formatting =================
-function fmtBytes(n){
-  if(n < 1024) return n + ' B';
-  const units = ['KB','MB','GB','TB'];
-  let u = -1;
-  do{ n /= 1024; u++; }while(n >= 1024 && u < units.length - 1);
-  return n.toFixed(n < 10 ? 2 : 1) + ' ' + units[u];
-}
-function fmtSpeed(bytesPerSec){ return fmtBytes(bytesPerSec) + '/s'; }
-function fmtEta(seconds){
-  if(!isFinite(seconds) || seconds <= 0) return '—';
-  const h = Math.floor(seconds/3600), m = Math.floor((seconds%3600)/60), s = Math.floor(seconds%60);
-  return (h>0?h+'h ':'') + (m>0||h>0?m+'m ':'') + s+'s';
-}
-function fmtElapsed(ms){
-  const s = Math.floor(ms/1000);
-  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
-  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
-}
+function fmtBytes(n) { if (n < 1024) return n + ' B'; const units = ['KB','MB','GB','TB']; let u = -1; do { n /= 1024; u++; } while (n >= 1024 && u < units.length - 1); return n.toFixed(n < 10 ? 2 : 1) + ' ' + units[u]; }
+function fmtSpeed(bps) { return fmtBytes(bps) + '/s'; }
+function fmtEta(seconds) { if (!isFinite(seconds) || seconds <= 0) return '—'; const h = Math.floor(seconds/3600), m = Math.floor((seconds%3600)/60), s = Math.floor(seconds%60); return (h>0?h+'h ':'') + (m>0||h>0?m+'m ':'') + s+'s'; }
+function fmtElapsed(ms) { const s = Math.floor(ms/1000); const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0'); }
 
 // ================= Job control =================
-let isPaused = false;
-let cancelRequested = false;
-let jobStartTime = 0;
+let isPaused = false, cancelRequested = false, jobStartTime = 0;
 let overallTotalBytes = 0, overallDoneBytes = 0, overallTotalFiles = 0, overallDoneFiles = 0;
-let speedSamples = []; // {t, bytes}
+let speedSamples = [];
 
-function updateOverallUI(){
+function updateOverallUI() {
   document.getElementById('statFiles').textContent = overallDoneFiles + ' / ' + overallTotalFiles;
   document.getElementById('statBytes').textContent = fmtBytes(overallDoneBytes) + ' / ' + fmtBytes(overallTotalBytes);
   const pct = overallTotalBytes ? (overallDoneBytes/overallTotalBytes*100) : 0;
-  document.getElementById('overallBar').style.transform = 'scaleX(' + pct.toFixed(1) / 100 + ')';
+  document.getElementById('overallBar').style.transform = 'scaleX(' + (pct/100).toFixed(3) + ')';
   document.getElementById('statElapsed').textContent = fmtElapsed(Date.now() - jobStartTime);
-
-  const now = Date.now();
-  speedSamples.push({ t: now, bytes: overallDoneBytes });
+  const now = Date.now(); speedSamples.push({ t: now, bytes: overallDoneBytes });
   speedSamples = speedSamples.filter(s => now - s.t < 20000);
-  let speed = 0;
-  if(speedSamples.length > 1){
-    const oldest = speedSamples[0];
-    const dt = (now - oldest.t) / 1000;
-    if(dt > 0) speed = (overallDoneBytes - oldest.bytes) / dt;
-  }
+  let speed = 0; if (speedSamples.length > 1) { const oldest = speedSamples[0]; const dt = (now - oldest.t) / 1000; if (dt > 0) speed = (overallDoneBytes - oldest.bytes) / dt; }
   document.getElementById('statSpeed').textContent = speed > 0 ? fmtSpeed(speed) : '—';
   const remaining = overallTotalBytes - overallDoneBytes;
   document.getElementById('statEta').textContent = speed > 0 ? fmtEta(remaining/speed) : '—';
 }
 setInterval(updateOverallUI, 1000);
 
-function makeRow(item){
+function makeRow(item) {
   const tr = document.createElement('tr');
-  tr.innerHTML = `<td>${item.relParts.concat(item.name).join('/')}</td>
-    <td>${fmtBytes(item.size)}</td>
-    <td class="status-queued" data-role="status">queued</td>
-    <td><span class="rowProgress"><span class="rowProgressInner" style="width:0%" data-role="bar"></span></span><span data-role="pct">0%</span></td>
-    <td data-role="speed">—</td>
-    <td data-role="eta">—</td>`;
-  document.getElementById('logBody').appendChild(tr);
-  item._row = tr;
-  return tr;
+  tr.innerHTML = `<td>${item.relParts.concat(item.name).join('/')}</td><td>${fmtBytes(item.size)}</td><td class="status-queued" data-role="status">queued</td><td><span class="row-progress"><span class="row-progress-inner" data-role="bar" style="width:0%"></span></span><span data-role="pct">0%</span></td><td data-role="speed">—</td><td data-role="eta">—</td>`;
+  document.getElementById('logBody').appendChild(tr); item._row = tr; return tr;
 }
-function setRowStatus(item, status, extra){
-  const cell = item._row.querySelector('[data-role="status"]');
-  cell.textContent = extra ? status + ': ' + extra : status;
-  cell.className = 'status-' + status;
-}
-function setRowProgress(item, doneBytes, speed, eta){
-  const pct = item.size ? Math.min(100, doneBytes/item.size*100) : 100;
-  item._row.querySelector('[data-role="bar"]').style.width = pct.toFixed(0) + '%';
-  item._row.querySelector('[data-role="pct"]').textContent = pct.toFixed(0) + '%';
-  item._row.querySelector('[data-role="speed"]').textContent = speed ? fmtSpeed(speed) : '—';
-  item._row.querySelector('[data-role="eta"]').textContent = eta ? fmtEta(eta) : '—';
-}
+function setRowStatus(item, status, extra) { const cell = item._row.querySelector('[data-role="status"]'); cell.textContent = extra ? status + ': ' + extra : status; cell.className = 'status-' + status; }
+function setRowProgress(item, doneBytes, speed, eta) { const pct = item.size ? Math.min(100, doneBytes/item.size*100) : 100; item._row.querySelector('[data-role="bar"]').style.width = pct.toFixed(0) + '%'; item._row.querySelector('[data-role="pct"]').textContent = pct.toFixed(0) + '%'; item._row.querySelector('[data-role="speed"]').textContent = speed ? fmtSpeed(speed) : '—'; item._row.querySelector('[data-role="eta"]').textContent = eta ? fmtEta(eta) : '—'; }
+async function waitWhilePaused() { while (isPaused && !cancelRequested) await sleep(300); }
 
-async function waitWhilePaused(){
-  while(isPaused && !cancelRequested) await sleep(300);
-}
-
-async function runJob(){
+// ================= Run Job =================
+async function runJob() {
   const destRoot = destFolderIdInput.value.trim();
-  if(!destRoot){ showMsg('Set a destination Drive folder ID first.'); return; }
-  if(!sourceDirHandle){ showMsg('Choose a source folder first.'); return; }
-  if(!processedDirHandle){ showMsg('Choose a processed folder first.'); return; }
-  try{ await getValidToken(); }catch(err){ showMsg('Not connected to Google Drive.'); return; }
+  if (!destRoot) { showMsg('Set a destination Drive folder ID first.'); return; }
+  if (!sourceDirHandle) { showMsg('Choose a source folder first.'); return; }
+  if (!processedDirHandle) { showMsg('Choose a processed folder first.'); return; }
+  try { await getValidToken(); } catch(err) { showMsg('Not connected to Google Drive.'); return; }
   showMsg('');
 
   document.getElementById('startBtn').disabled = true;
@@ -537,34 +324,21 @@ async function runJob(){
   isPaused = false; cancelRequested = false;
 
   const items = await walkSource(sourceDirHandle, []);
-  for(const item of items){
-    const file = await item.fileHandle.getFile();
-    item.size = file.size;
-    makeRow(item);
-  }
+  for (const item of items) { const file = await item.fileHandle.getFile(); item.size = file.size; makeRow(item); }
 
-  overallTotalFiles = items.length;
-  overallTotalBytes = items.reduce((a,b) => a + b.size, 0);
-  overallDoneFiles = 0; overallDoneBytes = 0;
-  jobStartTime = Date.now();
-  speedSamples = [{ t: Date.now(), bytes: 0 }];
+  overallTotalFiles = items.length; overallTotalBytes = items.reduce((a,b) => a + b.size, 0);
+  overallDoneFiles = 0; overallDoneBytes = 0; jobStartTime = Date.now(); speedSamples = [{ t: Date.now(), bytes: 0 }];
 
-  for(const item of items){
-    if(cancelRequested) break;
-    await waitWhilePaused();
-    if(cancelRequested) break;
+  for (const item of items) {
+    if (cancelRequested) break; await waitWhilePaused(); if (cancelRequested) break;
 
-    let fileStartBytes = overallDoneBytes;
-    let lastSampleTime = Date.now();
-    let lastSampleBytes = 0;
-
-    try{
+    let fileStartBytes = overallDoneBytes; let lastSampleTime = Date.now(); let lastSampleBytes = 0;
+    try {
       setRowStatus(item, 'uploading');
       const parentId = await ensureDriveFolder(item.relParts, destRoot);
       await uploadFile(item.fileHandle, item.name, parentId, (bytesSoFar) => {
         overallDoneBytes = fileStartBytes + bytesSoFar;
-        const now = Date.now();
-        const dt = (now - lastSampleTime) / 1000;
+        const now = Date.now(); const dt = (now - lastSampleTime) / 1000;
         const speed = dt > 0 ? (bytesSoFar - lastSampleBytes) / dt : 0;
         lastSampleTime = now; lastSampleBytes = bytesSoFar;
         const remaining = item.size - bytesSoFar;
@@ -576,15 +350,9 @@ async function runJob(){
       await copyFileToProcessed(item.fileHandle, destDir, item.name);
       await item.parentDirHandle.removeEntry(item.name);
 
-      setRowStatus(item, 'done');
-      setRowProgress(item, item.size, 0, 0);
-      overallDoneBytes = fileStartBytes + item.size;
-      overallDoneFiles++;
-    }catch(err){
-      setRowStatus(item, 'error', err.message);
-      overallDoneBytes = fileStartBytes + item.size; // count as processed for ETA purposes
-      overallDoneFiles++;
-    }
+      setRowStatus(item, 'done'); setRowProgress(item, item.size, 0, 0);
+      overallDoneBytes = fileStartBytes + item.size; overallDoneFiles++;
+    } catch(err) { setRowStatus(item, 'error', err.message); overallDoneBytes = fileStartBytes + item.size; overallDoneFiles++; }
     updateOverallUI();
   }
 
@@ -594,27 +362,13 @@ async function runJob(){
   document.getElementById('pauseBtn').textContent = 'Pause';
 }
 
+// ================= Controls =================
 document.getElementById('startBtn').addEventListener('click', runJob);
-document.getElementById('pauseBtn').addEventListener('click', (e) => {
-  isPaused = !isPaused;
-  e.target.textContent = isPaused ? 'Resume' : 'Pause';
-});
-// two-step cancel: first click arms the button, second (within 4s) cancels.
+document.getElementById('pauseBtn').addEventListener('click', (e) => { isPaused = !isPaused; e.target.textContent = isPaused ? 'Resume' : 'Pause'; });
 let cancelArmed = false, cancelArmTimer = null;
 document.getElementById('cancelBtn').addEventListener('click', (e) => {
-  if(!cancelArmed){
-    cancelArmed = true;
-    e.target.textContent = 'Sure? Cancel run';
-    cancelArmTimer = setTimeout(() => {
-      cancelArmed = false;
-      e.target.textContent = 'Cancel';
-    }, 4000);
-    return;
-  }
-  clearTimeout(cancelArmTimer);
-  cancelArmed = false;
-  e.target.textContent = 'Cancel';
-  cancelRequested = true;
+  if (!cancelArmed) { cancelArmed = true; e.target.textContent = 'Sure? Cancel run'; cancelArmTimer = setTimeout(() => { cancelArmed = false; e.target.textContent = 'Cancel'; }, 4000); return; }
+  clearTimeout(cancelArmTimer); cancelArmed = false; e.target.textContent = 'Cancel'; cancelRequested = true;
   showMsg('Cancelling — files already uploaded and moved to "processed" stay there. Re-running resumes from where you stopped.');
 });
 </script>

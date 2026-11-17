@@ -5,148 +5,131 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pravah — Prayog</title>
 <meta name="description" content="Stream video and audio between your phone and laptop over the same Wi-Fi. Files stay where they are; the other device plays them straight from here.">
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="stylesheet" href="../assets/theme.css">
-<script src="../assets/vendor/thinking-orbs-engine.js" defer></script>
-<script src="../assets/orb.js" defer></script>
-<script src="../assets/nav.js" defer data-tool="PRAVAH"></script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
+<link rel="stylesheet" href="/assets/theme.css">
+<link rel="stylesheet" href="/assets/tool.css">
+
+<!-- Scripts -->
+<script src="/assets/vendor/thinking-orbs-engine.js" defer></script>
+<script src="/assets/orb.js" defer></script>
+<script src="/assets/nav.js" defer data-tool="PRAVAH"></script>
+<script src="/assets/tool.js" defer></script>
+
+<!-- Page-specific styles -->
 <style>
-  .wrap{ min-height:100%; display:flex; flex-direction:column; align-items:center; padding:32px 16px 64px; }
-  header{ width:100%; max-width:700px; display:flex; align-items:baseline; justify-content:space-between; margin-bottom:28px; text-align:left; }
-  .brand{ font-family:var(--mono); font-weight:600; font-size:15px; letter-spacing:0.06em; color:var(--text); }
-  .sub{ font-size:12px; color:var(--muted); font-family:var(--mono); letter-spacing:0.03em; margin:0; }
+  .wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: var(--tool-space-6) var(--tool-space-4) var(--tool-space-8); width: 100%; max-width: 700px; margin: 0 auto; }
+  header { width: 100%; max-width: 700px; display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--tool-space-6); text-align: left; }
+  .brand { font-family: var(--font-mono); font-weight: 600; font-size: 15px; letter-spacing: 0.06em; color: var(--tool-text); }
+  .brand span { color: var(--tool-amber); }
+  .sub { font-size: 12px; color: var(--tool-text-muted); font-family: var(--font-mono); letter-spacing: 0.03em; margin: 0; }
 
-  .card{
-    width:100%; max-width:700px;
-    background:linear-gradient(180deg, var(--panel), var(--panel-2));
-    border:1px solid var(--line); border-radius:14px;
-    padding:24px 22px; margin-bottom:16px; position:relative; overflow:hidden;
-  }
-  .card:hover{ transform:none; border-color:var(--line); }
-  .card::before{
-    content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
-    background:var(--line); transition:background .4s ease;
-  }
-  .card.live::before{ background:var(--teal); }
-  .card.searching::before{ background:var(--amber); }
-  .card.bad::before{ background:var(--red); }
+  .card { width: 100%; max-width: 700px; background: linear-gradient(180deg, var(--tool-surface), var(--tool-surface-elevated)); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-lg); padding: var(--tool-space-5); margin-bottom: var(--tool-space-4); position: relative; overflow: hidden; }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--tool-border); transition: background 0.4s ease; }
+  .card--active::before { background: var(--tool-teal); }
+  .card--pending::before { background: var(--tool-amber); }
+  .card--error::before { background: var(--tool-red); }
+  .card--success::before { background: var(--tool-teal); }
 
-  .label-row{ display:flex; align-items:center; justify-content:space-between; gap:6px 12px; margin-bottom:14px; flex-wrap:wrap; }
-  .status-dot span, .rate{ white-space:nowrap; }
-  .eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
-  .status-dot{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--muted); }
-  .dot{ width:7px; height:7px; border-radius:50%; background:var(--muted); }
-  .dot.live{ background:var(--teal); }
-  .dot.bad{ background:var(--red); }
-  thinking-orb{ margin:-3px 0; }
+  .label-row { display: flex; align-items: center; justify-content: space-between; gap: var(--tool-space-2) var(--tool-space-3); margin-bottom: var(--tool-space-4); flex-wrap: wrap; }
+  .status-dot { display: inline-flex; align-items: center; gap: var(--tool-space-2); font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); }
+  .tool-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tool-text-muted); }
+  .tool-dot--live { background: var(--tool-teal); }
+  .tool-dot--error { background: var(--tool-red); }
+  thinking-orb { margin: -3px 0; }
 
-  .freq{ font-family:var(--mono); font-weight:700; font-size:40px; letter-spacing:0.05em; color:var(--text); display:flex; align-items:baseline; gap:10px; margin:6px 0 4px; }
-  .freq .hz{ font-size:15px; color:var(--amber); font-weight:500; }
-  .hint{ font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:8px; }
-  .hint.bad{ color:var(--red); }
+  .freq { font-family: var(--font-mono); font-weight: 700; font-size: 40px; letter-spacing: 0.05em; color: var(--tool-text); display: flex; align-items: baseline; gap: var(--tool-space-2); margin: var(--tool-space-2) 0 var(--tool-space-1); }
+  .freq .hz { font-size: 15px; color: var(--tool-amber); font-weight: 500; }
 
-  .step{ margin-top:14px; }
-  .step + .step{ border-top:1px solid var(--line); margin-top:18px; padding-top:18px; }
-  .step-label{ font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--amber); margin-bottom:8px; }
-  .pair-grid{ display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; }
-  .pair-grid > div:first-child{ flex:1 1 240px; min-width:0; }
-  #qrBox{ background:#fff; padding:8px; border-radius:8px; line-height:0; }
-  #qrBox img, #qrBox canvas{ display:block; width:132px; height:132px; }
+  .hint { font-size: 13px; color: var(--tool-text-muted); line-height: 1.5; margin-top: var(--tool-space-2); }
+  .hint--error { color: var(--tool-red); }
 
-  .tune-row{ display:flex; gap:8px; margin-top:6px; }
-  input.code-input{
-    flex:1; min-width:0; background:var(--bg); border:1px solid var(--line); color:var(--text);
-    font-family:var(--mono); font-size:20px; letter-spacing:0.15em; text-align:center;
-    padding:12px 10px; border-radius:8px; outline:none;
-  }
-  input.code-input:focus-visible{ border-color:var(--teal); outline:2px solid var(--teal); outline-offset:1px; }
-  button.connect-btn{
-    background:var(--teal); color:#04211d; border:none; border-radius:8px;
-    font-family:var(--mono); font-weight:600; font-size:13px; letter-spacing:0.04em; padding:0 20px; min-height:44px; cursor:pointer;
-  }
-  [data-theme="light"] button.connect-btn{ color:#fff; }
-  button.connect-btn:disabled{ background:var(--line); color:var(--text); opacity:.75; cursor:not-allowed; }
-  button.connect-btn:hover:not(:disabled){ filter:brightness(1.08); }
+  .step { margin-top: var(--tool-space-4); }
+  .step + .step { border-top: 1px solid var(--tool-border); margin-top: var(--tool-space-4); padding-top: var(--tool-space-4); }
+  .step-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tool-amber); margin-bottom: var(--tool-space-2); }
 
-  .mini-btn{
-    background:none; border:1px solid var(--line); color:var(--text);
-    font-family:var(--mono); font-size:12px; padding:8px 12px; border-radius:8px; min-height:36px;
-    cursor:pointer; letter-spacing:0.03em; text-decoration:none; display:inline-flex; align-items:center;
-    transition:border-color .2s, background .2s;
-  }
-  .mini-btn:hover{ border-color:var(--teal); background:color-mix(in srgb, var(--teal) 10%, transparent); }
-  .mini-btn:focus-visible, .track:focus-visible, .tab-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
-  .mini-btn:disabled{ opacity:.45; cursor:default; }
-  .mini-btn.reject{ border-color:var(--red); color:var(--red); }
-  .mini-btn.reject:hover{ background:color-mix(in srgb, var(--red) 10%, transparent); }
-  .copy-btn{ margin-top:14px; }
-  .pend-row{ display:flex; gap:8px; margin-top:12px; }
-  .row{ display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .pair-grid { display: flex; gap: var(--tool-space-4); align-items: flex-start; flex-wrap: wrap; }
+  .pair-grid > div:first-child { flex: 1 1 240px; min-width: 0; }
+  #qrBox { background: #fff; padding: 8px; border-radius: 8px; line-height: 0; }
+  #qrBox img, #qrBox canvas { display: block; width: 132px; height: 132px; }
 
-  .link-code{ font-family:var(--mono); font-weight:600; letter-spacing:0.14em; color:var(--text); }
-  .safety-strip{
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    font-family:var(--mono); font-size:12px; color:var(--muted);
-    border:1px dashed var(--line); border-radius:8px; padding:8px 12px; margin-top:10px;
-  }
+  .tune-row { display: flex; gap: var(--tool-space-2); margin-top: var(--tool-space-2); }
+  input.code-input { flex: 1; min-width: 0; background: var(--tool-bg); border: 1px solid var(--tool-border); color: var(--tool-text); font-family: var(--font-mono); font-size: 20px; letter-spacing: 0.15em; text-align: center; padding: var(--tool-space-3) var(--tool-space-2); border-radius: var(--tool-radius-md); outline: none; }
+  input.code-input:focus-visible { border-color: var(--tool-teal); outline: 2px solid var(--tool-teal); outline-offset: 1px; }
+  button.connect-btn { background: var(--tool-teal); color: #04211d; border: none; border-radius: var(--tool-radius-md); font-family: var(--font-mono); font-weight: 600; font-size: 13px; letter-spacing: 0.04em; padding: 0 var(--tool-space-4); min-height: 44px; cursor: pointer; }
+  [data-theme="light"] button.connect-btn { color: #fff; }
+  button.connect-btn:disabled { background: var(--tool-border); color: var(--tool-text); opacity: 0.75; cursor: not-allowed; }
+  button.connect-btn:hover:not(:disabled) { filter: brightness(1.08); }
 
-  .tab-row{ width:100%; max-width:700px; display:flex; gap:8px; margin:4px 0 12px; }
-  .tab-btn{
-    flex:1; background:none; border:1px solid var(--line); color:var(--muted);
-    font-family:var(--mono); font-size:12px; letter-spacing:0.06em; padding:11px; border-radius:10px; cursor:pointer;
-  }
-  .tab-btn.active{ border-color:var(--teal); color:var(--text); background:color-mix(in srgb, var(--teal) 10%, transparent); }
-  .count{ color:var(--amber); margin-left:4px; }
+  .mini-btn { background: none; border: 1px solid var(--tool-border); color: var(--tool-text); font-family: var(--font-mono); font-size: 12px; padding: 8px 12px; border-radius: var(--tool-radius-md); min-height: 36px; cursor: pointer; letter-spacing: 0.03em; text-decoration: none; display: inline-flex; align-items: center; transition: border-color 0.2s, background 0.2s; }
+  .mini-btn:hover { border-color: var(--tool-teal); background: color-mix(in srgb, var(--tool-teal) 10%, transparent); }
+  .mini-btn:focus-visible, .track:focus-visible, .tab-btn:focus-visible { outline: 2px solid var(--tool-teal); outline-offset: 2px; }
+  .mini-btn:disabled { opacity: 0.45; cursor: default; }
+  .mini-btn--reject { border-color: var(--tool-red); color: var(--tool-red); }
+  .mini-btn--reject:hover { background: color-mix(in srgb, var(--tool-red) 10%, transparent); }
+  .copy-btn { margin-top: var(--tool-space-3); }
+  .pend-row { display: flex; gap: var(--tool-space-2); margin-top: var(--tool-space-3); }
+  .row { display: flex; align-items: center; gap: var(--tool-space-2); margin-top: var(--tool-space-2); flex-wrap: wrap; }
 
-  .dropzone{
-    border:1.5px dashed var(--line); border-radius:12px; padding:26px 18px; text-align:center; cursor:pointer;
-    font-family:var(--mono); font-size:13px; color:var(--text);
-    transition:border-color .2s, background .2s;
-  }
-  .dropzone:hover, .dropzone.drag{ border-color:var(--teal); color:var(--text); background:color-mix(in srgb, var(--teal) 8%, transparent); }
-  .dropzone small{ display:block; color:var(--muted); margin-top:4px; font-size:12px; }
-  input[type=file]{ display:none; }
+  .link-code { font-family: var(--font-mono); font-weight: 600; letter-spacing: 0.14em; color: var(--tool-text); }
+  .safety-strip { display: flex; align-items: center; gap: var(--tool-space-2); flex-wrap: wrap; font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); border: 1px dashed var(--tool-border); border-radius: var(--tool-radius-md); padding: var(--tool-space-2) var(--tool-space-3); margin-top: var(--tool-space-2); }
 
-  .tracks{ list-style:none; display:flex; flex-direction:column; gap:6px; margin-top:12px; max-height:420px; overflow-y:auto; }
-  .track-row{ display:flex; gap:6px; align-items:stretch; }
-  .track{
-    flex:1; min-width:0; display:flex; align-items:center; gap:10px; text-align:left;
-    background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px 12px; cursor:pointer; color:var(--text);
-    font-family:var(--sans); font-size:13.5px; min-height:44px;
-  }
-  .track:hover{ border-color:var(--teal); }
-  .track.playing{ border-color:var(--teal); background:color-mix(in srgb, var(--teal) 10%, transparent); }
-  .track .ico{ font-family:var(--mono); color:var(--amber); width:18px; text-align:center; flex:none; }
-  .track .nm{ flex:1; min-width:0; }
-  .track .nm b{ display:block; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .track .nm small{ display:block; color:var(--muted); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .track .sz{ font-family:var(--mono); font-size:12px; color:var(--muted); flex:none; }
-  .x-btn{ flex:none; width:40px; padding:0; justify-content:center; }
-  .empty{ font-family:var(--mono); font-size:12.5px; color:var(--muted); text-align:center; padding:22px 8px; line-height:1.6; }
+  .tab-row { width: 100%; max-width: 700px; display: flex; gap: var(--tool-space-2); margin: var(--tool-space-1) 0 var(--tool-space-3); }
+  .tab-btn { flex: 1; background: none; border: 1px solid var(--tool-border); color: var(--tool-text-muted); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; padding: 11px; border-radius: 10px; cursor: pointer; }
+  .tab-btn--active { border-color: var(--tool-teal); color: var(--tool-text); background: color-mix(in srgb, var(--tool-teal) 10%, transparent); }
+  .count { color: var(--tool-amber); margin-left: 4px; }
 
-  .player{ margin-bottom:6px; }
-  .player video{ width:100%; max-height:60vh; background:#000; border-radius:10px; display:block; }
-  .player audio{ width:100%; display:block; }
-  .now{ display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap; }
-  .now-name{ flex:1; min-width:140px; font-family:var(--mono); font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dropzone { border: 1.5px dashed var(--tool-border); border-radius: var(--tool-radius-md); padding: var(--tool-space-4) var(--tool-space-4); text-align: center; cursor: pointer; font-family: var(--font-mono); font-size: 13px; color: var(--tool-text); transition: border-color 0.2s, background 0.2s; }
+  .dropzone:hover, .dropzone.drag { border-color: var(--tool-teal); color: var(--tool-text); background: color-mix(in srgb, var(--tool-teal) 8%, transparent); }
+  .dropzone small { display: block; color: var(--tool-text-muted); margin-top: 4px; font-size: 12px; }
+  input[type=file] { display: none; }
 
-  .filter{ width:100%; margin-top:10px; background:var(--bg); border:1px solid var(--line); color:var(--text); font-family:var(--sans); font-size:14px; padding:10px 12px; border-radius:8px; }
-  .filter:focus-visible{ outline:2px solid var(--teal); outline-offset:1px; }
-  .rate{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .tracks { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-top: var(--tool-space-3); max-height: 420px; overflow-y: auto; }
+  .track-row { display: flex; gap: 6px; align-items: stretch; }
+  .track { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--tool-space-3); text-align: left; background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 10px; padding: 10px 12px; cursor: pointer; color: var(--tool-text); font-family: var(--font-sans); font-size: 13.5px; min-height: 44px; }
+  .track:hover { border-color: var(--tool-teal); }
+  .track--playing { border-color: var(--tool-teal); background: color-mix(in srgb, var(--tool-teal) 10%, transparent); }
+  .track .ico { font-family: var(--font-mono); color: var(--tool-amber); width: 18px; text-align: center; flex: none; }
+  .track .nm { flex: 1; min-width: 0; }
+  .track .nm b { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .track .nm small { display: block; color: var(--tool-text-muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .track .sz { font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); flex: none; }
+  .x-btn { flex: none; width: 40px; padding: 0; justify-content: center; }
+  .empty { font-family: var(--font-mono); font-size: 13px; color: var(--tool-text-muted); text-align: center; padding: var(--tool-space-4) var(--tool-space-2); line-height: 1.6; }
 
-  .banner{ width:100%; max-width:700px; margin:0 0 16px; padding:12px 16px; border:1px solid var(--red); background:color-mix(in srgb, var(--red) 10%, transparent); color:var(--text); border-radius:10px; font-size:13.5px; line-height:1.5; }
-  details.help summary{ cursor:pointer; font-family:var(--mono); font-size:12px; letter-spacing:0.03em; color:var(--amber); line-height:1.5; }
-  details.help[open] summary{ margin-bottom:10px; }
-  details.help p, details.help li{ font-size:12.5px; color:var(--muted); line-height:1.7; }
-  details.help ol{ padding-left:18px; }
-  details.help code{ font-family:var(--mono); font-size:12px; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:1px 6px; word-break:break-all; }
-  details.help a{ color:var(--amber); }
-  footer{ max-width:700px; }
+  .player { margin-bottom: 6px; }
+  .player video { width: 100%; max-height: 60vh; background: #000; border-radius: 10px; display: block; }
+  .player audio { width: 100%; display: block; }
+  .now { display: flex; align-items: center; gap: var(--tool-space-2); margin-top: var(--tool-space-2); flex-wrap: wrap; }
+  .now-name { flex: 1; min-width: 140px; font-family: var(--font-mono); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  body.linked #pairCard{ padding-top:14px; padding-bottom:14px; }
-  body.linked #steps{ display:none; }
-  @media (max-width:520px){ .freq{ font-size:32px; } .track .sz{ display:none; } }
+  .filter { width: 100%; margin-top: var(--tool-space-2); background: var(--tool-bg); border: 1px solid var(--tool-border); color: var(--tool-text); font-family: var(--font-sans); font-size: 14px; padding: var(--tool-space-2) var(--tool-space-3); border-radius: var(--tool-radius-md); }
+  .filter:focus-visible { outline: 2px solid var(--tool-teal); outline-offset: 1px; }
+
+  .rate { font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); }
+  .banner { width: 100%; max-width: 700px; margin: 0 0 var(--tool-space-3); padding: var(--tool-space-3) var(--tool-space-4); border: 1px solid var(--tool-red); background: color-mix(in srgb, var(--tool-red) 10%, transparent); color: var(--tool-text); border-radius: 10px; font-size: 14px; line-height: 1.5; }
+
+  details.help summary { cursor: pointer; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.03em; color: var(--tool-amber); line-height: 1.5; }
+  details.help[open] summary { margin-bottom: var(--tool-space-2); }
+  details.help p, details.help li { font-size: 13px; color: var(--tool-text-muted); line-height: 1.7; }
+  details.help ol { padding-left: var(--tool-space-5); }
+  details.help code { font-family: var(--font-mono); font-size: 12px; color: var(--tool-text); background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 4px; padding: 1px 6px; word-break: break-all; }
+  details.help a { color: var(--tool-amber); }
+
+  footer { max-width: 700px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--tool-text-muted); margin-top: var(--tool-space-6); line-height: 1.6; }
+
+  body.linked #pairCard { padding-top: 14px; padding-bottom: 14px; }
+  body.linked #steps { display: none; }
+
+  @media (max-width: 520px) { .freq { font-size: 32px; } .track .sz { display: none; } }
 </style>
 </head>
 <body>
@@ -158,11 +141,13 @@
 
   <div class="banner hidden" id="swBanner" role="alert"></div>
 
-  <div class="card searching" id="pairCard">
+  <div class="card card--pending" id="pairCard">
     <div class="label-row">
-      <div class="eyebrow">Connection</div>
+      <div class="tool-eyebrow">Connection</div>
       <div class="status-dot">
-        <thinking-orb state="searching" size="20" id="statusOrb" aria-hidden="true"></thinking-orb><span class="dot hidden" id="statusDot"></span><span id="statusText" role="status">opening…</span>
+        <thinking-orb state="searching" size="20" id="statusOrb" aria-hidden="true"></thinking-orb>
+        <span class="tool-dot hidden" id="statusDot"></span>
+        <span id="statusText" role="status">opening…</span>
         <span class="rate" id="rate"></span>
       </div>
     </div>
@@ -193,24 +178,24 @@
 
   <div class="card hidden" id="incomingCard">
     <div class="label-row">
-      <div class="eyebrow">Incoming connection</div>
+      <div class="tool-eyebrow">Incoming connection</div>
       <div class="status-dot"><thinking-orb state="connecting" size="20" aria-hidden="true"></thinking-orb><span>a device wants to connect</span></div>
     </div>
     <div class="hint">If you didn't just open Pravah on another device, reject. Accepting lets it see the list of files you share and play them.</div>
     <div class="safety-strip"><span>🔒 link code</span><span class="link-code" id="incomingCode">··· ···</span><span>should match the other screen</span></div>
     <div class="pend-row">
       <button class="mini-btn" id="acceptBtn" type="button">accept</button>
-      <button class="mini-btn reject" id="rejectBtn" type="button">reject</button>
+      <button class="mini-btn mini-btn--reject" id="rejectBtn" type="button">reject</button>
     </div>
   </div>
 
   <div class="tab-row hidden" id="tabs" role="tablist">
-    <button class="tab-btn active" id="tabWatch" role="tab" aria-selected="true" aria-controls="watchCard" type="button">watch <span class="count" id="watchCount"></span></button>
+    <button class="tab-btn tab-btn--active" id="tabWatch" role="tab" aria-selected="true" aria-controls="watchCard" type="button">watch <span class="count" id="watchCount"></span></button>
     <button class="tab-btn" id="tabShare" role="tab" aria-selected="false" aria-controls="shareCard" type="button">share <span class="count" id="shareCount"></span></button>
   </div>
 
   <div class="card hidden" id="watchCard" role="tabpanel" aria-labelledby="tabWatch">
-    <div class="label-row"><div class="eyebrow">From the other device</div></div>
+    <div class="label-row"><div class="tool-eyebrow">From the other device</div></div>
     <div class="player hidden" id="player">
       <video id="vid" controls playsinline preload="metadata" class="hidden"></video>
       <audio id="aud" controls preload="metadata" class="hidden"></audio>
@@ -220,7 +205,7 @@
         <button class="mini-btn" id="nextBtn" type="button" aria-label="Next">⏭</button>
         <a class="mini-btn" id="saveLink" href="#" role="button">save</a>
       </div>
-      <div class="hint bad hidden" id="playErr" role="alert"></div>
+      <div class="hint hint--error hidden" id="playErr" role="alert"></div>
     </div>
     <input type="search" class="filter hidden" id="filter" placeholder="filter files…" aria-label="Filter shared files" autocomplete="off">
     <ul class="tracks" id="theirList"></ul>
@@ -228,7 +213,7 @@
   </div>
 
   <div class="card" id="shareCard" role="tabpanel" aria-labelledby="tabShare">
-    <div class="label-row"><div class="eyebrow">Share from this device</div></div>
+    <div class="label-row"><div class="tool-eyebrow">Share from this device</div></div>
     <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose video or audio files to share">
       choose videos or music to share
       <small>files are not uploaded — the other device plays them straight from here</small>
@@ -238,8 +223,8 @@
       <button class="mini-btn" id="pickFolderBtn" type="button">choose folder…</button>
       <button class="mini-btn hidden" id="clearBtn" type="button">stop sharing all</button>
     </div>
-    <input type="file" id="fileInput" multiple accept="video/*,audio/*,.mkv,.flac,.opus,.m4a,.ts,.avi,.mov">
-    <input type="file" id="folderInput" webkitdirectory multiple>
+    <input type="file" id="fileInput" multiple accept="video/*,audio/*,.mkv,.flac,.opus,.m4a,.ts,.avi,.mov" class="tool-file-input">
+    <input type="file" id="folderInput" webkitdirectory multiple class="tool-file-input">
     <div class="hint" id="shareHint">Keep this tab open while the other device is playing. On a phone, don't lock the screen.</div>
     <ul class="tracks" id="myList"></ul>
   </div>
@@ -263,22 +248,20 @@
   </footer>
 </div>
 
-<script src="../assets/cdn-guard.js"></script>
+<script src="/assets/cdn-guard.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
-<script src="../assets/vendor/qrcode.min.js"></script>
+<script src="/assets/vendor/qrcode.min.js"></script>
 <script>
 (function(){
   'use strict';
   const PREFIX = 'pravah-';
-  const PIECE = 1024 * 1024;         // bytes requested from the peer per read
-  const FRAME = 16 * 1024;           // data-channel message size (safe for every browser)
-  const HIGH = 1024 * 1024;          // pause sending above this much queued data
-  const MAX_GET = 4 * 1024 * 1024;   // largest read we will answer
-  const LIB_PART = 40;               // library items per message
+  const PIECE = 1024 * 1024;
+  const FRAME = 16 * 1024;
+  const HIGH = 1024 * 1024;
+  const MAX_GET = 4 * 1024 * 1024;
+  const LIB_PART = 40;
   const MAX_ITEMS = 20000;
 
-  // STUN only, on purpose: this tool is for the same Wi-Fi. A relay would push
-  // video through the internet, which is exactly what we are avoiding.
   const ICE_SERVERS = [
     { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
     { urls: ['stun:stun.cloudflare.com:3478'] }
@@ -305,218 +288,83 @@
   let userTabbed = false;
   let retry = 0, retryTimer = 0;
 
-  // ---------- helpers ----------
-  function h(tag, cls, text){
-    const n = document.createElement(tag);
-    if(cls) n.className = cls;
-    if(text != null) n.textContent = text;
-    return n;
-  }
-  function fmtBytes(b){
-    if(b < 1024) return b + ' B';
-    if(b < 1048576) return (b / 1024).toFixed(0) + ' KB';
-    if(b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
-    return (b / 1073741824).toFixed(2) + ' GB';
-  }
-  function genCode(){
-    const a = new Uint32Array(1);
-    crypto.getRandomValues(a);
-    return String(10000000 + (a[0] % 90000000));
-  }
-  function classify(file){
-    const ext = (file.name.split('.').pop() || '').toLowerCase();
-    const t = file.type || '';
-    if(/^video\//.test(t)) return { kind:'video', mime:t };
-    if(/^audio\//.test(t)) return { kind:'audio', mime:t };
-    if(VIDEO_EXT[ext]) return { kind:'video', mime:VIDEO_EXT[ext] };
-    if(AUDIO_EXT[ext]) return { kind:'audio', mime:AUDIO_EXT[ext] };
-    return null;
-  }
+  function h(tag, cls, text) { const n = document.createElement(tag); if(cls) n.className = cls; if(text != null) n.textContent = text; return n; }
+  function fmtBytes(b) { if(b < 1024) return b + ' B'; if(b < 1048576) return (b / 1024).toFixed(0) + ' KB'; if(b < 1073741824) return (b / 1048576).toFixed(1) + ' MB'; return (b / 1073741824).toFixed(2) + ' GB'; }
+  function genCode() { const a = new Uint32Array(1); crypto.getRandomValues(a); return String(10000000 + (a[0] % 90000000)); }
+  function classify(file) { const ext = (file.name.split('.').pop() || '').toLowerCase(); const t = file.type || ''; if(/^video\//.test(t)) return { kind:'video', mime:t }; if(/^audio\//.test(t)) return { kind:'audio', mime:t }; if(VIDEO_EXT[ext]) return { kind:'video', mime:VIDEO_EXT[ext] }; if(AUDIO_EXT[ext]) return { kind:'audio', mime:AUDIO_EXT[ext] }; return null; }
   const natural = new Intl.Collator(undefined, { numeric:true, sensitivity:'base' });
 
-  /* status: 'searching' | 'live' | 'bad' — orb while in flight, dot for the outcome
-     (the modifier is 'bad', not 'error': theme.css's .error is a hidden banner class) */
-  function setStatus(state, text, orbState){
+  function setStatus(state, text, orbState) {
     statusText.textContent = text;
     const inFlight = state === 'searching';
     statusOrb.setAttribute('state', orbState || 'searching');
     statusOrb.hidden = !inFlight;
     statusDot.hidden = inFlight;
-    statusDot.className = 'dot ' + state;
-    pairCard.className = 'card ' + state;
+    statusDot.className = 'tool-dot ' + state;
+    pairCard.className = 'card ' + (state === 'searching' ? 'card--pending' : state === 'live' ? 'card--active' : 'card--error');
   }
 
-  // ---------- service worker (turns peer reads into <video> range responses) ----------
-  function swFail(msg){
-    swBanner.textContent = msg;
-    swBanner.classList.remove('hidden');
-  }
-  async function initSW(){
-    if(!('serviceWorker' in navigator) || !window.isSecureContext){
-      swFail('Playback needs a service worker, which this page can only use over HTTPS (or localhost). Open the https:// address of this site, or use the offline option below.');
-      return;
-    }
-    try{
-      const reg = await navigator.serviceWorker.register('sw.js');
-      swScope = reg.scope;
-      await navigator.serviceWorker.ready;
-      if(!navigator.serviceWorker.controller){
-        await new Promise((res) => {
-          navigator.serviceWorker.addEventListener('controllerchange', res, { once:true });
-          setTimeout(res, 3000);
-        });
-      }
-      swOk = !!navigator.serviceWorker.controller;
-      if(!swOk) swFail('Almost ready — reload this page once so playback can start.');
-    }catch(err){
-      console.error('sw register failed', err);
-      swFail('Could not start the playback helper in this browser (private windows often block it). Try a normal window, or use the offline option below.');
-    }
-    navigator.serviceWorker.addEventListener('message', (e) => {
-      const d = e.data;
-      if(d && d.type === 'pravah-range' && e.ports && e.ports[0]) serveRange(e.ports[0], d);
-    });
+  // ---------- service worker ----------
+  function swFail(msg) { swBanner.textContent = msg; swBanner.classList.remove('hidden'); }
+  async function initSW() {
+    if(!('serviceWorker' in navigator) || !window.isSecureContext) { swFail('Playback needs a service worker, which this page can only use over HTTPS (or localhost). Open the https:// address of this site, or use the offline option below.'); return; }
+    try { const reg = await navigator.serviceWorker.register('sw.js'); swScope = reg.scope; await navigator.serviceWorker.ready; if(!navigator.serviceWorker.controller) { await new Promise((res) => { navigator.serviceWorker.addEventListener('controllerchange', res, { once:true }); setTimeout(res, 3000); }); } swOk = !!navigator.serviceWorker.controller; if(!swOk) swFail('Almost ready — reload this page once so playback can start.'); } catch(err) { console.error('sw register failed', err); swFail('Could not start the playback helper in this browser (private windows often block it). Try a normal window, or use the offline option below.'); }
+    navigator.serviceWorker.addEventListener('message', (e) => { const d = e.data; if(d && d.type === 'pravah-range' && e.ports && e.ports[0]) serveRange(e.ports[0], d); });
   }
 
   // ---------- connection ----------
-  function initPeer(){
+  function initPeer() {
     myCode = genCode();
     myCodeEl.textContent = myCode;
     peer = new Peer(PREFIX + myCode, { debug: 0, config: { iceServers: ICE_SERVERS } });
 
-    peer.on('open', () => {
-      retry = 0;
-      // 'open' fires again after a broker reconnect — don't clobber a live session
-      if(!ready && !conn && !pendingConn) setStatus('searching', 'waiting for the other device…');
-      drawQR();
-      if(autoCode){ peerCodeInput.value = autoCode; startConnect(); autoCode = ''; }
-    });
+    peer.on('open', () => { retry = 0; if(!ready && !conn && !pendingConn) setStatus('searching', 'waiting for the other device…'); drawQR(); if(autoCode) { peerCodeInput.value = autoCode; startConnect(); autoCode = ''; } });
 
-    peer.on('connection', (c) => {
-      if(conn || pendingConn){ c.close(); return; }
-      pendingConn = c;
-      incomingCode.textContent = '··· ···';
-      incomingCard.classList.remove('hidden');
-      setStatus('searching', 'incoming connection… accept to continue', 'connecting');
-      c.on('open', async () => { if(pendingConn === c) incomingCode.textContent = await linkCode(c) || '——'; });
-      c.on('close', () => {
-        if(pendingConn === c){
-          pendingConn = null;
-          incomingCard.classList.add('hidden');
-          setStatus('searching', 'waiting for the other device…');
-        }
-      });
-      c.on('error', () => {});
-    });
+    peer.on('connection', (c) => { if(conn || pendingConn) { c.close(); return; } pendingConn = c; incomingCode.textContent = '··· ···'; incomingCard.classList.remove('hidden'); setStatus('searching', 'incoming connection… accept to continue', 'connecting'); c.on('open', async () => { if(pendingConn === c) incomingCode.textContent = await linkCode(c) || '——'; }); c.on('close', () => { if(pendingConn === c) { pendingConn = null; incomingCard.classList.add('hidden'); setStatus('searching', 'waiting for the other device…'); } }); c.on('error', () => {}); });
 
-    // The broker is only needed to introduce devices. If it drops, retry with a
-    // growing delay (1.5s, 3s, 6s … 30s) instead of hammering it.
-    peer.on('disconnected', () => {
-      if(peer.destroyed) return;
-      clearTimeout(retryTimer);
-      const wait = Math.min(30000, 1500 * Math.pow(2, retry++));
-      if(!ready && !conn && !pendingConn) setStatus('bad', 'can’t reach the pairing service — retrying…');
-      retryTimer = setTimeout(() => { try{ peer.reconnect(); }catch(e){} }, wait);
-    });
-    peer.on('error', (err) => {
-      if(err.type === 'unavailable-id'){ initPeer(); }
-      else if(err.type === 'peer-unavailable'){
-        connectHint.textContent = 'No device found with that code. Check it and try again.';
-        connectHint.className = 'hint bad';
-        resetConnectUi();
-      } else {
-        console.warn('peer error', err.type);   // network / socket errors: the 'disconnected' handler retries
-      }
-    });
+    peer.on('disconnected', () => { if(peer.destroyed) return; clearTimeout(retryTimer); const wait = Math.min(30000, 1500 * Math.pow(2, retry++)); if(!ready && !conn && !pendingConn) setStatus('bad', "can't reach the pairing service — retrying…"); retryTimer = setTimeout(() => { try{ peer.reconnect(); }catch(e){} }, wait); });
+    peer.on('error', (err) => { if(err.type === 'unavailable-id'){ initPeer(); } else if(err.type === 'peer-unavailable') { connectHint.textContent = 'No device found with that code. Check it and try again.'; connectHint.className = 'hint hint--error'; resetConnectUi(); } else { console.warn('peer error', err.type); } });
   }
 
-  function drawQR(){
-    if(!/^https?:$/.test(location.protocol) || /^(localhost|127\.|\[?::1)/.test(location.hostname)) return;
-    try{
-      qrBox.textContent = '';
-      new QRCode(qrBox, { text: location.href.split('#')[0] + '#' + myCode, width:132, height:132, colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M });
-      qrBox.classList.remove('hidden');
-    }catch(e){ /* QR is a convenience only */ }
-  }
+  function drawQR() { if(!/^https?:$/.test(location.protocol) || /^(localhost|127\.|\[?::1)/.test(location.hostname)) return; try { qrBox.textContent = ''; new QRCode(qrBox, { text: location.href.split('#')[0] + '#' + myCode, width:132, height:132, colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M }); qrBox.classList.remove('hidden'); } catch(e){} }
 
-  function resetConnectUi(){
-    connectBtn.disabled = false;
-    connectBtn.textContent = 'connect';
-    linkWait.classList.add('hidden');
-  }
+  function resetConnectUi() { connectBtn.disabled = false; connectBtn.textContent = 'connect'; linkWait.classList.add('hidden'); }
 
-  function startConnect(){
+  function startConnect() {
     const code = peerCodeInput.value.trim();
-    if(!/^\d{8}$/.test(code)){
-      connectHint.textContent = 'Enter the 8-digit code exactly as shown.';
-      connectHint.className = 'hint bad';
-      return;
-    }
-    if(code === myCode){
-      connectHint.textContent = 'That is this device’s own code — enter the one shown on the other device.';
-      connectHint.className = 'hint bad';
-      return;
-    }
-    connectHint.className = 'hint';
-    connectHint.textContent = 'Connecting…';
-    connectBtn.disabled = true;
-    connectBtn.textContent = 'connecting…';
+    if(!/^\d{8}$/.test(code)) { connectHint.textContent = 'Enter the 8-digit code exactly as shown.'; connectHint.className = 'hint hint--error'; return; }
+    if(code === myCode) { connectHint.textContent = "That is this device's own code — enter the one shown on the other device."; connectHint.className = 'hint hint--error'; return; }
+    connectHint.className = 'hint'; connectHint.textContent = 'Connecting…';
+    connectBtn.disabled = true; connectBtn.textContent = 'connecting…';
     const c = peer.connect(PREFIX + code, { reliable:true, serialization:'raw' });
     bind(c, false);
-    const slow = setTimeout(() => {
-      if(!ready && conn === c) connectHint.textContent = 'Still trying… both devices must be on the same Wi-Fi (not a guest network). See the help at the bottom.';
-    }, 12000);
+    const slow = setTimeout(() => { if(!ready && conn === c) connectHint.textContent = 'Still trying… both devices must be on the same Wi-Fi (not a guest network). See the help at the bottom.'; }, 12000);
     c.on('close', () => clearTimeout(slow));
   }
   connectBtn.addEventListener('click', startConnect);
   peerCodeInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') startConnect(); });
 
-  function bind(c, accepted){
+  function bind(c, accepted) {
     conn = c;
     const init = async () => {
       const dc = c.dataChannel;
-      if(dc){
-        dc.bufferedAmountLowThreshold = 256 * 1024;
-        dc.addEventListener('bufferedamountlow', flushWaiters);
-      }
-      if(!accepted){
-        setStatus('searching', 'waiting for the other device to accept…', 'connecting');
-        linkWaitCode.textContent = await linkCode(c) || '——';
-        linkWait.classList.remove('hidden');
-      }
+      if(dc) { dc.bufferedAmountLowThreshold = 256 * 1024; dc.addEventListener('bufferedamountlow', flushWaiters); }
+      if(!accepted) { setStatus('searching', 'waiting for the other device to accept…', 'connecting'); linkWaitCode.textContent = await linkCode(c) || '——'; linkWait.classList.remove('hidden'); }
     };
-    // an accepted connection is already open by the time we bind to it
     if(c.open) init(); else c.on('open', init);
     c.on('data', onData);
     c.on('close', () => { if(conn === c) onClosed(); });
     c.on('error', (e) => console.error('conn error', e));
   }
 
-  function accept(){
-    if(!pendingConn) return;
-    const c = pendingConn;
-    pendingConn = null;
-    incomingCard.classList.add('hidden');
-    bind(c, true);
-    const go = () => { send({ t:'ok' }); onReady(); };
-    if(c.open) go(); else c.once('open', go);
-  }
-  function reject(){
-    if(!pendingConn) return;
-    const c = pendingConn;
-    pendingConn = null;
-    incomingCard.classList.add('hidden');
-    c.close();
-    setStatus('searching', 'waiting for the other device…');
-  }
+  function accept() { if(!pendingConn) return; const c = pendingConn; pendingConn = null; incomingCard.classList.add('hidden'); bind(c, true); const go = () => { send({ t:'ok' }); onReady(); }; if(c.open) go(); else c.once('open', go); }
+  function reject() { if(!pendingConn) return; const c = pendingConn; pendingConn = null; incomingCard.classList.add('hidden'); c.close(); setStatus('searching', 'waiting for the other device…'); }
   acceptBtn.addEventListener('click', accept);
   rejectBtn.addEventListener('click', reject);
 
-  function onReady(){
+  function onReady() {
     if(ready) return;
-    ready = true;
-    lastSeen = Date.now();
-    stale = false;
+    ready = true; lastSeen = Date.now(); stale = false;
     setStatus('live', 'connected');
     document.body.classList.add('linked');
     linkWait.classList.add('hidden');
@@ -528,17 +376,13 @@
     updateWake();
   }
 
-  function onClosed(){
+  function onClosed() {
     const wasReady = ready;
-    ready = false;
-    conn = null;
-    for(const [, r] of reads){ clearTimeout(r.timer); r.reject(new Error('disconnected')); }
-    reads.clear();
-    flushWaiters();
-    theirs = [];
-    theirById.clear();
-    stopPlayback();
-    renderTheirs();
+    ready = false; conn = null;
+    for(const [, r] of reads) { clearTimeout(r.timer); r.reject(new Error('disconnected')); }
+    reads.clear(); flushWaiters();
+    theirs = []; theirById.clear();
+    stopPlayback(); renderTheirs();
     document.body.classList.remove('linked');
     tabs.classList.add('hidden');
     watchCard.classList.add('hidden');
@@ -546,490 +390,92 @@
     linkStrip.classList.add('hidden');
     rateEl.textContent = '';
     resetConnectUi();
-    connectHint.className = 'hint';
-    connectHint.textContent = 'Enter the code shown on the other device.';
+    connectHint.className = 'hint'; connectHint.textContent = 'Enter the code shown on the other device.';
     setStatus(wasReady ? 'bad' : 'searching', wasReady ? 'other device disconnected' : 'waiting for the other device…');
     updateWake();
   }
 
-  copyBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(myCode).then(() => {
-      copyBtn.textContent = 'copied ✓';
-      setTimeout(() => copyBtn.textContent = 'copy code', 1500);
-    }).catch(() => {});
-  });
+  copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(myCode).then(() => { copyBtn.textContent = 'copied ✓'; setTimeout(() => copyBtn.textContent = 'copy code', 1500); }).catch(() => {}); });
 
-  // Both ends hash the two DTLS fingerprints into 6 digits. If someone sits
-  // between the devices the two screens show different numbers.
-  async function linkCode(c){
-    try{
-      const pc = c.peerConnection;
-      const fp = (sdp) => { const m = /a=fingerprint:\S+ (\S+)/.exec(sdp || ''); return m ? m[1].toUpperCase() : ''; };
-      const a = fp(pc.localDescription && pc.localDescription.sdp);
-      const b = fp(pc.remoteDescription && pc.remoteDescription.sdp);
-      if(!a || !b) return '';
-      const d = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode([a, b].sort().join('|'))));
-      const n = (((d[0] << 24) | (d[1] << 16) | (d[2] << 8) | d[3]) >>> 0) % 1000000;
-      const s = String(n).padStart(6, '0');
-      return s.slice(0, 3) + ' ' + s.slice(3);
-    }catch(e){ return ''; }
+  async function linkCode(c) {
+    try { const pc = c.peerConnection; const fp = (sdp) => { const m = /a=fingerprint:\S+ (\S+)/.exec(sdp || ''); return m ? m[1].toUpperCase() : ''; }; const a = fp(pc.localDescription?.sdp); const b = fp(pc.remoteDescription?.sdp); if(!a || !b) return ''; const d = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode([a, b].sort().join('|')))); const n = (((d[0] << 24) | (d[1] << 16) | (d[2] << 8) | d[3]) >>> 0) % 1000000; const s = String(n).padStart(6, '0'); return s.slice(0, 3) + ' ' + s.slice(3); } catch(e) { return ''; }
   }
 
-  async function showLinkStrip(){
-    const c = conn;
-    if(!c) return;
-    linkCodeEl.textContent = await linkCode(c) || '——';
-    linkStrip.classList.remove('hidden');
-    try{
-      const stats = await c.peerConnection.getStats();
-      let pair = null;
-      stats.forEach((r) => { if(r.type === 'transport' && r.selectedCandidatePairId) pair = stats.get(r.selectedCandidatePairId); });
-      if(!pair) stats.forEach((r) => { if(r.type === 'candidate-pair' && (r.selected || (r.nominated && r.state === 'succeeded'))) pair = r; });
-      const local = pair && stats.get(pair.localCandidateId);
-      const t = local && local.candidateType;
-      if(t === 'host') statusText.textContent = 'connected · same network';
-      else if(t === 'relay') statusText.textContent = 'connected · relayed (slow)';
-      else if(t) statusText.textContent = 'connected · via router';
-    }catch(e){ /* the label is a nicety */ }
-  }
+  async function showLinkStrip() { if(!conn) return; linkCodeEl.textContent = await linkCode(conn) || '——'; linkStrip.classList.remove('hidden'); try { const stats = await conn.peerConnection.getStats(); let pair = null; stats.forEach((r) => { if(r.type === 'transport' && r.selectedCandidatePairId) pair = stats.get(r.selectedCandidatePairId); }); if(!pair) stats.forEach((r) => { if(r.type === 'candidate-pair' && (r.selected || (r.nominated && r.state === 'succeeded'))) pair = r; }); const local = pair && stats.get(pair.localCandidateId); const t = local && local.candidateType; if(t === 'host') statusText.textContent = 'connected · same network'; else if(t === 'relay') statusText.textContent = 'connected · relayed (slow)'; else if(t) statusText.textContent = 'connected · via router'; } catch(e) {} }
 
-  // ---------- sending side: my library + answering reads ----------
-  const mine = new Map();           // id -> { id, file, name, size, mime, kind, path }
-  const SESS = Math.random().toString(36).slice(2, 6);
-  let nid = 0, libGen = 0;
-
-  function addFiles(entries){
-    let added = 0, skipped = 0;
-    const seen = new Set([...mine.values()].map((m) => m.key));
-    for(const { file, relPath } of entries){
-      const cls = classify(file);
-      if(!cls){ skipped++; continue; }
-      const path = (relPath || file.name).replace(/^\/+/, '');
-      const key = path + '|' + file.size + '|' + file.lastModified;
-      if(seen.has(key)) continue;
-      seen.add(key);
-      const id = SESS + (++nid);
-      mine.set(id, { id, key, file, name:file.name, size:file.size, mime:cls.mime, kind:cls.kind, path });
-      added++;
-    }
-    if(!added && skipped) shareHint.textContent = 'No video or audio files in that selection.';
-    else shareHint.textContent = 'Keep this tab open while the other device is playing. On a phone, don’t lock the screen.';
-    renderMine();
-    if(ready) sendLibrary();
-    updateWake();
-  }
-
-  function renderMine(){
-    myList.textContent = '';
-    const items = [...mine.values()].sort((a, b) => natural.compare(a.path, b.path));
-    for(const it of items){
-      const li = h('li', 'track-row');
-      const info = h('div', 'track');
-      info.style.cursor = 'default';
-      info.append(h('span', 'ico', it.kind === 'video' ? '▶' : '♪'));
-      const nm = h('span', 'nm');
-      nm.append(h('b', null, it.name));
-      if(it.path !== it.name) nm.append(h('small', null, it.path));
-      info.append(nm, h('span', 'sz', fmtBytes(it.size)));
-      const x = h('button', 'mini-btn x-btn', '×');
-      x.type = 'button';
-      x.setAttribute('aria-label', 'Stop sharing ' + it.name);
-      x.addEventListener('click', () => { mine.delete(it.id); renderMine(); if(ready) sendLibrary(); updateWake(); });
-      li.append(info, x);
-      myList.append(li);
-    }
-    clearBtn.classList.toggle('hidden', mine.size === 0);
-    shareCount.textContent = mine.size ? String(mine.size) : '';
-  }
+  // ---------- sending side ----------
+  const mine = new Map(); const SESS = Math.random().toString(36).slice(2, 6); let nid = 0, libGen = 0;
+  function addFiles(entries) { let added = 0, skipped = 0; const seen = new Set([...mine.values()].map((m) => m.key)); for(const { file, relPath } of entries) { const cls = classify(file); if(!cls) { skipped++; continue; } const path = (relPath || file.name).replace(/^\/+/, ''); const key = path + '|' + file.size + '|' + file.lastModified; if(seen.has(key)) continue; seen.add(key); const id = SESS + (++nid); mine.set(id, { id, key, file, name:file.name, size:file.size, mime:cls.mime, kind:cls.kind, path }); added++; } if(!added && skipped) shareHint.textContent = 'No video or audio files in that selection.'; else shareHint.textContent = 'Keep this tab open while the other device is playing. On a phone, don\'t lock the screen.'; renderMine(); if(ready) sendLibrary(); updateWake(); }
+  function renderMine() { myList.textContent = ''; const items = [...mine.values()].sort((a, b) => natural.compare(a.path, b.path)); for(const it of items) { const li = h('li', 'track-row'); const info = h('div', 'track'); info.style.cursor = 'default'; info.append(h('span', 'ico', it.kind === 'video' ? '▶' : '♪')); const nm = h('span', 'nm'); nm.append(h('b', null, it.name)); if(it.path !== it.name) nm.append(h('small', null, it.path)); info.append(nm, h('span', 'sz', fmtBytes(it.size))); const x = h('button', 'mini-btn x-btn', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Stop sharing ' + it.name); x.addEventListener('click', () => { mine.delete(it.id); renderMine(); if(ready) sendLibrary(); updateWake(); }); li.append(info, x); myList.append(li); } clearBtn.classList.toggle('hidden', mine.size === 0); shareCount.textContent = mine.size ? String(mine.size) : ''; }
   clearBtn.addEventListener('click', () => { mine.clear(); renderMine(); if(ready) sendLibrary(); updateWake(); });
 
-  function send(obj){ if(conn && conn.open) conn.send(JSON.stringify(obj)); }
+  function send(obj) { if(conn && conn.open) conn.send(JSON.stringify(obj)); }
+  function sendLibrary() { const items = [...mine.values()].map(({ id, name, size, mime, kind, path }) => ({ id, name, size, mime, kind, path })).sort((a, b) => natural.compare(a.path, b.path)); const gen = ++libGen; const parts = Math.max(1, Math.ceil(items.length / LIB_PART)); for(let p = 0; p < parts; p++) send({ t:'lib', gen, part:p, parts, items: items.slice(p * LIB_PART, (p + 1) * LIB_PART) }); }
 
-  function sendLibrary(){
-    const items = [...mine.values()].map(({ id, name, size, mime, kind, path }) => ({ id, name, size, mime, kind, path }))
-      .sort((a, b) => natural.compare(a.path, b.path));
-    const gen = ++libGen;
-    const parts = Math.max(1, Math.ceil(items.length / LIB_PART));
-    for(let p = 0; p < parts; p++) send({ t:'lib', gen, part:p, parts, items: items.slice(p * LIB_PART, (p + 1) * LIB_PART) });
-  }
-
-  // one shared back-pressure gate for every in-flight read
-  const waiters = [];
-  function flushWaiters(){ while(waiters.length) waiters.shift()(); }
-  function drain(){
-    const dc = conn && conn.dataChannel;
-    if(!dc || dc.bufferedAmount <= HIGH) return Promise.resolve();
-    return new Promise((res) => waiters.push(res));
-  }
-
+  const waiters = []; function flushWaiters() { while(waiters.length) waiters.shift()(); } function drain() { const dc = conn && conn.dataChannel; if(!dc || dc.bufferedAmount <= HIGH) return Promise.resolve(); return new Promise((res) => waiters.push(res)); }
   let txBytes = 0, rxBytes = 0;
+  async function onGet(m) { const c = conn; const rid = m.rid >>> 0; const fail = (msg) => send({ t:'err', rid, msg }); const it = typeof m.fid === 'string' ? mine.get(m.fid) : null; const start = Number(m.start), end = Number(m.end); if(!it) return fail('not shared'); if(!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end >= it.size || end - start + 1 > MAX_GET) return fail('bad range'); let buf; try { buf = await it.file.slice(start, end + 1).arrayBuffer(); } catch(e) { return fail('could not read file'); } const src = new Uint8Array(buf); for(let off = 0; off < src.length; off += FRAME - 8) { await drain(); if(c !== conn || !ready) return; const n = Math.min(FRAME - 8, src.length - off); const out = new Uint8Array(8 + n); const dv = new DataView(out.buffer); dv.setUint32(0, rid); dv.setUint32(4, off); out.set(src.subarray(off, off + n), 8); conn.send(out.buffer); txBytes += n; } }
 
-  async function onGet(m){
-    const c = conn;
-    const rid = m.rid >>> 0;
-    const fail = (msg) => send({ t:'err', rid, msg });
-    const it = typeof m.fid === 'string' ? mine.get(m.fid) : null;
-    const start = Number(m.start), end = Number(m.end);
-    if(!it) return fail('not shared');
-    if(!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end >= it.size || end - start + 1 > MAX_GET) return fail('bad range');
-    let buf;
-    try{ buf = await it.file.slice(start, end + 1).arrayBuffer(); }
-    catch(e){ return fail('could not read file'); }
-    const src = new Uint8Array(buf);
-    for(let off = 0; off < src.length; off += FRAME - 8){
-      await drain();
-      if(c !== conn || !ready) return;
-      const n = Math.min(FRAME - 8, src.length - off);
-      const out = new Uint8Array(8 + n);
-      const dv = new DataView(out.buffer);
-      dv.setUint32(0, rid);
-      dv.setUint32(4, off);
-      out.set(src.subarray(off, off + n), 8);
-      conn.send(out.buffer);
-      txBytes += n;
-    }
-  }
+  // ---------- receiving side ----------
+  let theirs = []; const theirById = new Map(); let building = null, buildingGen = -1;
+  function onLib(m) { if(!Array.isArray(m.items) || !Number.isInteger(m.part) || !Number.isInteger(m.parts)) return; if(m.part === 0) { building = []; buildingGen = m.gen; } if(!building || m.gen !== buildingGen) return; for(const it of m.items) { if(building.length >= MAX_ITEMS) break; if(!it || typeof it.id !== 'string' || it.id.length > 64 || typeof it.name !== 'string') continue; const size = Number(it.size); if(!Number.isFinite(size) || size < 0) continue; building.push({ id: it.id, name: it.name.slice(0, 300), size, mime: typeof it.mime === 'string' ? it.mime.slice(0, 100) : '', kind: it.kind === 'audio' ? 'audio' : 'video', path: typeof it.path === 'string' ? it.path.slice(0, 600) : it.name }); } if(m.part === m.parts - 1) { theirs = building; building = null; theirById.clear(); for(const t of theirs) theirById.set(t.id, t); if(current && !theirById.has(current.id)) stopPlayback(); renderTheirs(); if(!userTabbed && theirs.length && !mine.size) showTab('watch', true); } }
+  const reads = new Map(); let ridSeq = 0;
+  function remoteRead(fid, start, end) { return new Promise((resolve, reject) => { if(!conn || !ready) return reject(new Error('not connected')); const rid = (++ridSeq) >>> 0; const rec = { buf:new Uint8Array(end - start + 1), got:0, resolve, reject, timer:0 }; rec.arm = () => { clearTimeout(rec.timer); rec.timer = setTimeout(() => { reads.delete(rid); reject(new Error('timed out')); }, 20000); }; rec.arm(); reads.set(rid, rec); send({ t:'get', rid, fid, start, end }); }); }
+  function onFrame(ab) { if(ab.byteLength <= 8) return; const dv = new DataView(ab); const rec = reads.get(dv.getUint32(0)); if(!rec) return; const off = dv.getUint32(4), n = ab.byteLength - 8; if(off + n > rec.buf.length) return; rec.buf.set(new Uint8Array(ab, 8, n), off); rec.got += n; rxBytes += n; if(rec.got >= rec.buf.length) { clearTimeout(rec.timer); reads.delete(dv.getUint32(0)); rec.resolve(rec.buf.buffer); } else rec.arm(); }
 
-  // ---------- receiving side: their library + ranged reads ----------
-  let theirs = [];
-  const theirById = new Map();
-  let building = null, buildingGen = -1;
+  function serveRange(port, req) { const it = theirById.get(req.fid); if(!it || !conn || !ready) { port.postMessage({ type:'error', msg:'not connected' }); return; } const last = Math.min(req.end, it.size - 1); let pos = req.start, cancelled = false, next = null; const fetchPiece = (p) => { const to = Math.min(last, p + PIECE - 1); const pr = remoteRead(it.id, p, to); pr.catch(() => {}); return { p, to, pr }; }; port.onmessage = async (m) => { const d = m.data || {}; if(d.type === 'cancel') { cancelled = true; next = null; port.close(); return; } if(d.type !== 'pull' || cancelled) return; if(pos > last) { port.postMessage({ type:'done' }); return; } const cur = next && next.p === pos ? next : fetchPiece(pos); pos = cur.to + 1; next = pos <= last ? fetchPiece(pos) : null; try { const buf = await cur.pr; if(!cancelled) port.postMessage({ type:'chunk', buf }, [buf]); } catch(e) { if(!cancelled) port.postMessage({ type:'error', msg:String(e && e.message || e) }); } }; }
 
-  function onLib(m){
-    if(!Array.isArray(m.items) || !Number.isInteger(m.part) || !Number.isInteger(m.parts)) return;
-    if(m.part === 0){ building = []; buildingGen = m.gen; }
-    if(!building || m.gen !== buildingGen) return;
-    for(const it of m.items){
-      if(building.length >= MAX_ITEMS) break;
-      if(!it || typeof it.id !== 'string' || it.id.length > 64 || typeof it.name !== 'string') continue;
-      const size = Number(it.size);
-      if(!Number.isFinite(size) || size < 0) continue;
-      building.push({
-        id: it.id, name: it.name.slice(0, 300), size,
-        mime: typeof it.mime === 'string' ? it.mime.slice(0, 100) : '',
-        kind: it.kind === 'audio' ? 'audio' : 'video',
-        path: typeof it.path === 'string' ? it.path.slice(0, 600) : it.name
-      });
-    }
-    if(m.part === m.parts - 1){
-      theirs = building;
-      building = null;
-      theirById.clear();
-      for(const t of theirs) theirById.set(t.id, t);
-      if(current && !theirById.has(current.id)) stopPlayback();
-      renderTheirs();
-      if(!userTabbed && theirs.length && !mine.size) showTab('watch', true);
-    }
-  }
-
-  const reads = new Map();
-  let ridSeq = 0;
-
-  function remoteRead(fid, start, end){
-    return new Promise((resolve, reject) => {
-      if(!conn || !ready) return reject(new Error('not connected'));
-      const rid = (++ridSeq) >>> 0;
-      const rec = { buf:new Uint8Array(end - start + 1), got:0, resolve, reject, timer:0 };
-      rec.arm = () => {
-        clearTimeout(rec.timer);
-        rec.timer = setTimeout(() => { reads.delete(rid); reject(new Error('timed out')); }, 20000);
-      };
-      rec.arm();
-      reads.set(rid, rec);
-      send({ t:'get', rid, fid, start, end });
-    });
-  }
-
-  function onFrame(ab){
-    if(ab.byteLength <= 8) return;
-    const dv = new DataView(ab);
-    const rec = reads.get(dv.getUint32(0));
-    if(!rec) return;
-    const off = dv.getUint32(4), n = ab.byteLength - 8;
-    if(off + n > rec.buf.length) return;
-    rec.buf.set(new Uint8Array(ab, 8, n), off);
-    rec.got += n;
-    rxBytes += n;
-    if(rec.got >= rec.buf.length){
-      clearTimeout(rec.timer);
-      reads.delete(dv.getUint32(0));
-      rec.resolve(rec.buf.buffer);
-    } else rec.arm();
-  }
-
-  // The service worker asks for a byte range; hand it back one piece per "pull",
-  // always keeping the next piece already in flight.
-  function serveRange(port, req){
-    const it = theirById.get(req.fid);
-    if(!it || !conn || !ready){ port.postMessage({ type:'error', msg:'not connected' }); return; }
-    const last = Math.min(req.end, it.size - 1);
-    let pos = req.start, cancelled = false, next = null;
-    const fetchPiece = (p) => {
-      const to = Math.min(last, p + PIECE - 1);
-      const pr = remoteRead(it.id, p, to);
-      pr.catch(() => {});
-      return { p, to, pr };
-    };
-    port.onmessage = async (m) => {
-      const d = m.data || {};
-      if(d.type === 'cancel'){ cancelled = true; next = null; port.close(); return; }
-      if(d.type !== 'pull' || cancelled) return;
-      if(pos > last){ port.postMessage({ type:'done' }); return; }
-      const cur = next && next.p === pos ? next : fetchPiece(pos);
-      pos = cur.to + 1;
-      next = pos <= last ? fetchPiece(pos) : null;
-      try{
-        const buf = await cur.pr;
-        if(!cancelled) port.postMessage({ type:'chunk', buf }, [buf]);
-      }catch(e){
-        if(!cancelled) port.postMessage({ type:'error', msg:String(e && e.message || e) });
-      }
-    };
-  }
-
-  // ---------- heartbeat: notice a vanished device quickly ----------
-  // A tab that closes cleanly says goodbye (pagehide). One that just disappears
-  // (phone locked, Wi-Fi dropped) would otherwise look "connected" for 30+ s
-  // until WebRTC gives up, so we ping and flag silence — softly: a message from
-  // the other side clears the flag, so a phone that wakes up resumes normally.
+  // ---------- heartbeat ----------
   let lastSeen = Date.now(), stale = false, staleText = '';
-  function heard(){
-    lastSeen = Date.now();
-    if(stale){
-      stale = false;
-      statusText.textContent = staleText || 'connected';
-      statusDot.className = 'dot live';
-    }
-  }
-  setInterval(() => {
-    if(!ready) return;
-    send({ t:'ping' });
-    const silent = Date.now() - lastSeen;
-    if(silent > 45000 && document.visibilityState === 'visible'){
-      // truly gone: drop the dead link so a new pairing isn't refused as "busy"
-      const c = conn;
-      try{ c.close(); }catch(e){}
-      if(conn === c) onClosed();
-      return;
-    }
-    if(!stale && document.visibilityState === 'visible' && silent > 12000){
-      stale = true;
-      staleText = statusText.textContent;
-      statusText.textContent = 'other device not responding…';
-      statusDot.className = 'dot bad';
-    }
-  }, 4000);
+  function heard() { lastSeen = Date.now(); if(stale) { stale = false; statusText.textContent = staleText || 'connected'; statusDot.className = 'tool-dot tool-dot--live'; } }
+  setInterval(() => { if(!ready) return; send({ t:'ping' }); const silent = Date.now() - lastSeen; if(silent > 45000 && document.visibilityState === 'visible') { const c = conn; try{ c.close(); }catch(e){} if(conn === c) onClosed(); return; } if(!stale && document.visibilityState === 'visible' && silent > 12000) { stale = true; staleText = statusText.textContent; statusText.textContent = 'other device not responding…'; statusDot.className = 'tool-dot tool-dot--error'; } }, 4000);
   document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') lastSeen = Date.now(); });
   window.addEventListener('pagehide', () => { try{ if(conn) conn.close(); }catch(e){} });
 
-  function onData(raw){
-    lastSeen = Date.now();
-    if(stale) heard();
-    if(typeof raw === 'string'){
-      let m;
-      try{ m = JSON.parse(raw); }catch(e){ return; }
-      if(!m || typeof m.t !== 'string') return;
-      if(!ready){ if(m.t === 'ok') onReady(); return; }  // initiator: wait for accept
-      if(m.t === 'lib') onLib(m);
-      else if(m.t === 'get') onGet(m);
-      else if(m.t === 'err'){
-        const r = reads.get(m.rid >>> 0);
-        if(r){ clearTimeout(r.timer); reads.delete(m.rid >>> 0); r.reject(new Error(String(m.msg || 'peer error'))); }
-      }
-    } else if(ready && raw instanceof ArrayBuffer){
-      onFrame(raw);
-    }
-  }
+  function onData(raw) { lastSeen = Date.now(); if(stale) heard(); if(typeof raw === 'string') { let m; try{ m = JSON.parse(raw); }catch(e){ return; } if(!m || typeof m.t !== 'string') return; if(!ready) { if(m.t === 'ok') onReady(); return; } if(m.t === 'lib') onLib(m); else if(m.t === 'get') onGet(m); else if(m.t === 'err') { const r = reads.get(m.rid >>> 0); if(r) { clearTimeout(r.timer); reads.delete(m.rid >>> 0); r.reject(new Error(String(m.msg || 'peer error'))); } } } else if(ready && raw instanceof ArrayBuffer) { onFrame(raw); } }
 
   // ---------- watch list + player ----------
   let current = null;
-  function renderTheirs(){
-    const q = filter.value.trim().toLowerCase();
-    theirList.textContent = '';
-    const shown = theirs.filter((t) => !q || (t.path + ' ' + t.name).toLowerCase().indexOf(q) >= 0);
-    for(const it of shown){
-      const li = h('li', 'track-row');
-      const b = h('button', 'track' + (current && current.id === it.id ? ' playing' : ''));
-      b.type = 'button';
-      b.append(h('span', 'ico', it.kind === 'video' ? '▶' : '♪'));
-      const nm = h('span', 'nm');
-      nm.append(h('b', null, it.name));
-      if(it.path !== it.name) nm.append(h('small', null, it.path));
-      b.append(nm, h('span', 'sz', fmtBytes(it.size)));
-      b.addEventListener('click', () => play(it));
-      li.append(b);
-      theirList.append(li);
-    }
-    theirEmpty.classList.toggle('hidden', theirs.length > 0);
-    filter.classList.toggle('hidden', theirs.length < 8);
-    watchCount.textContent = theirs.length ? String(theirs.length) : '';
-  }
+  function renderTheirs() { const q = filter.value.trim().toLowerCase(); theirList.textContent = ''; const shown = theirs.filter((t) => !q || (t.path + ' ' + t.name).toLowerCase().indexOf(q) >= 0); for(const it of shown) { const li = h('li', 'track-row'); const b = h('button', 'track' + (current && current.id === it.id ? ' track--playing' : '')); b.type = 'button'; b.append(h('span', 'ico', it.kind === 'video' ? '▶' : '♪')); const nm = h('span', 'nm'); nm.append(h('b', null, it.name)); if(it.path !== it.name) nm.append(h('small', null, it.path)); b.append(nm, h('span', 'sz', fmtBytes(it.size))); b.addEventListener('click', () => play(it)); li.append(b); theirList.append(li); } theirEmpty.classList.toggle('hidden', theirs.length > 0); filter.classList.toggle('hidden', theirs.length < 8); watchCount.textContent = theirs.length ? String(theirs.length) : ''; }
   filter.addEventListener('input', renderTheirs);
 
-  function streamUrl(it, dl){
-    return new URL('stream/' + encodeURIComponent(it.id) + '/' + encodeURIComponent(it.name) +
-      '?s=' + it.size + '&t=' + encodeURIComponent(it.mime || '') + (dl ? '&dl=1' : ''), swScope || location.href).href;
-  }
-
-  function play(it){
-    if(!swOk){ swFail('Playback isn’t ready yet — reload this page once, or see the offline option below.'); return; }
-    current = it;
-    playErr.classList.add('hidden');
-    player.classList.remove('hidden');
-    const media = it.kind === 'audio' ? aud : vid;
-    const other = media === aud ? vid : aud;
-    other.pause(); other.removeAttribute('src'); other.load(); other.classList.add('hidden');
-    media.classList.remove('hidden');
-    media.src = streamUrl(it);
-    media.play().catch(() => {});
-    nowName.textContent = it.name;
-    saveLink.href = streamUrl(it, true);
-    renderTheirs();
-    if('mediaSession' in navigator){
-      try{
-        navigator.mediaSession.metadata = new MediaMetadata({ title: it.name, artist: 'Pravah' });
-        navigator.mediaSession.setActionHandler('nexttrack', () => step(1));
-        navigator.mediaSession.setActionHandler('previoustrack', () => step(-1));
-      }catch(e){}
-    }
-  }
-
-  function step(dir){
-    if(!current) return;
-    const i = theirs.findIndex((t) => t.id === current.id);
-    const n = theirs[i + dir];
-    if(n) play(n);
-  }
-  prevBtn.addEventListener('click', () => step(-1));
-  nextBtn.addEventListener('click', () => step(1));
-
-  // Chromium sends <a download> straight to the network, skipping the service
-  // worker. Loading the URL in a hidden iframe does go through it, and the
-  // Content-Disposition: attachment header turns it into a normal download.
-  saveLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    if(!current || !swOk) return;
-    const f = document.createElement('iframe');
-    f.hidden = true;
-    f.src = saveLink.href;
-    document.body.appendChild(f);
-    setTimeout(() => f.remove(), 60000);
-  });
-
-  function stopPlayback(){
-    current = null;
-    for(const m of [vid, aud]){ m.pause(); m.removeAttribute('src'); m.load(); m.classList.add('hidden'); }
-    player.classList.add('hidden');
-    playErr.classList.add('hidden');
-  }
-
-  for(const m of [vid, aud]){
-    m.addEventListener('ended', () => step(1));
-    m.addEventListener('error', () => {
-      if(!current || !m.getAttribute('src')) return;
-      const ext = (current.name.split('.').pop() || '').toUpperCase();
-      playErr.textContent = ext === 'MKV' || ext === 'AVI' || ext === 'TS' || ext === 'FLAC'
-        ? 'This browser can’t play ' + ext + ' directly. Try Chrome or Edge, or use “save” and open it in a player like VLC.'
-        : 'Couldn’t play this file. The other device may have gone to sleep or left the page — or the format isn’t supported here. “save” downloads it instead.';
-      playErr.classList.remove('hidden');
-    });
-  }
-  // a message every so often stops the browser from putting the helper to sleep mid-film
-  setInterval(() => {
-    if(current && navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type:'ping' });
-  }, 20000);
+  function streamUrl(it, dl) { return new URL('stream/' + encodeURIComponent(it.id) + '/' + encodeURIComponent(it.name) + '?s=' + it.size + '&t=' + encodeURIComponent(it.mime || '') + (dl ? '&dl=1' : ''), swScope || location.href).href; }
+  function play(it) { if(!swOk) { swFail("Playback isn't ready yet — reload this page once, or see the offline option below."); return; } current = it; playErr.classList.add('hidden'); player.classList.remove('hidden'); const media = it.kind === 'audio' ? aud : vid; const other = media === aud ? vid : aud; other.pause(); other.removeAttribute('src'); other.load(); other.classList.add('hidden'); media.classList.remove('hidden'); media.src = streamUrl(it); media.play().catch(() => {}); nowName.textContent = it.name; saveLink.href = streamUrl(it, true); renderTheirs(); if('mediaSession' in navigator) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: it.name, artist: 'Pravah' }); navigator.mediaSession.setActionHandler('nexttrack', () => step(1)); navigator.mediaSession.setActionHandler('previoustrack', () => step(-1)); } catch(e) {} } }
+  function step(dir) { if(!current) return; const i = theirs.findIndex((t) => t.id === current.id); const n = theirs[i + dir]; if(n) play(n); }
+  prevBtn.addEventListener('click', () => step(-1)); nextBtn.addEventListener('click', () => step(1));
+  saveLink.addEventListener('click', (e) => { e.preventDefault(); if(!current || !swOk) return; const f = document.createElement('iframe'); f.hidden = true; f.src = saveLink.href; document.body.appendChild(f); setTimeout(() => f.remove(), 60000); });
+  function stopPlayback() { current = null; for(const m of [vid, aud]) { m.pause(); m.removeAttribute('src'); m.load(); m.classList.add('hidden'); } player.classList.add('hidden'); playErr.classList.add('hidden'); }
+  for(const m of [vid, aud]) { m.addEventListener('ended', () => step(1)); m.addEventListener('error', () => { if(!current || !m.getAttribute('src')) return; const ext = (current.name.split('.').pop() || '').toUpperCase(); playErr.textContent = ext === 'MKV' || ext === 'AVI' || ext === 'TS' || ext === 'FLAC' ? 'This browser can\'t play ' + ext + ' directly. Try Chrome or Edge, or use "save" and open it in a player like VLC.' : 'Couldn\'t play this file. The other device may have gone to sleep or left the page — or the format isn\'t supported here. "save" downloads it instead.'; playErr.classList.remove('hidden'); }); }
+  setInterval(() => { if(current && navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type:'ping' }); }, 20000);
 
   // ---------- tabs ----------
-  function showTab(name, auto){
-    if(!auto) userTabbed = true;
-    const watch = name === 'watch';
-    tabWatch.classList.toggle('active', watch);
-    tabShare.classList.toggle('active', !watch);
-    tabWatch.setAttribute('aria-selected', String(watch));
-    tabShare.setAttribute('aria-selected', String(!watch));
-    watchCard.classList.toggle('hidden', !watch);
-    shareCard.classList.toggle('hidden', watch);
-  }
-  tabWatch.addEventListener('click', () => showTab('watch'));
-  tabShare.addEventListener('click', () => showTab('share'));
+  function showTab(name, auto) { if(!auto) userTabbed = true; const watch = name === 'watch'; tabWatch.classList.toggle('tab-btn--active', watch); tabShare.classList.toggle('tab-btn--active', !watch); tabWatch.setAttribute('aria-selected', String(watch)); tabShare.setAttribute('aria-selected', String(!watch)); watchCard.classList.toggle('hidden', !watch); shareCard.classList.toggle('hidden', watch); }
+  tabWatch.addEventListener('click', () => showTab('watch')); tabShare.addEventListener('click', () => showTab('share'));
 
   // ---------- picking / dropping ----------
   pickFilesBtn.addEventListener('click', () => fileInput.click());
   pickFolderBtn.addEventListener('click', () => folderInput.click());
   if(window.matchMedia && matchMedia('(pointer:coarse)').matches) pickFolderBtn.classList.add('hidden');
   dropzone.addEventListener('click', () => fileInput.click());
-  dropzone.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); } });
+  dropzone.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
   fileInput.addEventListener('change', () => { addFiles([...fileInput.files].map((f) => ({ file:f }))); fileInput.value = ''; });
   folderInput.addEventListener('change', () => { addFiles([...folderInput.files].map((f) => ({ file:f, relPath:f.webkitRelativePath || f.name }))); folderInput.value = ''; });
-
   ['dragover', 'dragenter'].forEach((t) => dropzone.addEventListener(t, (e) => { e.preventDefault(); dropzone.classList.add('drag'); }));
   ['dragleave', 'drop'].forEach((t) => dropzone.addEventListener(t, (e) => { e.preventDefault(); dropzone.classList.remove('drag'); }));
-  dropzone.addEventListener('drop', (e) => {
-    // dt.items expire once this handler yields, so collect the entries first
-    const entries = [];
-    for(const item of e.dataTransfer.items){
-      const en = item.webkitGetAsEntry && item.webkitGetAsEntry();
-      if(en) entries.push(en);
-    }
-    const out = [];
-    const walk = async (entry, prefix) => {
-      if(entry.isFile){
-        const f = await new Promise((res) => entry.file(res, () => res(null)));
-        if(f) out.push({ file:f, relPath:(prefix ? prefix + '/' : '') + f.name });
-        return;
-      }
-      const reader = entry.createReader();
-      const sub = (prefix ? prefix + '/' : '') + entry.name;
-      for(;;){
-        const batch = await new Promise((res, rej) => reader.readEntries(res, rej));
-        if(!batch.length) break;
-        for(const child of batch) await walk(child, sub);
-      }
-    };
-    (async () => {
-      if(!entries.length) for(const f of e.dataTransfer.files) out.push({ file:f });
-      else for(const en of entries) await walk(en, '');
-      addFiles(out);
-    })().catch((err) => console.error('drop failed', err));
-  });
+  dropzone.addEventListener('drop', (e) => { const entries = []; for(const item of e.dataTransfer.items) { const en = item.webkitGetAsEntry && item.webkitGetAsEntry(); if(en) entries.push(en); } const out = []; const walk = async (entry, prefix) => { if(entry.isFile) { const f = await new Promise((res) => entry.file(res, () => res(null))); if(f) out.push({ file:f, relPath:(prefix ? prefix + '/' : '') + f.name }); return; } const reader = entry.createReader(); const sub = (prefix ? prefix + '/' : '') + entry.name; for(;;) { const batch = await new Promise((res, rej) => reader.readEntries(res, rej)); if(!batch.length) break; for(const child of batch) await walk(child, sub); } }; (async () => { if(!entries.length) for(const f of e.dataTransfer.files) out.push({ file:f }); else for(const en of entries) await walk(en, ''); addFiles(out); })().catch((err) => console.error('drop failed', err)); });
 
   // ---------- keep the sharing phone awake ----------
   let wl = null;
-  async function updateWake(){
-    const want = ready && mine.size > 0 && document.visibilityState === 'visible';
-    try{
-      if(want && !wl && 'wakeLock' in navigator){
-        wl = await navigator.wakeLock.request('screen');
-        wl.addEventListener('release', () => { wl = null; });
-      } else if(!want && wl){ await wl.release(); wl = null; }
-    }catch(e){ wl = null; }
-  }
+  async function updateWake() { const want = ready && mine.size > 0 && document.visibilityState === 'visible'; try { if(want && !wl && 'wakeLock' in navigator) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } else if(!want && wl) { await wl.release(); wl = null; } } catch(e) { wl = null; } }
   document.addEventListener('visibilitychange', updateWake);
 
   // ---------- live speed ----------
   let lastTx = 0, lastRx = 0, lastT = performance.now();
-  setInterval(() => {
-    const now = performance.now(), dt = (now - lastT) / 1000;
-    lastT = now;
-    if(!ready || dt <= 0){ lastTx = txBytes; lastRx = rxBytes; return; }
-    const up = (txBytes - lastTx) / dt, down = (rxBytes - lastRx) / dt;
-    lastTx = txBytes; lastRx = rxBytes;
-    const f = (v) => (v / 1048576).toFixed(1) + ' MB/s';
-    const parts = [];
-    if(down > 1024) parts.push('↓ ' + f(down));
-    if(up > 1024) parts.push('↑ ' + f(up));
-    rateEl.textContent = parts.join('  ');
-  }, 1000);
+  setInterval(() => { const now = performance.now(), dt = (now - lastT) / 1000; lastT = now; if(!ready || dt <= 0) { lastTx = txBytes; lastRx = rxBytes; return; } const up = (txBytes - lastTx) / dt, down = (rxBytes - lastRx) / dt; lastTx = txBytes; lastRx = rxBytes; const f = (v) => (v / 1048576).toFixed(1) + ' MB/s'; const parts = []; if(down > 1024) parts.push('↓ ' + f(down)); if(up > 1024) parts.push('↑ ' + f(up)); rateEl.textContent = parts.join('  '); }, 1000);
 
   // ---------- go ----------
-  if(/^#\d{8}$/.test(location.hash)){
-    autoCode = location.hash.slice(1);
-    history.replaceState(null, '', location.pathname + location.search);
-  }
-  renderMine();
-  renderTheirs();
-  initSW();
-  initPeer();
+  if(/^#\d{8}$/.test(location.hash)) { autoCode = location.hash.slice(1); history.replaceState(null, '', location.pathname + location.search); }
+  renderMine(); renderTheirs(); initSW(); initPeer();
 })();
 </script>
 </body>

@@ -4,627 +4,305 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rin Ledger — Prayog</title>
+<meta name="description" content="Home loan amortization calculator. Track payoff schedules, simulate prepayments, and compare rent vs buy — all in-browser.">
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/site.webmanifest">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Geist+Mono:wght@400;500;600&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Styles -->
 <link rel="stylesheet" href="/assets/theme.css">
-<script src="../assets/nav.js" defer data-tool="rin-ledger"></script>
+<link rel="stylesheet" href="/assets/tool.css">
+
+<!-- Scripts -->
+<script src="/assets/nav.js" defer data-tool="RIN LEDGER"></script>
+<script src="/assets/tool.js" defer></script>
+
+<!-- Page-specific styles -->
 <style>
-  /* Rin Ledger specific styles */
-  .rupee{ font-family:var(--mono); font-size:2.5rem; color:var(--amber); line-height:1; margin-top:2px; }
-  h1{ font-family:var(--mono); font-weight:600; font-size:2rem; margin:0; letter-spacing:.2px; }
-  .subtitle{ color:var(--muted); font-size:0.875rem; margin-top:6px; max-width:600px; line-height:1.5; }
+  .rupee-display { font-family: var(--font-mono); font-size: 3rem; font-weight: 700; color: var(--tool-amber); line-height: 1; margin-bottom: var(--tool-space-2); }
+  .card-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--tool-space-3); flex-wrap: wrap; gap: var(--tool-space-2); }
 
-  /* .wrap is flex-column with align-items:center, so cards size to max-content
-     instead of stretching — a wide table pushed the card past the viewport.
-     width:100% pins them, letting .tableWrap scroll internally. */
-  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:20px; width:100%; }
-  .cardLabel{ font-family:var(--mono); font-size:1rem; font-weight:600; margin-bottom:14px; }
-  .cardLabel .hint{ font-family:var(--sans); font-weight:400; font-size:0.78rem; color:var(--muted); }
-  .cardHeaderRow{ display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-  .divider{ height:1px; background:var(--line); margin:18px 0; }
+  .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--tool-space-4); }
+  .field { display: flex; flex-direction: column; gap: var(--tool-space-1); }
+  .field label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tool-text-muted); }
+  .field input { padding: var(--tool-space-2) var(--tool-space-3); background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-md); color: var(--tool-text); font-family: var(--font-mono); font-size: 14px; }
+  .field input:focus { outline: none; border-color: var(--tool-teal); box-shadow: 0 0 0 3px rgba(47,163,154,0.15); }
+  .read-only { font-family: var(--font-mono); font-size: 16px; font-weight: 600; color: var(--tool-amber); padding: var(--tool-space-2) 0; }
 
-  .inputGrid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:16px; }
-  .field{ display:flex; flex-direction:column; gap:6px; }
-  .field label{ font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
-  input[type=number]{
-    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px;
-    color:var(--text); font-family:var(--mono); font-size:0.875rem; outline:none; width:100%;
+  .toggle-group { display: flex; gap: var(--tool-space-2); flex-wrap: wrap; }
+  .toggle-btn {
+    background: transparent; color: var(--tool-text-muted); border: 1px solid var(--tool-border);
+    border-radius: var(--tool-radius-md); padding: var(--tool-space-1) var(--tool-space-3);
+    font-family: var(--font-mono); font-size: 12px; cursor: pointer; white-space: nowrap;
+    transition: all var(--tool-duration-fast);
   }
-  input[type=number]:focus{ border-color:var(--amber); }
-  .readOnly{ font-family:var(--mono), monospace; font-size:0.94rem; color:var(--amber); padding:9px 0; font-weight:600; }
+  .toggle-btn:hover { border-color: var(--tool-teal); }
+  .toggle-btn--active { background: var(--tool-amber); color: var(--tool-bg); border-color: var(--tool-amber); font-weight: 600; }
 
-  .toggleGroup{ display:flex; gap:6px; flex-wrap:wrap; }
-  .toggleBtn{
-    background:transparent; color:var(--muted); border:1px solid var(--line); border-radius:var(--radius-sm);
-    padding:6px 12px; font-size:0.78rem; cursor:pointer; font-family:var(--sans); white-space:nowrap;
-  }
-  .toggleBtn.active{ background:var(--amber); color:var(--bg); border-color:var(--amber); font-weight:600; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--tool-space-3); margin-bottom: var(--tool-space-4); }
+  .summary-card { background: var(--tool-surface); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-lg); padding: var(--tool-space-4); }
+  .summary-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tool-text-muted); margin-bottom: var(--tool-space-2); }
+  .summary-value { font-family: var(--font-mono); font-size: 18px; font-weight: 600; }
+  .summary-value--good { color: var(--tool-teal); }
+  .summary-value--bad { color: var(--tool-red); }
+  .summary-value--neutral { color: var(--tool-text); }
 
-  .summaryRow{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
-  .summaryCard{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:16px 18px; }
-  .summaryLabel{ font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
-  .summaryValue{ font-family:var(--mono), monospace; font-size:1.19rem; font-weight:600; }
-  .good{ color:var(--teal); } .bad{ color:var(--red); } .neutral{ color:var(--text); }
+  .switch-label { font-size: 13px; color: var(--tool-text-muted); display: flex; align-items: center; gap: var(--tool-space-2); cursor: pointer; }
+  .switch-label input { accent-color: var(--tool-teal); }
 
-  .switchLabel{ font-size:0.81rem; color:var(--muted); display:flex; align-items:center; gap:8px; cursor:pointer; }
-  .noteBox{ margin-top:14px; font-size:0.78rem; color:var(--muted); line-height:1.6; border-left:2px solid var(--line); padding-left:12px; }
+  .note-box { margin-top: var(--tool-space-3); font-size: 13px; color: var(--tool-text-muted); line-height: 1.6; border-left: 2px solid var(--tool-border); padding-left: var(--tool-space-3); }
+  .note-box strong { color: var(--tool-amber); }
 
-  .chartWrap{ width:100%; overflow:hidden; }
-  svg.chart{ width:100%; height:auto; display:block; }
-  .axisText{ font-family:var(--mono), monospace; font-size:0.75rem; fill:var(--muted); }
-  .gridLine{ stroke:var(--line); stroke-dasharray:2 5; }
-  .hoverLine{ stroke:var(--muted); stroke-width:1; }
-  .legendRow{ display:flex; gap:18px; margin-top:6px; flex-wrap:wrap; }
-  .legendItem{ display:flex; align-items:center; gap:6px; font-size:0.78rem; color:var(--text); }
-  .legendSwatch{ width:10px; height:10px; border-radius:2px; }
+  .chart-wrap { width: 100%; overflow: hidden; }
+  svg.chart { width: 100%; height: auto; display: block; }
 
-  .tableWrap{ max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:var(--radius-md); }
-  table{ width:100%; border-collapse:collapse; font-family:var(--mono), monospace; font-size:0.78rem; }
-  thead th{
-    position:sticky; top:0; background:var(--panel-2); color:var(--amber); text-align:right; padding:10px 12px;
-    font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line);
-  }
-  tbody td{ text-align:right; padding:8px 12px; border-bottom:1px solid var(--line); }
-  tbody tr:nth-child(even){ background:var(--panel-2); }
-  td input[type=number]{ width:90px; padding:5px 7px; font-size:0.78rem; color:var(--amber); text-align:right; }
-  .closingCell{ color:var(--amber); font-weight:600; }
+  .legend-row { display: flex; gap: var(--tool-space-4); margin-top: var(--tool-space-3); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: var(--tool-space-2); font-size: 13px; color: var(--tool-text); }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
 
-  .tooltipBox{
-    background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-md); padding:8px 12px;
-    font-family:var(--mono), monospace; font-size:0.75rem;
-  }
+  .table-wrap { max-height: 420px; overflow: auto; border: 1px solid var(--tool-border); border-radius: var(--tool-radius-md); }
+  table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 13px; }
+  thead th { position: sticky; top: 0; background: var(--tool-surface-elevated); color: var(--tool-amber); text-align: right; padding: var(--tool-space-2) var(--tool-space-3); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--tool-border); }
+  tbody td { text-align: right; padding: var(--tool-space-2) var(--tool-space-3); border-bottom: 1px solid var(--tool-border); }
+  tbody tr:nth-child(even) { background: var(--tool-surface-elevated); }
+  tbody td input[type=number] { width: 100px; padding: 4px 8px; font-size: 12px; color: var(--tool-amber); text-align: right; background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-sm); }
+  tbody td input[type=number]:focus { outline: none; border-color: var(--tool-teal); }
+  .closing-cell { color: var(--tool-amber); font-weight: 600; }
 
-  @media (max-width:640px){
-    .wrap{ padding:24px 16px 30px 20px; }
-    h1{ font-size:1.6rem; }
+  .tooltip-box { background: var(--tool-surface-elevated); border: 1px solid var(--tool-border); border-radius: var(--tool-radius-md); padding: var(--tool-space-2) var(--tool-space-3); font-family: var(--font-mono); font-size: 12px; }
+
+  .divider { height: 1px; background: var(--tool-border); margin: var(--tool-space-4) 0; }
+
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+  @media (max-width: 640px) {
+    .tool-wrap { padding: var(--tool-space-4) var(--tool-space-3) var(--tool-space-6); }
+    .rupee-display { font-size: 2rem; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="rupee">₹</div>
-    <div>
-      <h1>Rin Ledger</h1>
-      <p class="subtitle">A home loan amortization book — track payoff, prepayments, and the rent-vs-buy math, side by side. No install, no server — everything runs in this page.</p>
-    </div>
-  </header>
-
-  <!-- Loan terms -->
-  <section class="card">
-    <div class="cardLabel">Loan terms</div>
-    <div class="inputGrid">
-      <div class="field"><label for="principal">Loan amount (₹)</label><input type="number" id="principal" value="5000000"></div>
-      <div class="field"><label for="rate">Interest rate (annual %)</label><input type="number" id="rate" step="0.05" value="9.0"></div>
-      <div class="field"><label for="years">Tenure (years)</label><input type="number" id="years" value="10" min="1"></div>
-      <div class="field"><label>Monthly EMI</label><div class="readOnly" id="emiOut" role="status">—</div></div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="inputGrid">
-      <div class="field">
-        <label id="interestMethodLabel">Interest method</label>
-        <div class="toggleGroup" id="interestTypeToggle" role="group" aria-labelledby="interestMethodLabel">
-          <button class="toggleBtn active" data-val="reducing">Reducing balance</button>
-          <button class="toggleBtn" data-val="flat">Flat / simple</button>
-        </div>
+<div class="tool-page">
+  <div class="tool-wrap">
+    <header class="tool-header">
+      <div class="rupee-display">₹</div>
+      <div>
+        <h1 class="tool-brand" style="font-size: 2rem; margin: 0;">RIN LEDGER</h1>
+        <p class="subtitle" style="margin-top: var(--tool-space-2); max-width: 600px;">Home loan amortization calculator — track payoff, prepayments, and rent-vs-buy math. No install, no server.</p>
       </div>
-      <div class="field">
-        <label for="feeValue">Processing fee</label>
-        <div style="display:flex; gap:8px;">
-          <input type="number" id="feeValue" step="0.1" value="1.0" style="flex:1;">
-          <div class="toggleGroup" id="feeTypeToggle">
-            <button class="toggleBtn active" data-val="percent">%</button>
-            <button class="toggleBtn" data-val="flat">₹</button>
+    </header>
+
+    <main class="tool-main tool-main--wide">
+
+      <!-- Loan Terms -->
+      <section class="tool-card">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">Loan terms</h2>
+        </div>
+
+        <div class="input-grid">
+          <div class="field"><label for="principal">Loan amount (₹)</label><input type="number" id="principal" value="5000000"></div>
+          <div class="field"><label for="rate">Interest rate (annual %)</label><input type="number" id="rate" step="0.05" value="9.0"></div>
+          <div class="field"><label for="years">Tenure (years)</label><input type="number" id="years" value="10" min="1"></div>
+          <div class="field"><label>Monthly EMI</label><div class="read-only" id="emiOut" role="status">—</div></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="input-grid">
+          <div class="field">
+            <label>Interest method</label>
+            <div class="toggle-group" id="interestTypeToggle" role="group" aria-label="Interest method">
+              <button class="toggle-btn toggle-btn--active" data-val="reducing" type="button">Reducing balance</button>
+              <button class="toggle-btn" data-val="flat" type="button">Flat / simple</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="feeValue">Processing fee</label>
+            <div style="display: flex; gap: var(--tool-space-2);">
+              <input type="number" id="feeValue" step="0.1" value="1.0" style="flex: 1;">
+              <div class="toggle-group" id="feeTypeToggle">
+                <button class="toggle-btn toggle-btn--active" data-val="percent" type="button">%</button>
+                <button class="toggle-btn" data-val="flat" type="button">₹</button>
+              </div>
+            </div>
+          </div>
+          <div class="field"><label>Fee amount</label><div class="read-only" id="feeAmountOut">—</div></div>
+          <div class="field"><label>Net disbursed</label><div class="read-only" id="netDisbursalOut">—</div></div>
+        </div>
+
+        <div class="note-box hidden" id="flatNote"></div>
+      </section>
+
+      <!-- Prepayment Tool -->
+      <section class="tool-card">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">Add a prepayment</h2>
+        </div>
+
+        <div class="input-grid">
+          <div class="field"><label for="bulkMonth">Starting month</label><input type="number" id="bulkMonth" value="1" min="1"></div>
+          <div class="field"><label for="bulkAmount">Amount (₹)</label><input type="number" id="bulkAmount" value="100000"></div>
+          <div class="field"><label for="bulkEvery">Repeat every N months (0 = once)</label><input type="number" id="bulkEvery" value="0" min="0"></div>
+          <div style="display: flex; gap: var(--tool-space-2); align-items: flex-end;">
+            <button class="tool-btn tool-btn--primary" id="applyBulkBtn" type="button">Apply</button>
+            <button class="tool-btn tool-btn--secondary" id="clearExtrasBtn" type="button">Clear all</button>
+            <button class="tool-btn tool-btn--secondary hidden" id="undoClearBtn" type="button">Undo clear</button>
           </div>
         </div>
-      </div>
-      <div class="field"><label>Fee amount</label><div class="readOnly" id="feeAmountOut">—</div></div>
-      <div class="field"><label>Net amount disbursed</label><div class="readOnly" id="netDisbursalOut">—</div></div>
-    </div>
+      </section>
 
-    <div class="noteBox" id="flatNote" style="display:none;"></div>
-  </section>
+      <!-- Summary -->
+      <section class="summary-grid" id="summaryRow" aria-live="polite"></section>
 
-  <!-- Prepayment tool -->
-  <section class="card">
-    <div class="cardLabel">Add a prepayment</div>
-    <div class="inputGrid">
-      <div class="field"><label for="bulkMonth">Starting month</label><input type="number" id="bulkMonth" value="1" min="1"></div>
-      <div class="field"><label for="bulkAmount">Amount (₹)</label><input type="number" id="bulkAmount" value="100000"></div>
-      <div class="field"><label for="bulkEvery">Repeat every N months (0 = once)</label><input type="number" id="bulkEvery" value="0" min="0"></div>
-      <div style="display:flex; gap:10px; align-items:flex-end;">
-        <button class="btn btn-primary" id="applyBulkBtn">Apply</button>
-        <button class="btn btn-secondary" id="clearExtrasBtn">Clear all</button>
-        <button class="btn btn-secondary" id="undoClearBtn" hidden>Undo clear</button>
-      </div>
-    </div>
-  </section>
+      <!-- Balance Chart -->
+      <section class="tool-card">
+        <div class="card-header-row">
+          <h2 class="tool-card-title">Outstanding balance over time</h2>
+          <div class="toggle-group" id="chartStyleToggle">
+            <button class="toggle-btn toggle-btn--active" data-val="mountain" type="button">Mountain</button>
+            <button class="toggle-btn" data-val="line" type="button">Line</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><svg class="chart" id="balanceChart" viewBox="0 0 900 320" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="legend-row">
+          <div class="legend-item"><span class="legend-swatch" style="background: var(--tool-muted)"></span>Original schedule</div>
+          <div class="legend-item"><span class="legend-swatch" style="background: var(--tool-amber)"></span>With prepayments</div>
+        </div>
+      </section>
 
-  <!-- Summary -->
-  <section class="summaryRow" id="summaryRow" aria-live="polite"></section>
+      <!-- Rent Comparison -->
+      <section class="tool-card">
+        <div class="card-header-row">
+          <h2 class="tool-card-title">Rent comparison</h2>
+          <label class="switch-label"><input type="checkbox" id="showRentToggle"> show</label>
+        </div>
+        <div id="rentBody" class="hidden">
+          <div class="input-grid">
+            <div class="field"><label for="rentAmount">Monthly rent today (₹)</label><input type="number" id="rentAmount" value="20000"></div>
+            <div class="field"><label for="rentIncrease">Annual rent increase (%)</label><input type="number" id="rentIncrease" step="0.5" value="5"></div>
+            <div class="field"><label>Compared over</label><div class="read-only" id="rentYearsOut">—</div></div>
+          </div>
+          <div class="chart-wrap" style="margin-top: var(--tool-space-3);"><svg class="chart" id="rentChart" viewBox="0 0 900 280" preserveAspectRatio="xMidYMid meet"></svg></div>
+          <div class="legend-row">
+            <div class="legend-item"><span class="legend-swatch" style="background: var(--tool-red)"></span>Cumulative rent paid</div>
+            <div class="legend-item"><span class="legend-swatch" style="background: var(--tool-teal)"></span>Cumulative loan payments</div>
+          </div>
+          <div class="note-box" id="rentNote"></div>
+        </div>
+      </section>
 
-  <!-- Balance chart -->
-  <section class="card">
-    <div class="cardHeaderRow">
-      <div class="cardLabel">Outstanding balance over time</div>
-      <div class="toggleGroup" id="chartStyleToggle">
-        <button class="toggleBtn active" data-val="mountain">Mountain</button>
-        <button class="toggleBtn" data-val="line">Line</button>
-      </div>
-    </div>
-    <div class="chartWrap">
-      <svg class="chart" id="balanceChart" viewBox="0 0 900 320" preserveAspectRatio="xMidYMid meet"></svg>
-    </div>
-    <div class="legendRow">
-      <div class="legendItem"><span class="legendSwatch" style="background:var(--muted)"></span>Original schedule</div>
-      <div class="legendItem"><span class="legendSwatch" style="background:var(--amber)"></span>With prepayments</div>
-    </div>
-  </section>
+      <!-- Amortization Table -->
+      <section class="tool-card">
+        <div class="tool-card-head">
+          <h2 class="tool-card-title">Amortization schedule <span style="font-family: var(--font-mono); font-size: 11px; color: var(--tool-text-muted); font-weight: 400;">— edit "Extra" to add a one-off prepayment for that month</span></h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Month</th><th>Opening</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Extra</th><th>Closing</th></tr>
+            </thead>
+            <tbody id="amortBody"></tbody>
+          </table>
+        </div>
+      </section>
 
-  <!-- Rent comparison -->
-  <section class="card">
-    <div class="cardHeaderRow">
-      <div class="cardLabel">Rent comparison</div>
-      <label class="switchLabel"><input type="checkbox" id="showRentToggle"> show</label>
-    </div>
-    <div id="rentBody" style="display:none;">
-      <div class="inputGrid">
-        <div class="field"><label for="rentAmount">Monthly rent today (₹)</label><input type="number" id="rentAmount" value="20000"></div>
-        <div class="field"><label for="rentIncrease">Annual rent increase (%)</label><input type="number" id="rentIncrease" step="0.5" value="5"></div>
-        <div class="field"><label>Compared over</label><div class="readOnly" id="rentYearsOut">—</div></div>
-      </div>
-      <div class="chartWrap" style="margin-top:8px;">
-        <svg class="chart" id="rentChart" viewBox="0 0 900 280" preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
-      <div class="legendRow">
-        <div class="legendItem"><span class="legendSwatch" style="background:var(--red)"></span>Cumulative rent paid</div>
-        <div class="legendItem"><span class="legendSwatch" style="background:var(--teal)"></span>Cumulative loan payments</div>
-      </div>
-      <div class="noteBox" id="rentNote"></div>
-    </div>
-  </section>
+    </main>
 
-  <!-- Amortization table -->
-  <section class="card">
-    <div class="cardLabel">Amortization schedule <span class="hint">— edit "Extra" to add a one-off prepayment for that month</span></div>
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Month</th><th>Opening</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Extra</th><th>Closing</th>
-          </tr>
-        </thead>
-        <tbody id="amortBody"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <footer>Rin Ledger — a private amortization tool. Figures assume the interest method selected above and monthly instalments.</footer>
+    <footer class="tool-footer">
+      Rin Ledger — a private amortization tool. Figures assume the interest method selected above and monthly instalments.
+    </footer>
+  </div>
 </div>
 
 <script>
 // ================= State =================
 const state = {
-  principal: 5000000,
-  rate: 9.0,
-  years: 10,
-  interestType: 'reducing',
-  feeType: 'percent',
-  feeValue: 1.0,
-  extraMap: {},
-  chartStyle: 'mountain',
-  showRent: false,
-  rentAmount: 20000,
-  rentIncrease: 5,
-  bulkMonth: 1,
-  bulkAmount: 100000,
-  bulkEvery: 0,
+  principal: 5000000, rate: 9.0, years: 10,
+  interestType: 'reducing', feeType: 'percent', feeValue: 1.0,
+  extraMap: {}, chartStyle: 'mountain', showRent: false,
+  rentAmount: 20000, rentIncrease: 5,
+  bulkMonth: 1, bulkAmount: 100000, bulkEvery: 0,
 };
 
 // ================= Math helpers =================
-function inr(n){
-  if(!isFinite(n)) return '₹0';
-  const sign = n < 0 ? '-' : '';
-  return sign + '₹' + Math.round(Math.abs(n)).toLocaleString('en-IN');
-}
-function monthLabel(m){
-  const y = Math.floor((m-1)/12)+1;
-  const mm = ((m-1)%12)+1;
-  return 'Y'+y+'M'+mm;
-}
-function calcEmiReducing(principal, annualRatePct, months){
-  const i = annualRatePct/12/100;
-  if(i===0) return principal/months;
-  const pow = Math.pow(1+i, months);
-  return (principal*i*pow)/(pow-1);
-}
-function solveEffectiveRate(emi, principal, months){
-  let low=0, high=100;
-  for(let iter=0; iter<60; iter++){
-    const mid=(low+high)/2;
-    const val=calcEmiReducing(principal, mid, months);
-    if(val>emi) high=mid; else low=mid;
-  }
-  return (low+high)/2;
-}
-function buildReducingSchedule(principal, annualRatePct, tenureMonths, extraMap){
-  const i = annualRatePct/12/100;
-  const emi = calcEmiReducing(principal, annualRatePct, tenureMonths);
-  let balance = principal;
-  let cumInterest=0, cumPrincipal=0, cumExtra=0;
-  const rows=[];
-  for(let m=1; m<=tenureMonths; m++){
-    if(balance<=0.5) break;
-    const interest = balance*i;
-    let principalComp = emi - interest;
-    let extra = extraMap[m] || 0;
-    if(principalComp > balance) principalComp = balance;
-    let remainingAfterEmi = balance - principalComp;
-    if(extra > remainingAfterEmi) extra = remainingAfterEmi;
-    const closing = remainingAfterEmi - extra;
-    cumInterest += interest; cumPrincipal += principalComp; cumExtra += extra;
-    rows.push({month:m, label:monthLabel(m), opening:balance, emi:interest+principalComp,
-      interest, principal:principalComp, extra, closing: closing<0.5?0:closing,
-      cumInterest, cumPrincipal, cumExtra, cumPaid:cumInterest+cumPrincipal+cumExtra});
-    balance = closing;
-  }
-  return {rows, emi, meta:{}};
-}
-function buildFlatSchedule(principal, annualRatePct, tenureMonths, extraMap){
-  const totalInterest = principal*(annualRatePct/100)*(tenureMonths/12);
-  const emi = (principal+totalInterest)/tenureMonths;
-  const fixedPrincipal = principal/tenureMonths;
-  const fixedInterest = totalInterest/tenureMonths;
-  let balance = principal;
-  let cumInterest=0, cumPrincipal=0, cumExtra=0;
-  const rows=[];
-  for(let m=1; m<=tenureMonths; m++){
-    if(balance<=0.5) break;
-    let principalComp = fixedPrincipal;
-    let interest = fixedInterest;
-    if(principalComp > balance) principalComp = balance;
-    let extra = extraMap[m] || 0;
-    let remainingAfterEmi = balance - principalComp;
-    if(extra > remainingAfterEmi) extra = remainingAfterEmi;
-    const closing = remainingAfterEmi - extra;
-    cumInterest += interest; cumPrincipal += principalComp; cumExtra += extra;
-    rows.push({month:m, label:monthLabel(m), opening:balance, emi:interest+principalComp,
-      interest, principal:principalComp, extra, closing: closing<0.5?0:closing,
-      cumInterest, cumPrincipal, cumExtra, cumPaid:cumInterest+cumPrincipal+cumExtra});
-    balance = closing;
-  }
-  const effectiveRate = solveEffectiveRate(emi, principal, tenureMonths);
-  return {rows, emi, meta:{totalInterest, effectiveRate}};
-}
-function buildSchedule(interestType, principal, annualRatePct, tenureMonths, extraMap){
-  return interestType==='flat'
-    ? buildFlatSchedule(principal, annualRatePct, tenureMonths, extraMap)
-    : buildReducingSchedule(principal, annualRatePct, tenureMonths, extraMap);
-}
-function buildRentSeries(monthlyRent, annualIncreasePct, months){
-  const series=[];
-  let rent=monthlyRent, cum=0;
-  for(let m=1; m<=months; m++){
-    if(m>1 && (m-1)%12===0) rent = rent*(1+annualIncreasePct/100);
-    cum += rent;
-    series.push({month:m, rent, cumRent:cum});
-  }
-  return series;
-}
-function years12(m){ return Math.floor(m/12)+'y '+(m%12)+'m'; }
+function inr(n) { if(!isFinite(n)) return '₹0'; const s = n < 0 ? '-' : ''; return s + '₹' + Math.round(Math.abs(n)).toLocaleString('en-IN'); }
+function monthLabel(m) { const y = Math.floor((m-1)/12)+1; const mm = ((m-1)%12)+1; return 'Y'+y+'M'+mm; }
+function calcEmiReducing(p, r, m) { const i = r/12/100; if(i===0) return p/m; const pow = Math.pow(1+i, m); return (p*i*pow)/(pow-1); }
+function solveEffectiveRate(emi, p, m) { let lo=0, hi=100; for(let iter=0; iter<60; iter++){ const mid=(lo+hi)/2; if(calcEmiReducing(p, mid, m) > emi) hi=mid; else lo=mid; } return (lo+hi)/2; }
+function buildReducingSchedule(p, r, months, extraMap) { const i = r/12/100; const emi = calcEmiReducing(p, r, months); let bal = p, ci=0, cp=0, ce=0; const rows=[]; for(let m=1; m<=months; m++){ if(bal<=0.5) break; const interest = bal*i; let prin = emi - interest; let extra = extraMap[m] || 0; if(prin > bal) prin = bal; let rem = bal - prin; if(extra > rem) extra = rem; const closing = rem - extra; ci += interest; cp += prin; ce += extra; rows.push({month:m, label:monthLabel(m), opening:bal, emi:interest+prin, interest, principal:prin, extra, closing: closing<0.5?0:closing, cumInterest:ci, cumPrincipal:cp, cumExtra:ce, cumPaid:ci+cp+ce}); bal = closing; } return {rows, emi, meta:{}}; }
+function buildFlatSchedule(p, r, months, extraMap) { const totalInt = p*(r/100)*(months/12); const emi = (p+totalInt)/months; const fixedPrin = p/months; const fixedInt = totalInt/months; let bal = p, ci=0, cp=0, ce=0; const rows=[]; for(let m=1; m<=months; m++){ if(bal<=0.5) break; let prin = fixedPrin; let interest = fixedInt; if(prin > bal) prin = bal; let extra = extraMap[m] || 0; let rem = bal - prin; if(extra > rem) extra = rem; const closing = rem - extra; ci += interest; cp += prin; ce += extra; rows.push({month:m, label:monthLabel(m), opening:bal, emi:interest+prin, interest, principal:prin, extra, closing: closing<0.5?0:closing, cumInterest:ci, cumPrincipal:cp, cumExtra:ce, cumPaid:ci+cp+ce}); bal = closing; } return {rows, emi, meta:{totalInterest, effectiveRate: solveEffectiveRate(emi, p, months)}}; }
+function buildSchedule(type, p, r, months, extraMap) { return type === 'flat' ? buildFlatSchedule(p, r, months, extraMap) : buildReducingSchedule(p, r, months, extraMap); }
+function buildRentSeries(rent, incPct, months) { const series=[]; let cur=rent, cum=0; for(let m=1; m<=months; m++){ if(m>1 && (m-1)%12===0) cur = cur*(1+incPct/100); cum += cur; series.push({month:m, rent:cur, cumRent:cum}); } return series; }
+function years12(m) { return Math.floor(m/12)+'y '+(m%12)+'m'; }
 
 // ================= SVG chart drawing =================
 const SVG_NS = 'http://www.w3.org/2000/svg';
-function el(tag, attrs){
-  const e = document.createElementNS(SVG_NS, tag);
-  for(const k in attrs) e.setAttribute(k, attrs[k]);
-  return e;
-}
+function el(tag, attrs){ const e = document.createElementNS(SVG_NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
 function clearSvg(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); }
-
-// data: array of {label, ...series values}; seriesConfigs: [{key,color,name}]
 function drawChart(svg, data, seriesConfigs, opts){
   clearSvg(svg);
-  const vb = svg.viewBox.baseVal;
-  const W = vb.width, H = vb.height;
-  const padL = 55, padR = 20, padT = 14, padB = 34;
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
+  const vb = svg.viewBox.baseVal; const W = vb.width, H = vb.height;
+  const padL=55, padR=20, padT=14, padB=34; const plotW = W-padL-padR, plotH = H-padT-padB;
   if(!data.length) return;
-
-  let maxVal = 0;
-  data.forEach(d => seriesConfigs.forEach(s => { if(d[s.key] > maxVal) maxVal = d[s.key]; }));
-  maxVal = maxVal * 1.08 || 1;
-
-  const n = data.length;
-  const xScale = idx => padL + (n===1 ? 0 : idx/(n-1)) * plotW;
-  const yScale = val => padT + plotH - (val/maxVal)*plotH;
-
-  const defs = el('defs', {});
-  svg.appendChild(defs);
-
-  // gridlines + y labels
-  const gridCount = 4;
-  for(let g=0; g<=gridCount; g++){
-    const val = (maxVal/gridCount)*g;
-    const y = yScale(val);
-    svg.appendChild(el('line', {x1:padL, x2:padL+plotW, y1:y, y2:y, class:'gridLine'}));
-    const t = el('text', {x:padL-8, y:y+4, class:'axisText', 'text-anchor':'end'});
-    t.textContent = (val/100000).toFixed(val<100000?1:0) + 'L';
-    svg.appendChild(t);
-  }
-
+  let maxVal = 0; data.forEach(d => seriesConfigs.forEach(s => { if(d[s.key] > maxVal) maxVal = d[s.key]; })); maxVal = maxVal * 1.08 || 1;
+  const n = data.length; const xScale = idx => padL + (n===1 ? 0 : idx/(n-1)) * plotW; const yScale = val => padT + plotH - (val/maxVal)*plotH;
+  const defs = el('defs', {}); svg.appendChild(defs);
+  // grid + y labels
+  for(let g=0; g<=4; g++){ const val = (maxVal/4)*g; const y = yScale(val); svg.appendChild(el('line', {x1:padL, x2:padL+plotW, y1:y, y2:y, class:'gridLine'})); const t = el('text', {x:padL-8, y:y+4, class:'axisText', 'text-anchor':'end'}); t.textContent = (val/100000).toFixed(val<100000?1:0)+'L'; svg.appendChild(t); }
   // x labels
   const step = Math.max(1, Math.round(n/8));
-  for(let idx=0; idx<n; idx+=step){
-    const x = xScale(idx);
-    const t = el('text', {x, y:H-10, class:'axisText', 'text-anchor':'middle'});
-    t.textContent = data[idx].label;
-    svg.appendChild(t);
-  }
-
-  // series paths
-  seriesConfigs.forEach((s, si) => {
-    let d = '';
-    data.forEach((row, idx) => {
-      const x = xScale(idx), y = yScale(row[s.key]);
-      d += (idx===0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
-    });
-    if(opts.style === 'mountain'){
-      const gradId = 'grad_' + svg.id + '_' + si;
-      const grad = el('linearGradient', {id:gradId, x1:'0', y1:'0', x2:'0', y2:'1'});
-      grad.appendChild(el('stop', {offset:'5%', 'stop-color':s.color, 'stop-opacity':0.5}));
-      grad.appendChild(el('stop', {offset:'95%', 'stop-color':s.color, 'stop-opacity':0.03}));
-      defs.appendChild(grad);
-      const areaD = d + 'L' + xScale(n-1).toFixed(1) + ',' + (padT+plotH).toFixed(1) +
-                    ' L' + xScale(0).toFixed(1) + ',' + (padT+plotH).toFixed(1) + ' Z';
-      svg.appendChild(el('path', {d:areaD, fill:'url(#'+gradId+')', stroke:'none'}));
-    }
-    svg.appendChild(el('path', {d:d.trim(), fill:'none', stroke:s.color, 'stroke-width':2}));
-  });
-
-  // hover interaction
-  const hoverGroup = el('g', {style:'display:none'});
-  const hoverLine = el('line', {class:'hoverLine', y1:padT, y2:padT+plotH});
-  hoverGroup.appendChild(hoverLine);
-  const dots = seriesConfigs.map(s => el('circle', {r:3.5, fill:s.color}));
-  dots.forEach(dot => hoverGroup.appendChild(dot));
-  const fo = el('foreignObject', {width:180, height:20+seriesConfigs.length*16});
-  const div = document.createElement('div');
-  div.className = 'tooltipBox';
-  fo.appendChild(div);
-  hoverGroup.appendChild(fo);
-  svg.appendChild(hoverGroup);
-
+  for(let idx=0; idx<n; idx+=step){ const x = xScale(idx); const t = el('text', {x, y:H-10, class:'axisText', 'text-anchor':'middle'}); t.textContent = data[idx].label; svg.appendChild(t); }
+  // series
+  seriesConfigs.forEach((s, si) => { let d=''; data.forEach((row, idx) => { const x=xScale(idx), y=yScale(row[s.key]); d += (idx===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' '; }); if(opts.style === 'mountain'){ const gradId = 'grad_'+svg.id+'_'+si; const grad = el('linearGradient', {id:gradId, x1:'0', y1:'0', x2:'0', y2:'1'}); grad.appendChild(el('stop', {offset:'5%', 'stop-color':s.color, 'stop-opacity':0.5})); grad.appendChild(el('stop', {offset:'95%', 'stop-color':s.color, 'stop-opacity':0.03})); defs.appendChild(grad); const areaD = d + 'L'+xScale(n-1).toFixed(1)+','+(padT+plotH)+' L'+xScale(0).toFixed(1)+','+(padT+plotH)+' Z'; svg.appendChild(el('path', {d:areaD, fill:'url(#'+gradId+')', stroke:'none'})); } svg.appendChild(el('path', {d:d.trim(), fill:'none', stroke:s.color, 'stroke-width':2})); });
+  // hover
+  const hoverGroup = el('g', {style:'display:none'}); const hoverLine = el('line', {class:'hoverLine', y1:padT, y2:padT+plotH}); hoverGroup.appendChild(hoverLine);
+  const dots = seriesConfigs.map(s => el('circle', {r:3.5, fill:s.color})); dots.forEach(dot => hoverGroup.appendChild(dot));
+  const fo = el('foreignObject', {width:180, height:20+seriesConfigs.length*16}); const div = document.createElement('div'); div.className = 'tooltip-box'; fo.appendChild(div); hoverGroup.appendChild(fo); svg.appendChild(hoverGroup);
   const capture = el('rect', {x:padL, y:padT, width:plotW, height:plotH, fill:'transparent'});
-  capture.addEventListener('mousemove', (evt) => {
-    const pt = svg.createSVGPoint();
-    pt.x = evt.clientX; pt.y = evt.clientY;
-    const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
-    let idx = Math.round(((loc.x - padL)/plotW) * (n-1));
-    idx = Math.max(0, Math.min(n-1, idx));
-    const row = data[idx];
-    const x = xScale(idx);
-    hoverLine.setAttribute('x1', x); hoverLine.setAttribute('x2', x);
-    dots.forEach((dot, si) => {
-      dot.setAttribute('cx', x);
-      dot.setAttribute('cy', yScale(row[seriesConfigs[si].key]));
-    });
-    let foX = x + 10;
-    if(foX + 180 > W) foX = x - 190;
-    fo.setAttribute('x', foX); fo.setAttribute('y', padT+4);
-    div.innerHTML = '<div style="color:var(--text);font-family:var(--mono);margin-bottom:4px;">'+row.label+'</div>' +
-      seriesConfigs.map(s => '<div style="color:'+s.color+'">'+s.name+': '+inr(row[s.key])+'</div>').join('');
-    hoverGroup.style.display = 'block';
-  });
+  capture.addEventListener('mousemove', (evt) => { const pt = svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; const loc = pt.matrixTransform(svg.getScreenCTM().inverse()); let idx = Math.round(((loc.x-padL)/plotW)*(n-1)); idx = Math.max(0, Math.min(n-1, idx)); const row = data[idx]; const x = xScale(idx); hoverLine.setAttribute('x1', x); hoverLine.setAttribute('x2', x); dots.forEach((dot, si) => { dot.setAttribute('cx', x); dot.setAttribute('cy', yScale(row[seriesConfigs[si].key])); }); let foX = x+10; if(foX+180 > W) foX = x-190; fo.setAttribute('x', foX); fo.setAttribute('y', padT+4); div.innerHTML = '<div style="color:var(--tool-text);font-family:var(--font-mono);margin-bottom:4px;">'+row.label+'</div>' + seriesConfigs.map(s => '<div style="color:'+s.color+'">'+s.name+': '+inr(row[s.key])+'</div>').join(''); hoverGroup.style.display = 'block'; });
   capture.addEventListener('mouseleave', () => { hoverGroup.style.display = 'none'; });
   svg.appendChild(capture);
 }
 
 // ================= Render =================
-function computeAll(){
-  const tenureMonths = state.years * 12;
-  const baseline = buildSchedule(state.interestType, state.principal, state.rate, tenureMonths, {});
-  const actual = buildSchedule(state.interestType, state.principal, state.rate, tenureMonths, state.extraMap);
-  return {tenureMonths, baseline, actual};
-}
-
+function computeAll(){ const months = state.years*12; const base = buildSchedule(state.interestType, state.principal, state.rate, months, {}); const actual = buildSchedule(state.interestType, state.principal, state.rate, months, state.extraMap); return {tenureMonths: months, baseline: base, actual}; }
 function render(){
   const {tenureMonths, baseline, actual} = computeAll();
-
   document.getElementById('emiOut').textContent = inr(actual.emi);
-
-  const feeAmount = state.feeType === 'percent' ? (state.principal * state.feeValue)/100 : state.feeValue;
-  const netDisbursal = state.principal - feeAmount;
-  document.getElementById('feeAmountOut').textContent = inr(feeAmount);
-  document.getElementById('netDisbursalOut').textContent = inr(netDisbursal);
-
+  const feeAmt = state.feeType === 'percent' ? (state.principal*state.feeValue)/100 : state.feeValue; const netDis = state.principal - feeAmt;
+  document.getElementById('feeAmountOut').textContent = inr(feeAmt); document.getElementById('netDisbursalOut').textContent = inr(netDis);
   const flatNote = document.getElementById('flatNote');
-  if(state.interestType === 'flat'){
-    flatNote.style.display = 'block';
-    const effRate = actual.meta.effectiveRate ? actual.meta.effectiveRate.toFixed(2) : '—';
-    flatNote.innerHTML = 'Flat/simple interest is charged on the full original principal for the whole tenure, split into equal ' +
-      'interest instalments — common for personal, vehicle, and some gold loans in India. At ' + state.rate + '% flat, your EMI of ' +
-      inr(actual.emi) + ' works out to roughly <strong style="color:var(--amber)">' + effRate + '% effective annual rate</strong> on a ' +
-      'reducing-balance basis — noticeably higher than the quoted flat rate. This calculator assumes any interest scheduled for ' +
-      'months skipped by a full prepayment is waived; many real lenders don\'t reduce flat interest for prepayment at all, so check ' +
-      'your loan agreement.';
-  } else {
-    flatNote.style.display = 'none';
-  }
-
-  const baselineTotalInterest = baseline.rows.length ? baseline.rows[baseline.rows.length-1].cumInterest : 0;
-  const actualTotalInterest = actual.rows.length ? actual.rows[actual.rows.length-1].cumInterest : 0;
-  const interestSaved = baselineTotalInterest - actualTotalInterest;
-  const monthsSaved = baseline.rows.length - actual.rows.length;
-  const totalExtraPaid = actual.rows.length ? actual.rows[actual.rows.length-1].cumExtra : 0;
-  const totalCostOfLoan = actualTotalInterest + feeAmount;
-
-  const summaryRow = document.getElementById('summaryRow');
-  summaryRow.innerHTML = '';
-  const cards = [
-    {label:'Interest saved', value:inr(interestSaved), tone:'good'},
-    {label:'Time saved', value: monthsSaved>0 ? years12(monthsSaved) : '—', tone:'good'},
-    {label:'Extra paid in total', value:inr(totalExtraPaid), tone:'neutral'},
-    {label:'New payoff', value: years12(actual.rows.length) + ' (of ' + state.years + 'y)', tone:'neutral'},
-    {label:'Processing fee', value:inr(feeAmount), tone:'neutral'},
-    {label:'Total cost of loan', value:inr(totalCostOfLoan), tone:'bad'},
-  ];
-  cards.forEach(c => {
-    const div = document.createElement('div');
-    div.className = 'summaryCard';
-    div.innerHTML = '<div class="summaryLabel">'+c.label+'</div><div class="summaryValue '+c.tone+'">'+c.value+'</div>';
-    summaryRow.appendChild(div);
-  });
-
-  // balance chart data
-  const len = Math.max(baseline.rows.length, actual.rows.length);
-  const chartData = [];
-  for(let idx=0; idx<len; idx++){
-    const b = baseline.rows[idx], a = actual.rows[idx];
-    chartData.push({
-      label: b ? b.label : a.label,
-      baseline: b ? Math.round(b.closing) : 0,
-      withExtra: a ? Math.round(a.closing) : 0,
-    });
-  }
-  drawChart(document.getElementById('balanceChart'), chartData,
-    [{key:'baseline', color:'var(--muted)', name:'Original schedule'}, {key:'withExtra', color:'var(--amber)', name:'With prepayments'}],
-    {style: state.chartStyle});
-
-  // rent section
-  if(state.showRent){
-    document.getElementById('rentYearsOut').textContent = state.years + ' years (loan tenure)';
-    const rentMonths = state.years * 12;
-    const rentSeries = buildRentSeries(state.rentAmount, state.rentIncrease, rentMonths);
-    const rentChartData = rentSeries.map((r, idx) => {
-      const a = actual.rows[idx];
-      const cumLoanPaid = a ? a.cumPaid : (actual.rows.length ? actual.rows[actual.rows.length-1].cumPaid : 0);
-      return {label: monthLabel(r.month), cumRent: Math.round(r.cumRent), cumLoanPaid: Math.round(cumLoanPaid)};
-    });
-    drawChart(document.getElementById('rentChart'), rentChartData,
-      [{key:'cumRent', color:'var(--red)', name:'Cumulative rent'}, {key:'cumLoanPaid', color:'var(--teal)', name:'Cumulative loan payments'}],
-      {style:'mountain'});
-    const totalRentPaid = rentSeries.length ? rentSeries[rentSeries.length-1].cumRent : 0;
-    const totalLoanPaid = rentChartData.length ? rentChartData[rentChartData.length-1].cumLoanPaid : 0;
-    document.getElementById('rentNote').innerHTML = 'Over ' + state.years + ' years: rent totals ' + inr(totalRentPaid) +
-      ', loan payments total ' + inr(totalLoanPaid) +
-      ' — but the loan builds equity in a property while rent does not. This is a cash-flow comparison only; it excludes ' +
-      'property appreciation, taxes, maintenance, and opportunity cost of the down payment. Not financial advice.';
-  }
-
+  if(state.interestType === 'flat'){ flatNote.classList.remove('hidden'); const eff = actual.meta.effectiveRate?.toFixed(2) || '—'; flatNote.innerHTML = 'Flat/simple interest is charged on the full original principal for the whole tenure, split into equal interest instalments — common for personal, vehicle, and some gold loans in India. At '+state.rate+'% flat, your EMI of '+inr(actual.emi)+' works out to roughly <strong style="color:var(--tool-amber)">'+eff+'% effective annual rate</strong> on a reducing-balance basis — noticeably higher than the quoted flat rate. This calculator assumes any interest scheduled for months skipped by a full prepayment is waived; many real lenders don\'t reduce flat interest for prepayment at all, so check your loan agreement.'; } else { flatNote.classList.add('hidden'); }
+  const baseTotalInt = baseline.rows.length ? baseline.rows[baseline.rows.length-1].cumInterest : 0;
+  const actTotalInt = actual.rows.length ? actual.rows[actual.rows.length-1].cumInterest : 0;
+  const intSaved = baseTotalInt - actTotalInt; const moSaved = baseline.rows.length - actual.rows.length; const totalExtra = actual.rows.length ? actual.rows[actual.rows.length-1].cumExtra : 0; const totalCost = actTotalInt + feeAmt;
+  const summaryRow = document.getElementById('summaryRow'); summaryRow.innerHTML = '';
+  const cards = [ {label:'Interest saved', value:inr(intSaved), tone:'good'}, {label:'Time saved', value: moSaved>0 ? years12(moSaved) : '—', tone:'good'}, {label:'Extra paid', value:inr(totalExtra), tone:'neutral'}, {label:'New payoff', value: years12(actual.rows.length)+' (of '+state.years+'y)', tone:'neutral'}, {label:'Processing fee', value:inr(feeAmt), tone:'neutral'}, {label:'Total cost', value:inr(totalCost), tone:'bad'} ];
+  cards.forEach(c => { const div = document.createElement('div'); div.className = 'summary-card'; div.innerHTML = '<div class="summary-label">'+c.label+'</div><div class="summary-value summary-value--'+c.tone+'">'+c.value+'</div>'; summaryRow.appendChild(div); });
+  // balance chart
+  const len = Math.max(baseline.rows.length, actual.rows.length); const chartData = [];
+  for(let idx=0; idx<len; idx++){ const b=baseline.rows[idx], a=actual.rows[idx]; chartData.push({label: b?b.label:a.label, baseline: b?Math.round(b.closing):0, withExtra: a?Math.round(a.closing):0}); }
+  drawChart(document.getElementById('balanceChart'), chartData, [{key:'baseline', color:'var(--tool-muted)', name:'Original schedule'}, {key:'withExtra', color:'var(--tool-amber)', name:'With prepayments'}], {style: state.chartStyle});
+  // rent
+  if(state.showRent){ document.getElementById('rentYearsOut').textContent = state.years+' years'; const rentMonths = state.years*12; const rSeries = buildRentSeries(state.rentAmount, state.rentIncrease, rentMonths); const rData = rSeries.map((r, idx) => { const a = actual.rows[idx]; const cumLoan = a?a.cumPaid:(actual.rows.length?actual.rows[actual.rows.length-1].cumPaid:0); return {label: monthLabel(r.month), cumRent: Math.round(r.cumRent), cumLoanPaid: Math.round(cumLoan)}; }); drawChart(document.getElementById('rentChart'), rData, [{key:'cumRent', color:'var(--tool-red)', name:'Cumulative rent'}, {key:'cumLoanPaid', color:'var(--tool-teal)', name:'Cumulative loan payments'}], {style:'mountain'}); const totalRent = rSeries.length?rSeries[rSeries.length-1].cumRent:0; const totalLoan = rData.length?rData[rData.length-1].cumLoanPaid:0; document.getElementById('rentNote').innerHTML = 'Over '+state.years+' years: rent totals '+inr(totalRent)+', loan payments total '+inr(totalLoan)+' — but the loan builds equity in a property while rent does not. This excludes property appreciation, taxes, maintenance, and opportunity cost of the down payment. Not financial advice.'; }
   // amortization table
-  const tbody = document.getElementById('amortBody');
-  // Typing in an Extra cell re-renders the whole table. innerHTML='' detaches
-  // the nodes but a held reference survives, so keep the cell being edited and
-  // put it back — rebuilding it loses the caret (setSelectionRange throws on
-  // type="number"), which prepends every keystroke.
-  const keepEl = document.activeElement && document.activeElement.closest
-    && document.activeElement.closest('#amortBody') ? document.activeElement : null;
-  const keepMonth = keepEl ? keepEl.dataset.month : null;
-  tbody.innerHTML = '';
-  const frag = document.createDocumentFragment();
-  actual.rows.forEach(r => {
-    const tr = document.createElement('tr');
-    tr.innerHTML =
-      '<td>'+r.label+'</td>' +
-      '<td>'+inr(r.opening)+'</td>' +
-      '<td>'+inr(r.emi)+'</td>' +
-      '<td>'+inr(r.principal)+'</td>' +
-      '<td>'+inr(r.interest)+'</td>' +
-      '<td><input type="number" data-month="'+r.month+'" value="'+(state.extraMap[r.month]||'')+'" placeholder="0"></td>' +
-      '<td class="closingCell">'+inr(r.closing)+'</td>';
-    frag.appendChild(tr);
-  });
-  tbody.appendChild(frag);
-  if(keepEl){
-    const fresh = tbody.querySelector('input[data-month="'+keepMonth+'"]');
-    // replaceWith alone doesn't restore focus (removing an element blurs it
-    // for good); focus() puts the caret at the end, which is where typing
-    // was. type="number" hides selectionStart, so we can't set it manually.
-    // Sync the value first: on clear/bulk the model changed under us, and
-    // resurrecting the old node verbatim would strand its stale value.
-    if(fresh){ keepEl.value = fresh.value; fresh.replaceWith(keepEl); keepEl.focus(); }
-  }
+  const tbody = document.getElementById('amortBody'); const keepEl = document.activeElement?.closest?.('#amortBody') ? document.activeElement : null; const keepMonth = keepEl ? keepEl.dataset.month : null; tbody.innerHTML = ''; const frag = document.createDocumentFragment(); actual.rows.forEach(r => { const tr = document.createElement('tr'); tr.innerHTML = '<td>'+r.label+'</td><td>'+inr(r.opening)+'</td><td>'+inr(r.emi)+'</td><td>'+inr(r.principal)+'</td><td>'+inr(r.interest)+'</td><td><input type="number" data-month="'+r.month+'" value="'+(state.extraMap[r.month]||'')+'" placeholder="0"></td><td class="closing-cell">'+inr(r.closing)+'</td>'; frag.appendChild(tr); }); tbody.appendChild(frag); if(keepEl){ const fresh = tbody.querySelector('input[data-month="'+keepMonth+'"]'); if(fresh){ keepEl.value = fresh.value; fresh.replaceWith(keepEl); keepEl.focus(); } }
 }
-
 // ================= Wiring =================
-function bindNumberInput(id, key, transform){
-  document.getElementById(id).addEventListener('input', (e) => {
-    let v = Number(e.target.value) || 0;
-    if(transform) v = transform(v);
-    state[key] = v;
-    render();
-  });
-}
-bindNumberInput('principal', 'principal');
-bindNumberInput('rate', 'rate');
-bindNumberInput('years', 'years', v => Math.max(1, Math.round(v)));
-bindNumberInput('feeValue', 'feeValue');
-bindNumberInput('rentAmount', 'rentAmount');
-bindNumberInput('rentIncrease', 'rentIncrease');
-bindNumberInput('bulkMonth', 'bulkMonth', v => Math.max(1, Math.round(v)));
-bindNumberInput('bulkAmount', 'bulkAmount');
-bindNumberInput('bulkEvery', 'bulkEvery', v => Math.max(0, Math.round(v)));
-
-function wireToggleGroup(id, stateKey){
-  const group = document.getElementById(id);
-  group.querySelectorAll('.toggleBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      group.querySelectorAll('.toggleBtn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state[stateKey] = btn.dataset.val;
-      render();
-    });
-  });
-}
-wireToggleGroup('interestTypeToggle', 'interestType');
-wireToggleGroup('feeTypeToggle', 'feeType');
-wireToggleGroup('chartStyleToggle', 'chartStyle');
-
-document.getElementById('showRentToggle').addEventListener('change', (e) => {
-  state.showRent = e.target.checked;
-  document.getElementById('rentBody').style.display = state.showRent ? 'block' : 'none';
-  render();
-});
-
-document.getElementById('applyBulkBtn').addEventListener('click', () => {
-  const tenureMonths = state.years * 12;
-  if(state.bulkEvery > 0){
-    for(let m = state.bulkMonth; m <= tenureMonths; m += state.bulkEvery){
-      state.extraMap[m] = (state.extraMap[m] || 0) + state.bulkAmount;
-    }
-  } else {
-    state.extraMap[state.bulkMonth] = (state.extraMap[state.bulkMonth] || 0) + state.bulkAmount;
-  }
-  render();
-});
-document.getElementById('clearExtrasBtn').addEventListener('click', () => {
-  const last = { ...state.extraMap };
-  state.extraMap = {};
-  render();
-  if(Object.keys(last).length){
-    const undo = document.getElementById('undoClearBtn');
-    undo.hidden = false;
-    clearTimeout(undo._t);
-    undo._t = setTimeout(() => { undo.hidden = true; }, 8000);
-    undo.onclick = () => { state.extraMap = last; undo.hidden = true; render(); };
-  }
-});
-
-// delegated input for per-row extra payment
-document.getElementById('amortBody').addEventListener('input', (e) => {
-  if(e.target.tagName === 'INPUT'){
-    const m = Number(e.target.dataset.month);
-    const val = Number(e.target.value) || 0;
-    if(val <= 0) delete state.extraMap[m];
-    else state.extraMap[m] = val;
-    render();
-  }
-});
-
+function bindInput(id, key, transform){ document.getElementById(id).addEventListener('input', e => { let v = Number(e.target.value)||0; if(transform) v=transform(v); state[key]=v; render(); }); }
+bindInput('principal', 'principal'); bindInput('rate', 'rate'); bindInput('years', 'years', v=>Math.max(1, Math.round(v))); bindInput('feeValue', 'feeValue'); bindInput('rentAmount', 'rentAmount'); bindInput('rentIncrease', 'rentIncrease'); bindInput('bulkMonth', 'bulkMonth', v=>Math.max(1, Math.round(v))); bindInput('bulkAmount', 'bulkAmount'); bindInput('bulkEvery', 'bulkEvery', v=>Math.max(0, Math.round(v)));
+function wireToggle(id, key){ document.getElementById(id).querySelectorAll('.toggle-btn').forEach(btn => { btn.addEventListener('click', () => { btn.parentElement.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('toggle-btn--active')); btn.classList.add('toggle-btn--active'); state[key]=btn.dataset.val; render(); }); }); }
+wireToggle('interestTypeToggle', 'interestType'); wireToggle('feeTypeToggle', 'feeType'); wireToggle('chartStyleToggle', 'chartStyle');
+document.getElementById('showRentToggle').addEventListener('change', e => { state.showRent = e.target.checked; document.getElementById('rentBody').classList.toggle('hidden', !state.showRent); render(); });
+document.getElementById('applyBulkBtn').addEventListener('click', () => { const months = state.years*12; if(state.bulkEvery > 0){ for(let m=state.bulkMonth; m<=months; m+=state.bulkEvery) state.extraMap[m] = (state.extraMap[m]||0)+state.bulkAmount; } else { state.extraMap[state.bulkMonth] = (state.extraMap[state.bulkMonth]||0)+state.bulkAmount; } render(); });
+document.getElementById('clearExtrasBtn').addEventListener('click', () => { const last = {...state.extraMap}; state.extraMap = {}; render(); if(Object.keys(last).length){ const undo = document.getElementById('undoClearBtn'); undo.classList.remove('hidden'); clearTimeout(undo._t); undo._t = setTimeout(() => undo.classList.add('hidden'), 8000); undo.onclick = () => { state.extraMap = last; undo.classList.add('hidden'); render(); }; } });
+document.getElementById('amortBody').addEventListener('input', e => { if(e.target.tagName === 'INPUT'){ const m = Number(e.target.dataset.month); const val = Number(e.target.value)||0; if(val <= 0) delete state.extraMap[m]; else state.extraMap[m] = val; render(); } });
 render();
 </script>
 </body>
