@@ -70,7 +70,7 @@
         setTimeout(() => overlay.remove(), 200);
       };
       overlay.querySelector('.tool-dialog-cancel').addEventListener('click', () => { resolve(false); close(); });
-      overlay.querySelector('.tool-dialog-confirm').addEventListener('click', () => { resolve(true); close(); });
+      overlay.querySelector('.tool-dialog-confirm').addEventListener('click', () => { if (onConfirm) onConfirm(); resolve(true); close(); });
       overlay.addEventListener('click', (e) => { if (e.target === overlay) { resolve(false); close(); } });
       document.body.appendChild(overlay);
       // Force reflow for animation

@@ -126,7 +126,7 @@
     });
 
     // Animate points on scroll
-    points.forEach((point, i) => {
+    points.forEach((point) => {
       gsap.fromTo(point,
         { opacity: 0.3, x: -40 },
         {
@@ -147,7 +147,7 @@
 
     // Gallery items - scale and fade on scroll
     const galleryItems = gsap.utils.toArray('.gallery-item');
-    galleryItems.forEach((item, i) => {
+    galleryItems.forEach((item) => {
       gsap.fromTo(item,
         { opacity: 0, scale: 0.9, y: 40 },
         {
