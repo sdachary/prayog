@@ -910,3 +910,7 @@ thinking-orb { display: inline-block; margin: -3px 0; vertical-align: middle; }
   .tool-page { background: white; color: black; }
   .tool-wrap { padding: 0; }
 }
+/* Phase 2 orb status rows: decorative orb + adjacent role=status text. */
+.orb-status { display: flex; align-items: center; gap: var(--tool-space-2); margin-top: var(--tool-space-2); }
+.orb-status thinking-orb { flex: none; }
+.orb-status .tool-hint { margin: 0; }

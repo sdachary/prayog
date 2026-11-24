@@ -4,7 +4,7 @@
   "description": "Prayog - Static site",
   "private": true,
   "scripts": {
-    "test": "echo \"No tests specified\" && exit 0",
+    "test": "node --test test/orb-mapping.test.js",
     "lint": "npm run lint:html && npm run lint:css && npm run lint:js",
     "lint:html": "htmlhint \"**/*.html\"",
     "lint:css": "stylelint \"**/*.css\"",

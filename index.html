@@ -27,6 +27,8 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
 
 <!-- Scripts -->
 <script src="/assets/nav.js" defer></script>
+<script src="/assets/vendor/thinking-orbs-engine.js" defer></script>
+<script src="/assets/orb.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="/assets/landing.js" defer></script>
@@ -66,6 +68,11 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
     <!-- Brand mark -->
     <div class="hero-mark" aria-hidden="true">
       <svg viewBox="0 0 64 64"><text x="32" y="43" font-family="monospace" font-size="36" font-weight="700" fill="currentColor" text-anchor="middle">//</text></svg>
+    </div>
+
+    <div class="hero-orb-row">
+      <thinking-orb state="breathing" size="64" aria-hidden="true"></thinking-orb>
+      <span class="sr-only" role="status">Prayog tools are ready</span>
     </div>
 
     <!-- Brand name -->
